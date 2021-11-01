@@ -12,23 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#define DEFINE_FOLDERS_AND_EVENTS /*+ remove */
 #include "event_instrumenting.h"
 #include "event_clocks.h"
 #include "event_file_flush.h"
-//*+*/#include <stddef.h>
 
-void *G_instance = NULL; // Global to all file; hence 'G_'
+// Global handle to the event session
+//   - Global to all files; hence 'G_'
+//   - If multiple recording sessions to different output need to be created, then don't use a global value
+void *G_instance = NULL;
 
-static FileFlushInfo L_flush_info; // Global only to this file; hence 'L_'
+// Handle to flushing events to a file
+//   - Global only to this file; hence 'L_'
+//   - If flushing to a different type of output stream, this will need to replaced
+static FileFlushInfo L_flush_info;
 
-void initEventIntrumenting(const char *filename, uint32_t max_events, bool flush_when_full, bool is_threaded, bool record_instance, bool record_value, bool record_location) {
-  uint16_t num_folders = 0; /*+ pass in L_folders as argument */
-  if (L_folders != NULL) { /*+ pass in L_folders as argument */
-    num_folders = sizeof(L_folders) / sizeof(UkFolderInfo);
-  }
-  uint16_t num_event_types = sizeof(L_events) / sizeof(UkEventInfo); /*+ pass in L_folders as argument */
-
+void initEventIntrumenting(const char *filename, uint32_t max_events, bool flush_when_full, bool is_threaded, bool record_instance, bool record_value, bool record_location,
+                           uint16_t num_folders, UkFolderInfo *folder_info_list, uint16_t num_event_types, UkEventInfo *event_info_list) {
   UkAttrs attrs = {
     .max_event_count = max_events,
     .flush_when_full = flush_when_full,
@@ -37,9 +36,9 @@ void initEventIntrumenting(const char *filename, uint32_t max_events, bool flush
     .record_value = record_value,
     .record_file_location = record_location,
     .folder_info_count = num_folders,
-    .folder_info_list = L_folders,
+    .folder_info_list = folder_info_list,
     .event_info_count = num_event_types,
-    .event_info_list = L_events,
+    .event_info_list = event_info_list
   };
 
   // Prepare the flush info

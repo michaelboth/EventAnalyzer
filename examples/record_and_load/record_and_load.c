@@ -1,3 +1,4 @@
+#define DEFINE_FOLDERS_AND_EVENTS
 #include "event_instrumenting.h"
 #include "events_loader.h"
 #include <math.h>

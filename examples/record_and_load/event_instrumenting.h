@@ -18,6 +18,7 @@ enum {
   SQRT_END_ID
 };
 
+// IMPORTANT: Call #define DEFINE_FOLDERS_AND_EVENTS, just before #include "event_instrumenting.h", in the file that calls EVENTS_INIT()
 #ifdef DEFINE_FOLDERS_AND_EVENTS
 static UkFolderInfo L_folders[] = {
   { "Folder 1", FOLDER1_ID},
@@ -31,7 +32,9 @@ static UkEventInfo L_events[] = {
 
 // Overall
 #define EVENTS_GLOBAL_INSTANCE extern void *G_instance     // Use this in every file that need to record events
-#define EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location) initEventIntrumenting(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location)
+#ifdef DEFINE_FOLDERS_AND_EVENTS
+  #define EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location) initEventIntrumenting(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, sizeof(L_folders) / sizeof(UkFolderInfo), L_folders, sizeof(L_events) / sizeof(UkEventInfo), L_events)
+#endif
 #define EVENTS_FLUSH() ukFlush(G_instance)
 #define EVENTS_FINALIZE() finalizeEventIntrumenting()
 // Folders
@@ -48,7 +51,9 @@ static UkEventInfo L_events[] = {
 extern "C"
 {
 #endif
-  extern void initEventIntrumenting(const char *filename, uint32_t max_events, bool flush_when_full, bool is_threaded, bool record_instance, bool record_value, bool record_location);
+  extern void initEventIntrumenting(const char *filename, uint32_t max_events, bool flush_when_full, bool is_threaded, bool record_instance, bool record_value, bool record_location,
+                                    uint16_t num_folders, UkFolderInfo *folder_info_list, uint16_t num_event_types, UkEventInfo *event_info_list);
+
   extern void finalizeEventIntrumenting();
 #ifdef __cplusplus
 }
