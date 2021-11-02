@@ -1,7 +1,8 @@
 # Unikorn Software Event Analyzer (C API and GUI Visualizer)
 With the increased complexity of modern hardware and software, optimizing an application for performance is sometimes like trying to find a **unicorn**. Going green is more important than ever. Stop accepting poor performing software or using more hardware as a kludge to fix bad performance. Unikorn is so easy to use, it should be with daily development from the application's inception to distribution.
 ## Instrumenting Your Application with Events
-Include the Unikorn header file:
+I'll step through the ```examples/hello1/``` example to get you familiar with event instrumentation.
+First, include the Unikorn header file:
 ```C
 #include "unikorn.h"
 ```
@@ -122,3 +123,36 @@ FileFlushInfo flush_info = {
 All the components needed for creating the event session are now defined. Now, create the event recording session:
 ```C
 void *session = ukCreate(&attrs, getEventTime, &flush_info, prepareFileFlush, fileFlush, finishFileFlush);
+```
+Now that the event session is created, you can start using the events throughout your application. To record a section of source code, just record the start and stop events. This can be done around a single line of source code, or around a large block of source code:
+```C
+// Quick sort
+ukRecordEvent(session, QUICK_SORT_START_ID, 0.0, __FILE__, __FUNCTION__, __LINE__);
+myCustomQuickSort(element_list, num_elements);
+ukRecordEvent(session, QUICK_SORT_END_ID, 0.0, __FILE__, __FUNCTION__, __LINE__);
+
+// Merge sort
+ukRecordEvent(session, MERGE_SORT_START_ID, 0.0, __FILE__, __FUNCTION__, __LINE__);
+myCustomMergeSort(element_list, num_elements);
+ukRecordEvent(session, MERGE_SORT_END_ID, 0.0, __FILE__, __FUNCTION__, __LINE__);
+```
+This is an overly simple example, you might have dozzens of different types of events, and you might record millions of events over a short period of time. When you're ready to flush the events to file, all you need to do is:
+```C
+ukFlush(session);
+```
+When you're done recording events, then you just need to free the event session:
+```C
+ukDestroy(session);
+```
+That's it.
+You could create a set of conveinece files for instrumentating all your applications. I've already created some reference files to do this in the folder ```ref/```:
+```
+ref/event_clocks.c           # Some useful clock for various OSes
+ref/event_clocks.h           # Header file for event_clocks.c
+ref/event_file_flush.c       # Functions to flush events to a file
+ref/event_file_flush.h       # Header file for event_file_flush.c
+ref/event_instrumenting.c    # Reusable code for defining an event session
+```
+Then use a custom header file to define the folders and events, like with the example ```examples/hello2/```
+## Visualizing Events with the GUI
+To be completed, please stand by...
