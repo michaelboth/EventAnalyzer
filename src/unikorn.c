@@ -42,8 +42,8 @@
 #define INITIAL_LIST_SIZE 10
 //*+*/#define ENABLE_ASSERTS only use with recording functions
 
-#define PRINT_INIT_INFO
-#define PRINT_FLUSH_INFO
+//#define PRINT_INIT_INFO
+//#define PRINT_FLUSH_INFO
 //#define PRINT_RECORD_INFO
 
 typedef struct {

@@ -4,7 +4,7 @@ HEADER_FILES := unikorn.h
 LIBRARY      := libunikorn.a
 
 # Check if threading is enabled
-ifeq ($(THREADED),Yes)
+ifeq ($(THREAD_SAFE),Yes)
     CFLAGS += -pthread -DALLOW_THREADING
 endif
 

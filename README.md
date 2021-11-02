@@ -1,10 +1,20 @@
 # Unikorn Software Event Analyzer (C API and GUI Visualizer)
 With the increased complexity of modern hardware and software, optimizing an application for performance is sometimes like trying to find a **unicorn**. Going green is more important than ever. Stop accepting poor performing software or using more hardware as a kludge to fix bad performance. Unikorn is so easy to use, it should be with daily development from the application's inception to distribution.
+## Building Unikorn's C Library
+Linux:
+```
+> cd unikorn/lib
+> make THREAD_SAFE=Yes
+```
+Windows:
+To be completed. Please stand by...
 ## Instrumenting Your Application with Events
 I'll step through the ```examples/hello1/``` example to get you familiar with event instrumentation.
-First, include the Unikorn header file:
+First, include the Unikorn header file plus some standard header files:
 ```C
 #include "unikorn.h"
+#include <stdio.h>
+#include <stdlib.h>
 ```
 Unikorn can record folders and events. Folders are just containers for holding groups of events, but are not required. Folders (if any) must be defined first. Each folder is assigned one ID and events are assigned a start ID and an end ID. IDs must start with 1 and each subsequent ID must be +1. Using a C `enum` makes this easy.  For this example, no folders will be defined, and we'll create events for two different sort routines:
 ```C
@@ -13,31 +23,31 @@ enum {
   // Events
   QUICK_SORT_START_ID=1,
   QUICK_SORT_END_ID,
-  MERGE_SORT_START_ID,
-  MERGE_SORT_END_ID
+  BUBBLE_SORT_START_ID,
+  BUBBLE_SORT_END_ID
 };
 ```
 Next, define the folders (none for this example) and events. Folders only need a name, and evends need a name and color:
 ```C
 UkEventInfo events[] = {
-  { "Quick Sort", QUICK_SORT_START_ID, QUICK_SORT_END_ID, UK_BLUE},
-  { "Merge Sort", MERGE_SORT_START_ID, MERGE_SORT_END_ID, UK_BLACK}
+  { "Quick Sort",  QUICK_SORT_START_ID,  QUICK_SORT_END_ID,  UK_BLUE},
+  { "Bubble Sort", BUBBLE_SORT_START_ID, BUBBLE_SORT_END_ID, UK_RED}
 };
 ```
 Next, fill in the attribute structure that defines the properties of the event recording session:
 ```C
-  UkAttrs attrs = {
-    .max_event_count = 10000,     // Max number of events that can be stored in the circular buffer
-    .flush_when_full = false,     // Only record when the app explicitly calls ukFlush();
-    .is_threaded = true,          // Record the thread ID; each thread will be displayed as a folder in the GUI
-    .record_instance = true,      // Record the couter indicating how many times this event was recorded
-    .record_value = true,         // Record a 64 bit double value with the event
-    .record_file_location = true, // Record file name, function name, and line number where the event was recorded
-    .folder_info_count = 0,
-    .folder_info_list = NULL,
-    .event_info_count = sizeof(events) / sizeof(UkEventInfo),
-    .event_info_list = events,
-  };
+UkAttrs attrs = {
+  .max_event_count = 10000,     // Max number of events that can be stored in the circular buffer
+  .flush_when_full = false,     // Only record when the app explicitly calls ukFlush();
+  .is_threaded = true,          // Record the thread ID; each thread will be displayed as a folder in the GUI
+  .record_instance = true,      // Record the couter indicating how many times this event was recorded
+  .record_value = true,         // Record a 64 bit double value with the event
+  .record_file_location = true, // Record file name, function name, and line number where the event was recorded
+  .folder_info_count = 0,
+  .folder_info_list = NULL,
+  .event_info_count = sizeof(events) / sizeof(UkEventInfo),
+  .event_info_list = events,
+};
 ```
 Next, define a clock to record the current time. Unikorn does not include a built in clock because there are too many clocks to choose from and each clock has different properties. For this example, we'll just use a standard Unix/Windows clock:
 ```C
@@ -114,7 +124,7 @@ bool finishFileFlush(void *user_data) {
 }
 
 FileFlushInfo flush_info = {
-  .filename = "./sort_routines.events",
+  .filename = "./hello.events",
   .file = NULL,
   .events_saved = false,
   .append_subsequent_saves = false
@@ -128,13 +138,13 @@ Now that the event session is created, you can start using the events throughout
 ```C
 // Quick sort
 ukRecordEvent(session, QUICK_SORT_START_ID, 0.0, __FILE__, __FUNCTION__, __LINE__);
-myCustomQuickSort(element_list, num_elements);
+myQuickSort(quick_sort_list, num_elements);
 ukRecordEvent(session, QUICK_SORT_END_ID, 0.0, __FILE__, __FUNCTION__, __LINE__);
 
-// Merge sort
-ukRecordEvent(session, MERGE_SORT_START_ID, 0.0, __FILE__, __FUNCTION__, __LINE__);
-myCustomMergeSort(element_list, num_elements);
-ukRecordEvent(session, MERGE_SORT_END_ID, 0.0, __FILE__, __FUNCTION__, __LINE__);
+// Bubble sort
+ukRecordEvent(session, BUBBLE_SORT_START_ID, 0.0, __FILE__, __FUNCTION__, __LINE__);
+myBubbleSort(bubble_sort_list, num_elements);
+ukRecordEvent(session, BUBBLE_SORT_END_ID, 0.0, __FILE__, __FUNCTION__, __LINE__);
 ```
 This is an overly simple example, you might have dozzens of different types of events, and you might record millions of events over a short period of time. When you're ready to flush the events to file, all you need to do is:
 ```C
