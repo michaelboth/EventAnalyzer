@@ -164,5 +164,13 @@ ref/event_file_flush.h       # Header file for event_file_flush.c
 ref/event_instrumenting.c    # Reusable code for defining an event session
 ```
 Then use a custom header file to define the folders and events, like with the example ```examples/hello2/```
+## Examples
+To help you get started, some examples are provided
+Example | Description
+--------|------------
+hello1 | The most basic example where everything is in a single C file
+hello2 | A more realistic example where the event instrumentation comes from separate files that can easily be excluded if event profiling is not needed
+test_clock | Determine the overhead and precision of a clock that is used with event recording. Helpfull if you need to use your own custom clock.
+record_and_load | Not really a customer example. It's used to validate the unikorn API and event loading file ref/events_loader.c
 ## Visualizing Events with the GUI
 To be completed, please stand by...
