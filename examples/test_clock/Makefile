@@ -1,0 +1,33 @@
+CFLAGS       := -std=gnu99 -Wall -Werror -pthread -I../../ref
+CFLAGS       += -O2
+#CFLAGS       += -g -O0
+C_OBJS       := test_clock.o event_clocks.o
+HEADER_FILES := event_clocks.h
+PRJ_LIBS     := 
+TARGET       := test_clock
+
+ifneq ($(MAKECMDGOALS),clean)
+    ifeq ($(CLOCK),clock_gettime)
+        CFLAGS += -DUSE_clock_gettime_MONOTONIC_CLOCK
+    else ifeq ($(CLOCK),gettimeofday)
+        CFLAGS += -DUSE_gettimeofday_CLOCK
+    else
+        $(error 'ERROR: need to specify one of: CLOCK=clock_gettime, CLOCK=gettimeofday')
+    endif
+endif
+
+vpath %.c ../../ref
+vpath %.h ../../ref
+
+all: $(TARGET)
+
+clean:
+	rm -f *.o
+	rm -f *~
+	rm -f $(TARGET)
+
+$(C_OBJS): %.o: %.c $(HEADER_FILES)
+	gcc $(CFLAGS) -c $< -o $@
+
+$(TARGET): $(C_OBJS)
+	gcc $(C_OBJS) $(PRJ_LIBS) -o $@

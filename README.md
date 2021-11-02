@@ -4,7 +4,7 @@ With the increased complexity of modern hardware and software, optimizing an app
 Linux:
 ```
 > cd unikorn/lib
-> make THREAD_SAFE=Yes
+> make RELEASE=Yes THREAD_SAFE=Yes
 ```
 Windows:
 To be completed. Please stand by...
