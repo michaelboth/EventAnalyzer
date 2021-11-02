@@ -154,8 +154,17 @@ When you're done recording events, then you just need to free the event session:
 ```C
 ukDestroy(session);
 ```
-That's it.
-You could create a set of conveinece files for instrumentating all your applications. I've already created some reference files to do this in the folder ```ref/```:
+That's it. If you want to try out the code from above, try out the ```examples/hello1``` example
+## Examples
+To help you get started, some examples are provided
+Example | Description
+--------|------------
+hello1 | The most basic example where everything is in a single C file
+hello2 | A more realistic example where the event instrumentation comes from separate files, from the ```ref/``` folder, that can easily be excluded if event profiling is not needed
+test_clock | Determine the overhead and precision of a clock that is used with event recording. Helpfull if you need to use your own custom clock.
+record_and_load | Not really a customer example. It's used to validate the unikorn API and event loading file ref/events_loader.c
+
+Some of the examples use reference files, from the ```ref/``` folder, in order to make it easy to remove event profiling when compiling. The files used with instrumenting are:
 ```
 ref/event_clocks.c           # Some useful clock for various OSes
 ref/event_clocks.h           # Header file for event_clocks.c
@@ -163,14 +172,12 @@ ref/event_file_flush.c       # Functions to flush events to a file
 ref/event_file_flush.h       # Header file for event_file_flush.c
 ref/event_instrumenting.c    # Reusable code for defining an event session
 ```
-Then use a custom header file to define the folders and events, like with the example ```examples/hello2/```
-## Examples
-To help you get started, some examples are provided
-Example | Description
---------|------------
-hello1 | The most basic example where everything is in a single C file
-hello2 | A more realistic example where the event instrumentation comes from separate files that can easily be excluded if event profiling is not needed
-test_clock | Determine the overhead and precision of a clock that is used with event recording. Helpfull if you need to use your own custom clock.
-record_and_load | Not really a customer example. It's used to validate the unikorn API and event loading file ref/events_loader.c
+The examples that use the reference files also use a header file ```event_instrumenting.h``` to define the custom folders and events.
+
+The files used with event loading are:
+ref/events_loader.c       # Reusable code for loaded an .events file
+ref/events_loader.h       # Header file for events_loader.c
+This can be use by a GUI visualizer
+
 ## Visualizing Events with the GUI
 To be completed, please stand by...
