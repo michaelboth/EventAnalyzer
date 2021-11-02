@@ -154,7 +154,7 @@ When you're done recording events, then you just need to free the event session:
 ```C
 ukDestroy(session);
 ```
-That's it. If you want to try out the code from above, try out the ```examples/hello1``` example
+That's it. If you want to try out the code from above, build and run the ```examples/hello1``` example
 ## Examples
 To help you get started, some examples are provided
 Example | Description
@@ -175,8 +175,10 @@ ref/event_instrumenting.c    # Reusable code for defining an event session
 The examples that use the reference files also use a header file ```event_instrumenting.h``` to define the custom folders and events.
 
 The files used with event loading are:
+```
 ref/events_loader.c       # Reusable code for loaded an .events file
 ref/events_loader.h       # Header file for events_loader.c
+```
 This can be use by a GUI visualizer
 
 ## Visualizing Events with the GUI
