@@ -144,6 +144,7 @@ static void myBubbleSort(int *element_list, int num_elements) {
 }
 
 int main() {
+  // Create event session
   void *session = ukCreate(&attrs, getEventTime, &flush_info, prepareFileFlush, fileFlush, finishFileFlush);
 
   // Allocate the number lists
@@ -181,7 +182,7 @@ int main() {
   free(number_list);
   free(quick_sort_list);
   free(bubble_sort_list);
-  printf("Event were recorded to the file '%s'. Use the Unikorn GUI to view the results.\n", flush_info.filename);
+  printf("Events were recorded to the file '%s'. Use the Unikorn GUI to view the results.\n", flush_info.filename);
 
   return 0;
 }

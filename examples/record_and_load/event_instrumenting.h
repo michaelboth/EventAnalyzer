@@ -1,7 +1,7 @@
 #ifndef _EVENT_INSTRUMENTING_H_
 #define _EVENT_INSTRUMENTING_H_
 
-#ifdef INSTRUMENT_EVENTS
+#ifdef INSTRUMENT_APP
 
 #include "unikorn.h"
 #include <stdlib.h>

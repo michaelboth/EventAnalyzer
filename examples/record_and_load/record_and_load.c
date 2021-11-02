@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 
   // Record and save events
   {
-#ifdef INSTRUMENT_EVENTS
+#ifdef INSTRUMENT_APP
     uint32_t max_events = (uint32_t)atoi(argv[2]);
     assert(max_events > 0);
     assert(strncmp("auto_flush=", argv[3], 11)==0);
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
   }
 
   // Load the events
-#ifdef INSTRUMENT_EVENTS
+#ifdef INSTRUMENT_APP
   /*+ make sure printf are compiled in to show the loaded values */
   Events *instance = loadEventsFile(filename);
   freeEvents(instance);

@@ -1,6 +1,6 @@
 CFLAGS       := -std=gnu99 -Wall -Werror -pthread -I. -I../../inc
-#CFLAGS       += -O2
-CFLAGS       += -g -O0
+CFLAGS       += -O2
+#CFLAGS       += -g -O0
 C_OBJS       := hello.o
 HEADER_FILES :=
 PRJ_LIBS     := -pthread -L ../../lib -lunikorn
