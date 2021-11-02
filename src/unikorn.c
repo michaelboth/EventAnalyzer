@@ -19,9 +19,17 @@
 #include <limits.h>
 #include <string.h>
 #ifdef ALLOW_THREADING
-  #include <unistd.h>       // For syscall()
-  #include <sys/syscall.h>  // For SYS_gettid
+  #ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN
+    #include <Windows.h>
+  #else
+    #include <unistd.h>       // For syscall()
+    #include <sys/syscall.h>  // For SYS_gettid
+  #endif
   #include <pthread.h>
+#endif
+#ifdef _WIN32
+  #define strdup _strdup
 #endif
 
 // Memory layout of the event buffer

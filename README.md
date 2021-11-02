@@ -1,13 +1,24 @@
 # Unikorn Software Event Analyzer (C API and GUI Visualizer)
 With the increased complexity of modern hardware and software, optimizing an application for performance is sometimes like trying to find a **unicorn**. Going green is more important than ever. Stop accepting poor performing software or using more hardware as a kludge to fix bad performance. Unikorn is so easy to use, it should be with daily development from the application's inception to distribution.
 ## Building Unikorn's C Library
-Linux:
+### Linux (gcc), Mac (xCode command line)
 ```
 > cd unikorn/lib
 > make RELEASE=Yes THREAD_SAFE=Yes
 ```
-Windows:
-To be completed. Please stand by...
+### Windows
+Unikorn's API can optionally be thread safe, and if so require Posix threads. Visual Studio does not have support for Posix tthreads, so you'll need to download and build it:
+1. Get the source code from: https://sourceforge.net/projects/pthreads4w/
+2. Unzip, rename to 'pthreads4w' and put in the C:\ folder
+3. Start a Visual Studio x64 native shell
+```
+> cd c:\pthreads4w
+> nmake VC VC-debug VC-static VC-static-debug install DESTROOT=.\install
+```
+4. Build the Unikorn API
+```
+> cd unikorn/lib
+> nmake -f windows.Makefile RELEASE=Yes THREAD_SAFE=Yes
 ## Instrumenting Your Application with Events
 I'll step through the ```examples/hello1/``` example to get you familiar with event instrumentation.
 First, include the Unikorn header file plus some standard header files:
