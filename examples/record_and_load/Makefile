@@ -4,12 +4,19 @@ HEADER_FILES := event_instrumenting.h
 PRJ_LIBS     := -pthread
 TARGET       := record_and_load
 
-INSTRUMENT_APP := Yes
 ifeq ($(INSTRUMENT_APP),Yes)
-    CFLAGS       += -DINSTRUMENT_APP
+    CFLAGS       += -DINSTRUMENT_APP -DPRINT_LOAD_INFO
     C_OBJS       += event_clocks.o event_file_flush.o events_loader.o event_instrumenting.o
     HEADER_FILES := unikorn.h event_clocks.h event_file_flush.h events_loader.h
     PRJ_LIBS     += -L ../../lib -lunikorn
+    # Define the clock
+    ifeq ($(CLOCK),clock_gettime)
+        CFLAGS += -DUSE_clock_gettime_MONOTONIC_CLOCK
+    else ifeq ($(CLOCK),gettimeofday)
+        CFLAGS += -DUSE_gettimeofday_CLOCK
+    else
+        $(error 'ERROR: need to specify one of: CLOCK=clock_gettime, CLOCK=gettimeofday')
+    endif
 endif
 
 # Check for OS
@@ -26,14 +33,6 @@ ifeq ($(RELEASE),Yes)
     CFLAGS += -O2
 else
     CFLAGS += -g -O0
-endif
-
-ifeq ($(CLOCK),clock_gettime)
-    CFLAGS += -DUSE_clock_gettime_MONOTONIC_CLOCK
-else ifeq ($(CLOCK),gettimeofday)
-    CFLAGS += -DUSE_gettimeofday_CLOCK
-else
-    $(error 'ERROR: need to specify one of: CLOCK=clock_gettime, CLOCK=gettimeofday')
 endif
 
 vpath %.c ../../ref

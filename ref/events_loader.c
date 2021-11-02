@@ -25,7 +25,7 @@
   #include <byteswap.h>
 #endif
 
-#define PRINT_LOAD_INFO
+//#define PRINT_LOAD_INFO
 
 static bool isBigEndian() {
   uint32_t a = 1;

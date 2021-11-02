@@ -11,8 +11,9 @@ BUILD & RUN
 Linux:
   Without instrumentation:
     > make
-  With instrumentation:
+  With instrumentation (one of):
     > make INSTRUMENT_APP=Yes CLOCK=gettimeofday
+    > make INSTRUMENT_APP=Yes CLOCK=clock_gettime
   > ./hello
   View 'hello.events' With Unikorn GUI
   > make clean
