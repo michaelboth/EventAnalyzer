@@ -6,7 +6,7 @@ With the increased complexity of modern hardware and software, optimizing an app
 > cd unikorn/lib
 > make RELEASE=Yes THREAD_SAFE=Yes
 ```
-### Windows
+### Windows (Visual Studio console window)
 Unikorn's API can optionally be thread safe, and if so require Posix threads. Visual Studio does not have support for Posix tthreads, so you'll need to download and build it:
 1. Get the source code from: https://sourceforge.net/projects/pthreads4w/
 2. Unzip, rename to 'pthreads4w' and put in the C:\ folder

@@ -194,7 +194,7 @@ Events *loadEventsFile(const char *filename) {
     for (uint16_t i=0; i<object->thread_id_count; i++) {
       object->thread_id_list[i] = readUint64(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-      printf("    index %d: ID=%llu\n", i, object->thread_id_list[i]);
+      printf("    index %d: ID=%zu\n", i, object->thread_id_list[i]);
 #endif
     }
   }
@@ -225,12 +225,12 @@ Events *loadEventsFile(const char *filename) {
     event->time = readUint64(swap_endian, file);
     event->event_id = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-    printf("    time = %llu, ID = %d\n", event->time, event->event_id);
+    printf("    time = %zu, ID = %d\n", event->time, event->event_id);
 #endif
     if (object->includes_instance) {
       event->instance = readUint64(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-      printf("    instance = %llu\n", event->instance);
+      printf("    instance = %zu\n", event->instance);
 #endif
     }
     if (object->includes_value) {
