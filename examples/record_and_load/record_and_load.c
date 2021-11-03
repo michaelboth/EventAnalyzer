@@ -1,6 +1,8 @@
 #define DEFINE_FOLDERS_AND_EVENTS
 #include "event_instrumenting.h"
-#include "events_loader.h"
+#ifdef INSTRUMENT_APP
+  #include "events_loader.h"
+#endif
 #include <math.h>
 #include <stdio.h>
 #include <string.h>

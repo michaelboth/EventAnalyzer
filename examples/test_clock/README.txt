@@ -5,7 +5,7 @@ To add your own clock to the common reference, edit ref/event_clocks.c
 
 
 BUILD & RUN
-Linux:
+Linux & Mac:
   Choose one of:
     > make CLOCK=gettimeofday
     > make CLOCK=clock_gettime
@@ -14,4 +14,9 @@ Linux:
   > make clean
 
 Windows:
-  TBD
+  Choose one of:
+    > nmake -f windows.Makefile CLOCK=ftime
+    > nmake -f windows.Makefile CLOCK=QueryPerformanceCounter
+    > nmake -f windows.Makefile CLOCK=<your-own-clock>
+  > test_clock
+  > nmake -f windows.Makefile clean

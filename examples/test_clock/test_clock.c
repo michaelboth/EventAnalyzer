@@ -4,7 +4,7 @@
 
 int main() {
   // Allocate the number lists
-  int num_elements = 1000;
+  int num_elements = 10000;
   uint64_t *time_list = malloc(num_elements*sizeof(uint64_t));
 
   // Run the clock a few times just to get things cached up
@@ -20,20 +20,24 @@ int main() {
 
   // Calculate the overhead: how long it takes to call getEventTime()
   uint64_t overall_time = time_list[num_elements-1] - time_list[0];
-  uint64_t overhead_nanoseconds = overall_time / (num_elements-1);
-  printf("Overhead: how long it takes to call getEventTime()\n");
-  printf("    %llu nanoseconds ()\n", overhead_nanoseconds);
+  if (overall_time == 0) {
+    printf("Need more than %d itterations to calculate time attributes\n", num_elements);
+  } else {
+    uint64_t overhead_nanoseconds = overall_time / (num_elements-1);
+    printf("Overhead: how long it takes to call getEventTime()\n");
+    printf("    %llu nanoseconds ()\n", overhead_nanoseconds);
 
-  // Calculate the precision: the smallest amount of time it can report
-  uint64_t min_non_zero_diff = 9999999;
-  for (int i=1; i<num_elements; i++) {
-    uint64_t diff = time_list[i] - time_list[i-1];
-    if (diff > 0 && diff < min_non_zero_diff) {
-      min_non_zero_diff = diff;
+    // Calculate the precision: the smallest amount of time it can report
+    uint64_t min_non_zero_diff = 9999999;
+    for (int i=1; i<num_elements; i++) {
+      uint64_t diff = time_list[i] - time_list[i-1];
+      if (diff > 0 && diff < min_non_zero_diff) {
+        min_non_zero_diff = diff;
+      }
     }
+    printf("Precision: the smallest amount of time getEventTime() can report\n");
+    printf("    %llu nanoseconds ()\n", min_non_zero_diff);
   }
-  printf("Precision: the smallest amount of time getEventTime() can report\n");
-  printf("    %llu nanoseconds ()\n", min_non_zero_diff);
 
   // Clean up
   free(time_list);

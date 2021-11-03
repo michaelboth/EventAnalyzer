@@ -8,7 +8,7 @@ Also, instrumentation can easily be compiled out once it's no longer needed.
 
 
 BUILD & RUN
-Linux:
+Linux & Mac:
   Without instrumentation:
     > make
   With instrumentation (one of):
@@ -19,4 +19,11 @@ Linux:
   > make clean
 
 Windows:
-  TBD
+  Without instrumentation:
+    > nmake -f windows.Makefile [THREAD_SAFE=Yes]
+  With instrumentation (one of):
+    > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=QueryPerformanceCounter
+    > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=ftime
+  > hello
+  View 'hello.events' With Unikorn GUI
+  > nmake -f windows.Makefile clean

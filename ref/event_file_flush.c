@@ -21,10 +21,17 @@ bool prepareFileFlush(void *user_data) {
   if (flush_info->events_saved && flush_info->append_subsequent_saves) {
     save_mode = "ab";
   }
+#ifdef _WIN32
+  errno_t status = fopen_s(&flush_info->file, flush_info->filename, save_mode);
+  if (status != 0) {
+    return false;
+  }
+#else
   flush_info->file = fopen(flush_info->filename, save_mode);
   if (flush_info->file == NULL) {
     return false;
   }
+#endif
   return true;
 }
 

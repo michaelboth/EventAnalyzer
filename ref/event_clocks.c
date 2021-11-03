@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if !defined(USE_clock_gettime_MONOTONIC_CLOCK) && !defined(USE_gettimeofday_CLOCK) && !defined(USE_QueryPerformanceCounter_CLOCK)
-need to define one of USE_clock_gettime_MONOTONIC_CLOCK, USE_gettimeofday_CLOCK, USE_QueryPerformanceCounter_CLOCK
+#if !defined(USE_clock_gettime_MONOTONIC_CLOCK) && !defined(USE_gettimeofday_CLOCK) && !defined(USE_QueryPerformanceCounter_CLOCK) && !defined(USE_ftime_CLOCK)
+need to define one of USE_clock_gettime_MONOTONIC_CLOCK, USE_gettimeofday_CLOCK, USE_QueryPerformanceCounter_CLOCK, USE_ftime_CLOCK
 #endif
 
 #include "event_clocks.h"
 #include <stdbool.h>
 #include <assert.h>
-#ifdef QueryPerformanceCounter
+#if defined(USE_QueryPerformanceCounter_CLOCK) || defined(USE_ftime_CLOCK)
   #define WIN32_LEAN_AND_MEAN
   #include <Windows.h>
   #include <sys/timeb.h>
@@ -36,18 +36,28 @@ uint64_t getEventTime() {
   static uint64_t base_time;
   static bool got_base_time = 0;
 
-#ifdef QueryPerformanceCounter
-  static LARGE_INTEGER frequency = 0;
-  if (frequency == 0) {
+#ifdef USE_QueryPerformanceCounter_CLOCK
+  // This is monotonic & high precision time
+  bool got_frequency = false;
+  static LARGE_INTEGER frequency;
+  if (!got_frequency) {
     bool ok = QueryPerformanceFrequency(&frequency);
-    assert(!ok);
+    assert(ok);
+    got_frequency = true;
   }
   LARGE_INTEGER count;
   bool ok = QueryPerformanceCounter((LARGE_INTEGER *)&count);
-  assert(!ok);
-  LARGE_INTEGER seconds = count / frequency;
-  LARGE_INTEGER nanoseconds = (1000000000 * (count % frequency)) / frequency;
+  assert(ok);
+  uint64_t seconds = count.QuadPart / frequency.QuadPart;
+  uint64_t nanoseconds = (1000000000 * (count.QuadPart % frequency.QuadPart)) / frequency.QuadPart;
   uint64_t total_nanoseconds = (seconds * 1000000000) + nanoseconds;
+#endif
+
+#ifdef USE_ftime_CLOCK
+  // Resolution is really bad
+  struct _timeb curr_time;
+  _ftime64_s(&curr_time);
+  uint64_t total_nanoseconds = (uint64_t)curr_time.time * 1000000000 + (uint64_t)curr_time.millitm * 1000000;
 #endif
 
 #ifdef USE_clock_gettime_MONOTONIC_CLOCK

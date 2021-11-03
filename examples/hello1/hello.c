@@ -42,17 +42,10 @@ uint64_t getEventTime() {
   static uint64_t base_time;
   static bool got_base_time = 0;
 #ifdef _WIN32
-  static LARGE_INTEGER frequency = 0;
-  if (frequency == 0) {
-    bool ok = QueryPerformanceFrequency(&frequency);
-    assert(!ok);
-  }
-  LARGE_INTEGER count;
-  bool ok = QueryPerformanceCounter((LARGE_INTEGER *)&count);
-  assert(!ok);
-  LARGE_INTEGER seconds = count / frequency;
-  LARGE_INTEGER nanoseconds = (1000000000 * (count % frequency)) / frequency;
-  uint64_t total_nanoseconds = (seconds * 1000000000) + nanoseconds;
+  // A common Windows clock
+  struct _timeb curr_time;
+  _ftime64_s(&curr_time);
+  uint64_t total_nanoseconds = (uint64_t)curr_time.time * 1000000000 + (uint64_t)curr_time.millitm * 1000000;
 #else
   // gettimeofday() only has microsecond precision but is more portable
   struct timeval tp;
@@ -80,10 +73,17 @@ bool prepareFileFlush(void *user_data) {
   if (flush_info->events_saved && flush_info->append_subsequent_saves) {
     save_mode = "ab";
   }
+#ifdef _WIN32
+  errno_t status = fopen_s(&flush_info->file, flush_info->filename, save_mode);
+  if (status != 0) {
+    return false;
+  }
+#else
   flush_info->file = fopen(flush_info->filename, save_mode);
   if (flush_info->file == NULL) {
     return false;
   }
+#endif
   return true;
 }
 

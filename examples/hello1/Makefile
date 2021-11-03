@@ -3,7 +3,7 @@ CFLAGS       += -O2
 #CFLAGS       += -g -O0
 C_OBJS       := hello.o
 HEADER_FILES :=
-PRJ_LIBS     := -pthread -L ../../lib -lunikorn
+LIBS         := -pthread -L ../../lib -lunikorn
 TARGET       := hello
 
 all: $(TARGET)
@@ -18,4 +18,4 @@ $(C_OBJS): %.o: %.c $(HEADER_FILES)
 	gcc $(CFLAGS) -c $< -o $@
 
 $(TARGET): $(C_OBJS)
-	gcc $(C_OBJS) $(PRJ_LIBS) -o $@
+	gcc $(C_OBJS) $(LIBS) -o $@

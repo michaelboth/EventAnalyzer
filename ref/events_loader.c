@@ -21,6 +21,10 @@
   #define bswap_16(x) OSSwapInt16(x)
   #define bswap_32(x) OSSwapInt32(x)
   #define bswap_64(x) OSSwapInt64(x)
+#elif _WIN32
+  #define bswap_16(x) _byteswap_ushort(x)
+  #define bswap_32(x) _byteswap_ulong(x)
+  #define bswap_64(x) _byteswap_uint64(x)
 #else
   #include <byteswap.h>
 #endif
@@ -75,8 +79,14 @@ static void readChars(char *name, int num_name_chars, FILE *file) {
 }
 
 Events *loadEventsFile(const char *filename) {
+#ifdef _WIN32
+  FILE *file;
+  errno_t status = fopen_s(&file, filename, "rb");
+  if (status != 0) return NULL;
+#else
   FILE *file = fopen(filename, "rb");
   if (file == NULL) return NULL;
+#endif
 
   Events *object = calloc(1, sizeof(Events));
   assert(object != NULL);

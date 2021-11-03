@@ -3,7 +3,7 @@ Not an overly useful example other than to do some sanity checking.
 
 
 BUILD & RUN
-Linux:
+Linux & Mac:
   Without instrumentation:
     > make
   With instrumentation (one of):
@@ -14,4 +14,11 @@ Linux:
   > make clean
 
 Windows:
-  TBD
+  Without instrumentation:
+    > nmake -f windows.Makefile [THREAD_SAFE=Yes]
+  With instrumentation (one of):
+    > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=QueryPerformanceCounter
+    > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=ftime
+  > record_and_load
+  View 'record_and_load.events' With Unikorn GUI
+  > nmake -f windows.Makefile clean

@@ -3,14 +3,14 @@ CFLAGS       += -O2
 #CFLAGS       += -g -O0
 C_OBJS       := hello.o
 HEADER_FILES := event_instrumenting.h
-PRJ_LIBS     := -pthread
+LIBS         := -pthread
 TARGET       := hello
 
 ifeq ($(INSTRUMENT_APP),Yes)
     CFLAGS       += -DINSTRUMENT_APP
-    C_OBJS       += event_clocks.o event_file_flush.o events_loader.o event_instrumenting.o
-    HEADER_FILES := unikorn.h event_clocks.h event_file_flush.h events_loader.h
-    PRJ_LIBS     += -L ../../lib -lunikorn
+    C_OBJS       += event_clocks.o event_file_flush.o event_instrumenting.o
+    HEADER_FILES := unikorn.h event_clocks.h event_file_flush.h
+    LIBS         += -L ../../lib -lunikorn
     # Define a clock
     ifeq ($(CLOCK),clock_gettime)
         CFLAGS += -DUSE_clock_gettime_MONOTONIC_CLOCK
@@ -37,4 +37,4 @@ $(C_OBJS): %.o: %.c $(HEADER_FILES)
 	gcc $(CFLAGS) -c $< -o $@
 
 $(TARGET): $(C_OBJS)
-	gcc $(C_OBJS) $(PRJ_LIBS) -o $@
+	gcc $(C_OBJS) $(LIBS) -o $@

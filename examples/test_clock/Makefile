@@ -3,7 +3,7 @@ CFLAGS       += -O2
 #CFLAGS       += -g -O0
 C_OBJS       := test_clock.o event_clocks.o
 HEADER_FILES := event_clocks.h
-PRJ_LIBS     := 
+LIBS         := 
 TARGET       := test_clock
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -30,4 +30,4 @@ $(C_OBJS): %.o: %.c $(HEADER_FILES)
 	gcc $(CFLAGS) -c $< -o $@
 
 $(TARGET): $(C_OBJS)
-	gcc $(C_OBJS) $(PRJ_LIBS) -o $@
+	gcc $(C_OBJS) $(LIBS) -o $@
