@@ -131,6 +131,9 @@ static uint64_t myThreadId() {
   // IMPORTANT: Can't use pthread_self() because it's opaque
 #ifdef _WIN32
   DWORD tid = GetCurrentThreadId();
+#elif __APPLE__
+  uint64_t tid;
+  pthread_threadid_np(NULL, &tid);
 #else
   pid_t tid = syscall(SYS_gettid);
 #endif
@@ -545,8 +548,7 @@ static void flushEvents(EventObject *object) {
     for (uint16_t i=0; i<thread_id_count; i++) {
       uint64_t thread_id = thread_id_list[i];
 #ifdef PRINT_FLUSH_INFO
-      //*+ Apple */printf("    %llu\n", thread_id);
-      printf("    %zu\n", thread_id);
+      printf("    %llu\n", thread_id);
 #endif
       assert(object->flush(object->flush_user_data, &thread_id, sizeof(thread_id)));
     }

@@ -22,7 +22,7 @@ int main() {
   uint64_t overall_time = time_list[num_elements-1] - time_list[0];
   uint64_t overhead_nanoseconds = overall_time / (num_elements-1);
   printf("Overhead: how long it takes to call getEventTime()\n");
-  printf("    %zu nanoseconds ()\n", overhead_nanoseconds);
+  printf("    %llu nanoseconds ()\n", overhead_nanoseconds);
 
   // Calculate the precision: the smallest amount of time it can report
   uint64_t min_non_zero_diff = 9999999;
@@ -33,7 +33,7 @@ int main() {
     }
   }
   printf("Precision: the smallest amount of time getEventTime() can report\n");
-  printf("    %zu nanoseconds ()\n", min_non_zero_diff);
+  printf("    %llu nanoseconds ()\n", min_non_zero_diff);
 
   // Clean up
   free(time_list);
