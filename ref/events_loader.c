@@ -21,12 +21,15 @@
   #define bswap_16(x) OSSwapInt16(x)
   #define bswap_32(x) OSSwapInt32(x)
   #define bswap_64(x) OSSwapInt64(x)
+  #define UINT64_FORMAT "llu"
 #elif _WIN32
   #define bswap_16(x) _byteswap_ushort(x)
   #define bswap_32(x) _byteswap_ulong(x)
   #define bswap_64(x) _byteswap_uint64(x)
+  #define UINT64_FORMAT "zu"
 #else
   #include <byteswap.h>
+  #define UINT64_FORMAT "zu"
 #endif
 
 //#define PRINT_LOAD_INFO
@@ -194,7 +197,7 @@ Events *loadEventsFile(const char *filename) {
     for (uint16_t i=0; i<object->thread_id_count; i++) {
       object->thread_id_list[i] = readUint64(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-      printf("    index %d: ID=%zu\n", i, object->thread_id_list[i]);
+      printf("    index %d: ID=%"UINT64_FORMAT"\n", i, object->thread_id_list[i]);
 #endif
     }
   }
@@ -225,12 +228,12 @@ Events *loadEventsFile(const char *filename) {
     event->time = readUint64(swap_endian, file);
     event->event_id = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-    printf("    time = %zu, ID = %d\n", event->time, event->event_id);
+    printf("    time = %"UINT64_FORMAT", ID = %d\n", event->time, event->event_id);
 #endif
     if (object->includes_instance) {
       event->instance = readUint64(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-      printf("    instance = %zu\n", event->instance);
+      printf("    instance = %"UINT64_FORMAT"\n", event->instance);
 #endif
     }
     if (object->includes_value) {

@@ -19,6 +19,6 @@ Windows:
   With instrumentation (one of):
     > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=QueryPerformanceCounter
     > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=ftime
-  > record_and_load
+  > record_and_load record_and_load.events 100 auto_flush=no threaded=yes instance=yes value=yes location=yes
   View 'record_and_load.events' With Unikorn GUI
   > nmake -f windows.Makefile clean

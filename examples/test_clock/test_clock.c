@@ -2,6 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef __APPLE__
+  #define UINT64_FORMAT "llu"
+#else
+  #define UINT64_FORMAT "zu"
+#endif
+
 int main() {
   // Allocate the number lists
   int num_elements = 10000;
@@ -25,7 +31,7 @@ int main() {
   } else {
     uint64_t overhead_nanoseconds = overall_time / (num_elements-1);
     printf("Overhead: how long it takes to call getEventTime()\n");
-    printf("    %zu nanoseconds ()\n", overhead_nanoseconds);
+    printf("    %"UINT64_FORMAT" nanoseconds ()\n", overhead_nanoseconds);
 
     // Calculate the precision: the smallest amount of time it can report
     uint64_t min_non_zero_diff = 9999999;
@@ -36,7 +42,7 @@ int main() {
       }
     }
     printf("Precision: the smallest amount of time getEventTime() can report\n");
-    printf("    %zu nanoseconds ()\n", min_non_zero_diff);
+    printf("    %"UINT64_FORMAT" nanoseconds ()\n", min_non_zero_diff);
   }
 
   // Clean up

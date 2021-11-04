@@ -31,6 +31,11 @@
 #ifdef _WIN32
   #define strdup _strdup
 #endif
+#ifdef __APPLE__
+  #define UINT64_FORMAT "llu"
+#else
+  #define UINT64_FORMAT "zu"
+#endif
 
 // Memory layout of the event buffer
 //     - Time                   sizeof(uint64_t)
@@ -590,7 +595,7 @@ static void flushEvents(EventObject *object) {
     event_ptr += sizeof(event_id);
     assert(object->flush(object->flush_user_data, &event_id, sizeof(event_id)));
 #ifdef PRINT_FLUSH_INFO
-    printf("    time=%zu, event_id=%d\n", time, event_id);
+    printf("    time=%"UINT64_FORMAT", event_id=%d\n", time, event_id);
 #endif
 
     // Instance
@@ -599,7 +604,7 @@ static void flushEvents(EventObject *object) {
       event_ptr += sizeof(event_instance);
       assert(object->flush(object->flush_user_data, &event_instance, sizeof(event_instance)));
 #ifdef PRINT_FLUSH_INFO
-      printf("    event_instance=%zu\n", event_instance);
+      printf("    event_instance=%"UINT64_FORMAT"\n", event_instance);
 #endif
     }
 
