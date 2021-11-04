@@ -17,6 +17,14 @@
 #include "MainWindow.hpp"
 #include "main.hpp"
 
+#define NORMAL_COLOR   QColor(0, 0, 0)
+#define DISABLED_COLOR QColor(125, 125, 125)
+#define ACTIVE_COLOR   QColor(0, 125, 255)    // Mouse over
+#define SELECTED_COLOR QColor(0, 125, 255)    // Toggle is on
+#define TOOLBAR_BUTTON_SIZE 32
+
+/*+ When loading event file, build three different display trees: sorted by ID, name, time */
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
 
@@ -31,24 +39,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   */
 
   /*+ tool button icons */
-#define ACTIVE_COLOR QColor(0, 0, 0)
-#define SELECTED_COLOR QColor(0, 125, 255)
-#define TOOLBAR_BUTTON_SIZE 32
-  QImage image = QImage(":/open.png");
-  for (int y=0; y<image.height(); y++) {
-    for (int x=0; x<image.width(); x++) {
-      QColor color = image.pixelColor(x, y);
-      QColor new_color = SELECTED_COLOR;
-      new_color.setAlpha(color.alpha());
-      image.setPixelColor(x, y, new_color);
-    }
-  }
-  QPixmap pixmap;
-  pixmap.convertFromImage(image);
-  QIcon icon;
-  icon.addPixmap(pixmap, QIcon::Mode::Normal, QIcon::State::Off);
   ui->loadButton->setIconSize(QSize(TOOLBAR_BUTTON_SIZE, TOOLBAR_BUTTON_SIZE));
-  ui->loadButton->setIcon(icon);
+  ui->loadButton->setIcon(buildIcon(":/open.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->showFoldersButton->setCheckable(true);
+  ui->showFoldersButton->setIconSize(QSize(TOOLBAR_BUTTON_SIZE, TOOLBAR_BUTTON_SIZE));
+  ui->showFoldersButton->setIcon(buildIcon(":/open.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
 
   // Set usable widgets
   setWidgetUsability();
@@ -68,6 +63,43 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     event->ignore();
   */
   event->accept();
+}
+
+QPixmap MainWindow::recolorImage(QImage &image, QColor color) {
+  for (int y=0; y<image.height(); y++) {
+    for (int x=0; x<image.width(); x++) {
+      int alpha = image.pixelColor(x, y).alpha();
+      color.setAlpha(alpha);
+      image.setPixelColor(x, y, color);
+    }
+  }
+  /*+
+  QPixmap pixmap;
+  pixmap.convertFromImage(image);
+  return pixmap;
+  */
+  return QPixmap::fromImage(image);
+}
+
+QIcon MainWindow::buildIcon(QString filename, QColor normal_color, QColor disabled_color, QColor active_color, QColor selected_color) {
+  // Load image
+  QImage image = QImage(filename);
+  int tool_button_size = (int)(TOOLBAR_BUTTON_SIZE * G_pixels_per_point);
+  // Resize to tool button size
+  image = image.scaled(QSize(tool_button_size,tool_button_size), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+  // Build icon
+  QIcon icon;
+  /*+ get this right */
+  icon.addPixmap(recolorImage(image, normal_color),   QIcon::Mode::Normal,   QIcon::State::Off);
+  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::Off);
+  icon.addPixmap(recolorImage(image, active_color),   QIcon::Mode::Active,   QIcon::State::Off);
+  icon.addPixmap(recolorImage(image, selected_color), QIcon::Mode::Selected, QIcon::State::Off);
+  /*+ handle On state */
+  icon.addPixmap(recolorImage(image, normal_color),   QIcon::Mode::Normal,   QIcon::State::On);
+  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::On);
+  icon.addPixmap(recolorImage(image, active_color),   QIcon::Mode::Active,   QIcon::State::On);
+  icon.addPixmap(recolorImage(image, selected_color), QIcon::Mode::Selected, QIcon::State::On);
+  return icon;
 }
 
 void MainWindow::setWidgetUsability() {

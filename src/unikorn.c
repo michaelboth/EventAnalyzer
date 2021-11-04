@@ -505,6 +505,8 @@ static void flushEvents(EventObject *object) {
     assert(object->flush(object->flush_user_data, event->name, num_chars));
   }
 
+  /*+ when flushing, make a distinction from header to data, so that way the output stream can optionally ignore repeat headers */
+
   // File names and function names
   uint16_t file_name_count = 0;
   uint16_t function_name_count = 0;

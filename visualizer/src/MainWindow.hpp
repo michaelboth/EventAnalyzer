@@ -52,6 +52,8 @@ private:
   Ui::MainWindow *ui;
 
   void setWidgetUsability();
+  QPixmap recolorImage(QImage &image, QColor color);
+  QIcon buildIcon(QString filename, QColor normal_color, QColor disabled_color, QColor active_color, QColor selected_color);
 };
 
 #endif
