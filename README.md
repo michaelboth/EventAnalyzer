@@ -190,7 +190,7 @@ The files used with event loading are:
 ref/events_loader.c       # Reusable code for loaded an .events file
 ref/events_loader.h       # Header file for events_loader.c
 ```
-This can be use by a GUI visualizer
+This can be used by a GUI visualizer
 
 ## Visualizing Events with the GUI
 To be completed, please stand by...
