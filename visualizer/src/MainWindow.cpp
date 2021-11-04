@@ -25,13 +25,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   // Margins and spacing
   /*+ tune */
+  /*+
   centralWidget()->layout()->setContentsMargins(0,0,0,0);
   centralWidget()->layout()->setSpacing(0);
+  */
 
   /*+ tool button icons */
+#define ACTIVE_COLOR QColor(0, 0, 0)
+#define SELECTED_COLOR QColor(0, 125, 255)
   QSize toolbar_button_size = QSize(32,32);
   QImage image = QImage(":/open.png");
-  //*+*/QPixmap pixmap = QPixmap(":/open.png");
+  for (int y=0; y<image.height(); y++) {
+    for (int x=0; x<image.width(); x++) {
+      QColor color = image.pixelColor(x, y);
+      QColor new_color = SELECTED_COLOR;
+      new_color.setAlpha(color.alpha());
+      image.setPixelColor(x, y, new_color);
+    }
+  }
   QIcon icon;
   icon.addPixmap(QPixmap::fromImage(image), QIcon::Mode::Normal, QIcon::State::Off);
   ui->loadButton->setIconSize(toolbar_button_size);
