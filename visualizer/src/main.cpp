@@ -31,7 +31,10 @@ int main(int argc, char *argv[]) {
   int dpi_x = app->desktop()->physicalDpiX();
   int dpi_y = app->desktop()->physicalDpiY();
   printf("Screen info: pixels_per_point=%f, dpi_x=%d, dpi_y=%d\n", G_pixels_per_point, dpi_x, dpi_y);
-
+  if (G_pixels_per_point > 1.0) {
+    printf("Using high density display\n");
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+  }
   // Create home screen
   MainWindow *main_window = new MainWindow(NULL);
 

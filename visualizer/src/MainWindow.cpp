@@ -33,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   /*+ tool button icons */
 #define ACTIVE_COLOR QColor(0, 0, 0)
 #define SELECTED_COLOR QColor(0, 125, 255)
-  QSize toolbar_button_size = QSize(32,32);
+#define TOOLBAR_BUTTON_SIZE 32
   QImage image = QImage(":/open.png");
   for (int y=0; y<image.height(); y++) {
     for (int x=0; x<image.width(); x++) {
@@ -43,9 +43,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
       image.setPixelColor(x, y, new_color);
     }
   }
+  QPixmap pixmap;
+  pixmap.convertFromImage(image);
   QIcon icon;
-  icon.addPixmap(QPixmap::fromImage(image), QIcon::Mode::Normal, QIcon::State::Off);
-  ui->loadButton->setIconSize(toolbar_button_size);
+  icon.addPixmap(pixmap, QIcon::Mode::Normal, QIcon::State::Off);
+  ui->loadButton->setIconSize(QSize(TOOLBAR_BUTTON_SIZE, TOOLBAR_BUTTON_SIZE));
   ui->loadButton->setIcon(icon);
 
   // Set usable widgets
