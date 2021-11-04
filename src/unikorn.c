@@ -457,6 +457,8 @@ static void flushEvents(EventObject *object) {
 #endif
   assert(object->flush(object->flush_user_data, &is_big_endian, sizeof(is_big_endian)));
 
+  /*+ version */
+
   // Miscellanyous info
 #ifdef PRINT_FLUSH_INFO
   printf("  is_threaded = %s\n", object->is_threaded ? "yes" : "no");

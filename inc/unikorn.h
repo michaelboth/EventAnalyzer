@@ -19,6 +19,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+/*+ version */
+
 // Predefined RGB colors. Application can still use custom color values, format is 0x0RGB
 enum {
   UK_RED    = 0x0f00,
