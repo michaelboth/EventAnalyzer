@@ -21,7 +21,7 @@
 #define DISABLED_COLOR QColor(125, 125, 125)
 #define ACTIVE_COLOR   QColor(0, 125, 255)    // Mouse over
 #define SELECTED_COLOR QColor(0, 125, 255)    // Toggle is on
-#define TOOLBAR_BUTTON_SIZE 32
+#define TOOLBAR_BUTTON_SIZE 30
 
 /*+ When loading event file, build three different display trees: sorted by ID, name, time */
 
@@ -29,21 +29,75 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->setupUi(this);
 
   // Hide the status bar
-  statusBar()->hide();
+  //statusBar()->hide();
+  /*+ show event stats: number of files, total events */
+  statusBar()->showMessage("Event files loaded: 0");
 
   // Margins and spacing
   /*+ tune */
-  /*+
   centralWidget()->layout()->setContentsMargins(0,0,0,0);
   centralWidget()->layout()->setSpacing(0);
-  */
+  ui->hierarchyVLayout->setContentsMargins(0,0,0,0);
+  ui->hierarchyVLayout->setSpacing(0);
 
-  /*+ tool button icons */
-  ui->loadButton->setIconSize(QSize(TOOLBAR_BUTTON_SIZE, TOOLBAR_BUTTON_SIZE));
+  // Decorations
+  QString separator_attrs = "QWidget { background: rgb(180, 180, 180); border: none; }";
+  ui->hierarchyVLine->setStyleSheet(separator_attrs);
+  ui->eventsHLine->setStyleSheet(separator_attrs);
+
+  // Create the list of tool buttons
+  QList<QToolButton *> tool_buttons = {
+    ui->loadButton,
+    ui->closeAllButton,
+    ui->closeSelectedButton,
+    ui->setFilterButton,
+    ui->clearFilterButton,
+    ui->showFoldersButton,
+    ui->showThreadsButton,
+    ui->openFoldersButton,
+    ui->closeFoldersButton,
+    ui->sortByIdButton,
+    ui->sortByNameButton,
+    ui->sortByTimeButton,
+    ui->increaseFontSizeButton,
+    ui->decreaseFontSizeButton
+  };
+
+  // Set button sizes
+  QSize button_size = QSize(TOOLBAR_BUTTON_SIZE, TOOLBAR_BUTTON_SIZE);
+  for (auto button: tool_buttons) button->setIconSize(button_size);
+
+  // Set the toolbar style
+  QString tool_button_style =
+    "QToolButton {"
+    "  margin: 0;"
+    "  border: 0;"
+    "  padding: 0;"
+    "}"
+    "QToolButton::hover {"
+    "  background: rgb(200, 200, 200);"
+    "}";
+  for (auto button: tool_buttons) button->setStyleSheet(tool_button_style);
+
+  // Set button icons
   ui->loadButton->setIcon(buildIcon(":/open.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->showFoldersButton->setCheckable(true);
-  ui->showFoldersButton->setIconSize(QSize(TOOLBAR_BUTTON_SIZE, TOOLBAR_BUTTON_SIZE));
-  ui->showFoldersButton->setIcon(buildIcon(":/open.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->closeAllButton->setIcon(buildIcon(":/close.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->closeSelectedButton->setIcon(buildIcon(":/close_selected.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->setFilterButton->setIcon(buildIcon(":/filter.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->clearFilterButton->setIcon(buildIcon(":/clear_filter.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->showFoldersButton->setIcon(buildIcon(":/show_folders.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->openFoldersButton->setIcon(buildIcon(":/open_folders.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->closeFoldersButton->setIcon(buildIcon(":/close_folders.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->sortByIdButton->setIcon(buildIcon(":/sort_by_id.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->sortByNameButton->setIcon(buildIcon(":/sort_by_name.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->sortByTimeButton->setIcon(buildIcon(":/sort_by_time.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->increaseFontSizeButton->setIcon(buildIcon(":/increase_font_size.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->decreaseFontSizeButton->setIcon(buildIcon(":/decrease_font_size.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+
+  // Set button states
+  //*+*/ui->showFoldersButton->setCheckable(true);
+  /*+*/
 
   // Set usable widgets
   setWidgetUsability();
