@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>871</width>
-    <height>683</height>
+    <width>1145</width>
+    <height>753</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -128,6 +128,12 @@
           <property name="text">
            <string>...</string>
           </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
         <item>
@@ -137,6 +143,12 @@
           </property>
           <property name="text">
            <string>...</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -184,6 +196,12 @@
           <property name="text">
            <string>...</string>
           </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
         <item>
@@ -194,6 +212,9 @@
           <property name="text">
            <string>...</string>
           </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
         <item>
@@ -203,6 +224,9 @@
           </property>
           <property name="text">
            <string>...</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -287,7 +311,7 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QSplitter" name="splitter">
+         <widget class="QSplitter" name="viewSplitter">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -297,10 +321,16 @@
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
+          <property name="handleWidth">
+           <number>2</number>
+          </property>
+          <property name="childrenCollapsible">
+           <bool>false</bool>
+          </property>
           <widget class="QWidget" name="layoutWidget">
-           <layout class="QGridLayout" name="gridLayout">
+           <layout class="QGridLayout" name="hierarchyLayout">
             <item row="0" column="1">
-             <widget class="QWidget" name="widget_4" native="true">
+             <widget class="QWidget" name="hierarchyHeader" native="true">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -334,7 +364,7 @@
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QWidget" name="widget" native="true">
+             <widget class="QWidget" name="hierarchyView" native="true">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -370,9 +400,9 @@
            </layout>
           </widget>
           <widget class="QWidget" name="layoutWidget_1">
-           <layout class="QVBoxLayout" name="verticalLayout_2">
+           <layout class="QVBoxLayout" name="eventsLayout">
             <item>
-             <widget class="QWidget" name="widget_5" native="true">
+             <widget class="QWidget" name="eventsHeader" native="true">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -393,7 +423,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="widget_2" native="true">
+             <widget class="QWidget" name="eventsView" native="true">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -429,9 +459,9 @@
            </layout>
           </widget>
           <widget class="QWidget" name="layoutWidget_2">
-           <layout class="QVBoxLayout" name="verticalLayout_3">
+           <layout class="QVBoxLayout" name="profilingLayout">
             <item>
-             <widget class="QWidget" name="widget_6" native="true">
+             <widget class="QWidget" name="profilingHeader" native="true">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -452,7 +482,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="widget_3" native="true">
+             <widget class="QWidget" name="profilingView" native="true">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -684,8 +714,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>871</width>
-     <height>24</height>
+     <width>1145</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>

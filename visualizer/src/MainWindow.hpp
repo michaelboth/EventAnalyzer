@@ -53,7 +53,7 @@ private:
 
   void setWidgetUsability();
   QPixmap recolorImage(QImage &image, QColor color);
-  QIcon buildIcon(QString filename, QColor normal_color, QColor disabled_color, QColor active_color, QColor selected_color);
+  QIcon buildIcon(QString filename, bool is_toggle, QColor normal_color, QColor disabled_color, QColor toggle_on_color, QColor toggle_off_color);
 };
 
 #endif

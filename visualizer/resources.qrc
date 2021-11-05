@@ -7,6 +7,7 @@
         <file alias="decrease_font_size.png">icons/decrease_font_size.png</file>
         <file alias="filter.png">icons/filter.png</file>
         <file alias="increase_font_size.png">icons/increase_font_size.png</file>
+        <file alias="load.png">icons/load.png</file>
         <file alias="open.png">icons/open.png</file>
         <file alias="open_folders.png">icons/open_folders.png</file>
         <file alias="show_folders.png">icons/show_folders.png</file>

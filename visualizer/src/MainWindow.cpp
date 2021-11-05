@@ -17,11 +17,13 @@
 #include "MainWindow.hpp"
 #include "main.hpp"
 
-#define NORMAL_COLOR   QColor(0, 0, 0)
-#define DISABLED_COLOR QColor(125, 125, 125)
-#define ACTIVE_COLOR   QColor(0, 125, 255)    // Mouse over
-#define SELECTED_COLOR QColor(0, 125, 255)    // Toggle is on
-#define TOOLBAR_BUTTON_SIZE 30
+#define NORMAL_COLOR     QColor(50, 50, 50)
+#define DISABLED_COLOR   QColor(200, 200, 200)
+#define TOGGLE_ON_COLOR  QColor(0, 100, 255)
+#define TOGGLE_OFF_COLOR QColor(150, 200, 255)
+//*+*/#define ACTIVE_COLOR   QColor(0, 125, 255)    // Mouse over
+//*+*/#define SELECTED_COLOR QColor(0, 125, 255)    // Toggle is on
+#define TOOLBAR_BUTTON_SIZE 38
 
 /*+ When loading event file, build three different display trees: sorted by ID, name, time */
 
@@ -39,11 +41,31 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   centralWidget()->layout()->setSpacing(0);
   ui->hierarchyVLayout->setContentsMargins(0,0,0,0);
   ui->hierarchyVLayout->setSpacing(0);
+  ui->hierarchyLayout->setContentsMargins(0,0,0,0);
+  ui->hierarchyLayout->setSpacing(0);
+  ui->eventsLayout->setContentsMargins(0,0,0,0);
+  ui->eventsLayout->setSpacing(0);
+  ui->profilingLayout->setContentsMargins(0,0,0,0);
+  ui->profilingLayout->setSpacing(0);
 
   // Decorations
   QString separator_attrs = "QWidget { background: rgb(180, 180, 180); border: none; }";
   ui->hierarchyVLine->setStyleSheet(separator_attrs);
   ui->eventsHLine->setStyleSheet(separator_attrs);
+  // Main view splitter
+  QString splitter_attrs =
+    "QSplitter { background: rgb(180, 180, 180); border: none; }";
+  //"QSplitter::handle { image: url(images/splitter.png); }"
+  //"QSplitter::handle:vertical { height: 2px; }"
+  //"QSplitter::handle:pressed { url(images/splitter_pressed.png); }";
+  // Main view
+  ui->viewSplitter->setStyleSheet(splitter_attrs);
+  ui->hierarchyHeader->setStyleSheet("QWidget { background: rgb(220, 220, 220); border: none; }");
+  ui->hierarchyView->setStyleSheet("QWidget { background: rgb(220, 220, 220); border: none; }");
+  ui->eventsHeader->setStyleSheet("QWidget { background: rgb(255, 255, 255); border: none; }");
+  ui->eventsView->setStyleSheet("QWidget { background: rgb(255, 255, 255); border: none; }");
+  ui->profilingHeader->setStyleSheet("QWidget { background: rgb(220, 220, 220); border: none; }");
+  ui->profilingView->setStyleSheet("QWidget { background: rgb(220, 220, 220); border: none; }");
 
   // Create the list of tool buttons
   QList<QToolButton *> tool_buttons = {
@@ -80,24 +102,30 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   for (auto button: tool_buttons) button->setStyleSheet(tool_button_style);
 
   // Set button icons
-  ui->loadButton->setIcon(buildIcon(":/open.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->closeAllButton->setIcon(buildIcon(":/close.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->closeSelectedButton->setIcon(buildIcon(":/close_selected.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->setFilterButton->setIcon(buildIcon(":/filter.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->clearFilterButton->setIcon(buildIcon(":/clear_filter.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->showFoldersButton->setIcon(buildIcon(":/show_folders.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->openFoldersButton->setIcon(buildIcon(":/open_folders.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->closeFoldersButton->setIcon(buildIcon(":/close_folders.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->sortByIdButton->setIcon(buildIcon(":/sort_by_id.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->sortByNameButton->setIcon(buildIcon(":/sort_by_name.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->sortByTimeButton->setIcon(buildIcon(":/sort_by_time.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->increaseFontSizeButton->setIcon(buildIcon(":/increase_font_size.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
-  ui->decreaseFontSizeButton->setIcon(buildIcon(":/decrease_font_size.png", NORMAL_COLOR, DISABLED_COLOR, ACTIVE_COLOR, SELECTED_COLOR));
+  ui->loadButton->setIcon(buildIcon(":/load.png",                           false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->closeAllButton->setIcon(buildIcon(":/close.png",                      false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->closeSelectedButton->setIcon(buildIcon(":/close_selected.png",        false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->setFilterButton->setIcon(buildIcon(":/filter.png",                    false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->clearFilterButton->setIcon(buildIcon(":/clear_filter.png",            false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->showFoldersButton->setIcon(buildIcon(":/show_folders.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));/*+ need better icon */
+  ui->openFoldersButton->setIcon(buildIcon(":/open_folders.png",            false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->closeFoldersButton->setIcon(buildIcon(":/close_folders.png",          false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->sortByIdButton->setIcon(buildIcon(":/sort_by_id.png",                 true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->sortByNameButton->setIcon(buildIcon(":/sort_by_name.png",             true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->sortByTimeButton->setIcon(buildIcon(":/sort_by_time.png",             true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR)); /*+ need better icon */
+  ui->increaseFontSizeButton->setIcon(buildIcon(":/increase_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->decreaseFontSizeButton->setIcon(buildIcon(":/decrease_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
 
   // Set button states
-  //*+*/ui->showFoldersButton->setCheckable(true);
-  /*+*/
+  /*+
+  ui->showFoldersButton->setCheckable(true);
+  ui->showThreadsButton->setCheckable(true);
+  */
+
+  /*+
+  ui->showFoldersButton->setChecked(true);
+  */
 
   // Set usable widgets
   setWidgetUsability();
@@ -135,7 +163,7 @@ QPixmap MainWindow::recolorImage(QImage &image, QColor color) {
   return QPixmap::fromImage(image);
 }
 
-QIcon MainWindow::buildIcon(QString filename, QColor normal_color, QColor disabled_color, QColor active_color, QColor selected_color) {
+QIcon MainWindow::buildIcon(QString filename, bool is_toggle, QColor normal_color, QColor disabled_color, QColor toggle_on_color, QColor toggle_off_color) {
   // Load image
   QImage image = QImage(filename);
   int tool_button_size = (int)(TOOLBAR_BUTTON_SIZE * G_pixels_per_point);
@@ -143,21 +171,36 @@ QIcon MainWindow::buildIcon(QString filename, QColor normal_color, QColor disabl
   image = image.scaled(QSize(tool_button_size,tool_button_size), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
   // Build icon
   QIcon icon;
-  /*+ get this right */
-  icon.addPixmap(recolorImage(image, normal_color),   QIcon::Mode::Normal,   QIcon::State::Off);
-  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::Off);
-  icon.addPixmap(recolorImage(image, active_color),   QIcon::Mode::Active,   QIcon::State::Off);
-  icon.addPixmap(recolorImage(image, selected_color), QIcon::Mode::Selected, QIcon::State::Off);
-  /*+ handle On state */
-  icon.addPixmap(recolorImage(image, normal_color),   QIcon::Mode::Normal,   QIcon::State::On);
-  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::On);
-  icon.addPixmap(recolorImage(image, active_color),   QIcon::Mode::Active,   QIcon::State::On);
-  icon.addPixmap(recolorImage(image, selected_color), QIcon::Mode::Selected, QIcon::State::On);
+  if (is_toggle) {
+    icon.addPixmap(recolorImage(image, toggle_off_color), QIcon::Mode::Normal,   QIcon::State::Off);
+    icon.addPixmap(recolorImage(image, toggle_on_color),  QIcon::Mode::Normal,   QIcon::State::On);
+    icon.addPixmap(recolorImage(image, disabled_color),   QIcon::Mode::Disabled, QIcon::State::Off);
+  } else {
+    icon.addPixmap(recolorImage(image, normal_color),   QIcon::Mode::Normal,   QIcon::State::Off);
+    icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::Off);
+  }
   return icon;
 }
 
 void MainWindow::setWidgetUsability() {
   /*+*/
+  bool event_files_loaded = false;
+  bool event_files_selected = false;
+  ui->closeAllButton->setEnabled(event_files_loaded);
+  ui->closeSelectedButton->setEnabled(event_files_selected);
+  ui->setFilterButton->setEnabled(event_files_loaded);
+  ui->clearFilterButton->setEnabled(event_files_loaded);
+  /*+
+  ui->showFoldersButton->setEnabled(event_files_loaded);
+  ui->showThreadsButton->setEnabled(event_files_loaded);
+  ui->openFoldersButton->setEnabled(event_files_loaded);
+  ui->closeFoldersButton->setEnabled(event_files_loaded);
+  ui->sortByIdButton->setEnabled(event_files_loaded);
+  ui->sortByNameButton->setEnabled(event_files_loaded);
+  ui->sortByTimeButton->setEnabled(event_files_loaded);
+  ui->increaseFontSizeButton->setEnabled(event_files_loaded);
+  ui->decreaseFontSizeButton->setEnabled(event_files_loaded);
+  */
 }
 
 void MainWindow::on_loadButton_clicked() {
