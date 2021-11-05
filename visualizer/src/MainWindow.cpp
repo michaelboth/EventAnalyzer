@@ -21,14 +21,20 @@
 #define DISABLED_COLOR   QColor(200, 200, 200)
 #define TOGGLE_ON_COLOR  QColor(0, 100, 255)
 #define TOGGLE_OFF_COLOR QColor(150, 200, 255)
-//*+*/#define ACTIVE_COLOR   QColor(0, 125, 255)    // Mouse over
-//*+*/#define SELECTED_COLOR QColor(0, 125, 255)    // Toggle is on
 #define TOOLBAR_BUTTON_SIZE 38
 
 /*+ When loading event file, build three different display trees: sorted by ID, name, time */
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
+
+  // Initial variables
+  sort_type = SORT_BY_ID;
+  /*+ sessions */
+  /*+ filters (encapsulate in main structure) */
+  /*+ show_folders */
+  /*+ show_threads */
+  /*+ font size */
 
   // Hide the status bar
   //statusBar()->hide();
@@ -49,12 +55,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->profilingLayout->setSpacing(0);
 
   // Decorations
-  QString separator_attrs = "QWidget { background: rgb(180, 180, 180); border: none; }";
+  this->setStyleSheet("QWidget { background: rgb(240, 240, 240); }");
+  QString separator_attrs = "QWidget { background: rgb(140, 140, 140); border: none; }";
   ui->hierarchyVLine->setStyleSheet(separator_attrs);
   ui->eventsHLine->setStyleSheet(separator_attrs);
+  ui->statusHLine->setStyleSheet(separator_attrs);
   // Main view splitter
   QString splitter_attrs =
-    "QSplitter { background: rgb(180, 180, 180); border: none; }";
+    "QSplitter {"
+    "  border: none;"
+    "}"
+    "QSplitter::handle:horizontal {"
+    "  background: rgb(140, 140, 140);"
+    "  width: 10px;"
+    "}";
   //"QSplitter::handle { image: url(images/splitter.png); }"
   //"QSplitter::handle:vertical { height: 2px; }"
   //"QSplitter::handle:pressed { url(images/splitter_pressed.png); }";
@@ -66,6 +80,87 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->eventsView->setStyleSheet("QWidget { background: rgb(255, 255, 255); border: none; }");
   ui->profilingHeader->setStyleSheet("QWidget { background: rgb(220, 220, 220); border: none; }");
   ui->profilingView->setStyleSheet("QWidget { background: rgb(220, 220, 220); border: none; }");
+  // Scrollbar
+  QString hscroll_simple_attrs =
+    "QScrollBar:horizontal {"
+    "  border: none;"
+    "  background: rgb(200, 200, 200);"
+    "  height: 14px;"
+    "  margin: 0px 0px 0px 0px;"
+    "  padding: 2px 2px 2px 2px;"
+    "}"
+    "QScrollBar::handle:horizontal {"
+    "  background: white;"
+    "  border-radius: 5px;"
+    "  min-width: 10px;"
+    "}"
+    "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {" // Step left/right buttons
+    "  background: none;"
+    "  width: 0px;"
+    "}"
+    "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {"
+    "  background: none;"
+    "}";
+  QString hscroll_advanced_attrs =
+    "QScrollBar:horizontal {"
+    "  border: none;"
+    "  background: rgb(200, 200, 200);"
+    "  height: 14px;"
+    "  margin: 0px 14px 0px 14px;"
+    "  padding: 2px 2px 2px 2px;"
+    "}"
+    "QScrollBar::handle:horizontal {"
+    "  background: white;"
+    "  border-radius: 5px;"
+    "  min-width: 10px;"
+    "}"
+    "QScrollBar::add-line:horizontal {" // Step right button
+    "  background: rgb(200, 200, 200);"
+    "  border-left: 1px solid rgb(140, 140, 140);"
+    "  width: 13px;"
+    "  subcontrol-position: right;"
+    "  subcontrol-origin: margin;"
+    "}"
+    "QScrollBar::sub-line:horizontal {" // Step left button
+    "  background: rgb(200, 200, 200);"
+    "  border-right: 1px solid rgb(140, 140, 140);"
+    "  width: 13px;"
+    "  subcontrol-position: left;"
+    "  subcontrol-origin: margin;"
+    "}"
+    "QScrollBar:left-arrow:horizontal, QScrollBar::right-arrow:horizontal {"
+    "  border-radius: 3px;"
+    "  width: 6px;"
+    "  height: 6px;"
+    "  background: white;"
+    "}"
+    "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {"
+    "  background: none;"
+    "}";
+  QString vscroll_simple_attrs =
+    "QScrollBar:vertical {"
+    "  border: none;"
+    "  background: rgb(200, 200, 200);"
+    "  width: 14px;"
+    "  margin: 0px 0px 0px 0px;"
+    "  padding: 2px 2px 2px 2px;"
+    "}"
+    "QScrollBar::handle:vertical {"
+    "  background: white;"
+    "  border-radius: 5px;"
+    "  min-height: 10px;"
+    "}"
+    "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {" // Step left/right buttons
+    "  background: none;"
+    "  height: 0px;"
+    "}"
+    "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
+    "  background: none;"
+    "}";
+  ui->hierarchyVScroll->setStyleSheet(vscroll_simple_attrs);
+  ui->hierarchyHScroll->setStyleSheet(hscroll_simple_attrs);
+  ui->eventsHScroll->setStyleSheet(hscroll_advanced_attrs);
+  ui->profilingHScroll->setStyleSheet(hscroll_simple_attrs);
 
   // Create the list of tool buttons
   QList<QToolButton *> tool_buttons = {
@@ -240,15 +335,24 @@ void MainWindow::on_closeFoldersButton_clicked() {
 }
 
 void MainWindow::on_sortByIdButton_clicked() {
-  /*+*/
+  sort_type = SORT_BY_ID;
+  ui->sortByNameButton->setChecked(false);
+  ui->sortByTimeButton->setChecked(false);
+  /*+ switch to ID tree */
 }
 
 void MainWindow::on_sortByNameButton_clicked() {
-  /*+*/
+  sort_type = SORT_BY_NAME;
+  ui->sortByIdButton->setChecked(false);
+  ui->sortByTimeButton->setChecked(false);
+  /*+ switch to name tree */
 }
 
 void MainWindow::on_sortByTimeButton_clicked() {
-  /*+*/
+  sort_type = SORT_BY_TIME;
+  ui->sortByIdButton->setChecked(false);
+  ui->sortByNameButton->setChecked(false);
+  /*+ switch to time tree */
 }
 
 void MainWindow::on_increaseFontSizeButton_clicked() {

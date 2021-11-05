@@ -41,7 +41,7 @@
         <item>
          <widget class="QToolButton" name="loadButton">
           <property name="toolTip">
-           <string>Load event files</string>
+           <string>Load one or more event files</string>
           </property>
           <property name="text">
            <string>...</string>
@@ -191,7 +191,7 @@
         <item>
          <widget class="QToolButton" name="sortByIdButton">
           <property name="toolTip">
-           <string>Sort events by the event ID</string>
+           <string>Sort events by the event ID. Files are always sorted by name.</string>
           </property>
           <property name="text">
            <string>...</string>
@@ -207,7 +207,7 @@
         <item>
          <widget class="QToolButton" name="sortByNameButton">
           <property name="toolTip">
-           <string>Sort events by event name</string>
+           <string>Sort events by event name. Files are always sorted by name.</string>
           </property>
           <property name="text">
            <string>...</string>
@@ -220,7 +220,7 @@
         <item>
          <widget class="QToolButton" name="sortByTimeButton">
           <property name="toolTip">
-           <string>Sort events by recorded time</string>
+           <string>Sort events by recorded time. Files are always sorted by name.</string>
           </property>
           <property name="text">
            <string>...</string>
@@ -351,7 +351,7 @@
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QScrollBar" name="nameVScroll">
+             <widget class="QScrollBar" name="hierarchyVScroll">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -385,7 +385,7 @@
              </widget>
             </item>
             <item row="2" column="1">
-             <widget class="QScrollBar" name="nameHScroll">
+             <widget class="QScrollBar" name="hierarchyHScroll">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -511,6 +511,33 @@
             </item>
            </layout>
           </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="eventsHLine" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>1</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>1</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QWidget {
+  background: blue;
+}</string>
+          </property>
          </widget>
         </item>
         <item>
@@ -681,7 +708,7 @@
      </layout>
     </item>
     <item>
-     <widget class="QWidget" name="eventsHLine" native="true">
+     <widget class="QWidget" name="statusHLine" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
         <horstretch>0</horstretch>

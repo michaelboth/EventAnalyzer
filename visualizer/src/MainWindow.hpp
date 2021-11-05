@@ -17,6 +17,12 @@
 
 #include <QMainWindow>
 
+typedef enum {
+  SORT_BY_ID,
+  SORT_BY_NAME,
+  SORT_BY_TIME
+} SortType;
+
 namespace Ui {
   class MainWindow;
 }
@@ -50,6 +56,7 @@ private slots:
 
 private:
   Ui::MainWindow *ui;
+  SortType sort_type;
 
   void setWidgetUsability();
   QPixmap recolorImage(QImage &image, QColor color);
