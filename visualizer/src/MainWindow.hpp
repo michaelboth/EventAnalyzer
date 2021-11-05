@@ -34,9 +34,6 @@ public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
 
-protected:
-  void closeEvent(QCloseEvent *event);
-
 private slots:
   // Hierarchy tool bar
   void on_loadButton_clicked();
@@ -53,6 +50,8 @@ private slots:
   void on_sortByTimeButton_clicked();
   void on_increaseFontSizeButton_clicked();
   void on_decreaseFontSizeButton_clicked();
+  // Custom
+  void updateColumnWidths(int pos, int index);
 
 private:
   Ui::MainWindow *ui;

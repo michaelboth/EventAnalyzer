@@ -16,6 +16,7 @@
 #include "ui_MainWindow.h"
 #include "MainWindow.hpp"
 #include "main.hpp"
+#include "events_loader.h"
 
 #define NORMAL_COLOR     QColor(50, 50, 50)
 #define DISABLED_COLOR   QColor(200, 200, 200)
@@ -42,7 +43,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   statusBar()->showMessage("Event files loaded: 0");
 
   // Margins and spacing
-  /*+ tune */
   centralWidget()->layout()->setContentsMargins(0,0,0,0);
   centralWidget()->layout()->setSpacing(0);
   ui->hierarchyVLayout->setContentsMargins(0,0,0,0);
@@ -212,34 +212,36 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->increaseFontSizeButton->setIcon(buildIcon(":/increase_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->decreaseFontSizeButton->setIcon(buildIcon(":/decrease_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
 
-  // Set button states
-  /*+
-  ui->showFoldersButton->setCheckable(true);
-  ui->showThreadsButton->setCheckable(true);
-  */
+  // Set initial scroll bar ranges
+  ui->hierarchyVScroll->setRange(0, 0);
+  ui->hierarchyHScroll->setRange(0, 0);
+  ui->eventsHScroll->setRange(0, 0);
+  ui->profilingHScroll->setRange(0, 0);
 
-  /*+
-  ui->showFoldersButton->setChecked(true);
-  */
+  // Make sure events window stretches
+  ui->viewSplitter->setStretchFactor(0, 0);
+  ui->viewSplitter->setStretchFactor(1, 255);
+  ui->viewSplitter->setStretchFactor(2, 0);
+  // Make sure the name column has a reasonable width
+  int prev_name_column_width = G_settings->value("prev_name_column_width", 300).toInt();
+  QList<int> column_widths = {prev_name_column_width};
+  ui->viewSplitter->setSizes(column_widths);
 
   // Set usable widgets
   setWidgetUsability();
 
   // Connect some signals
-  //*+*/this->connect(ui->EventWindow, SIGNAL(clickAt(QPoint)), ui->EventHeader, SLOT(updateUnits(QPoint)));
+  this->connect(ui->viewSplitter, SIGNAL(splitterMoved(int,int)), this, SLOT(updateColumnWidths(int,int)));
 }
 
 MainWindow::~MainWindow() {
   // Nothing to do
 }
 
-void MainWindow::closeEvent(QCloseEvent *event) {
-  /*+*/printf("closeEvent()\n");
-  /*+ save window size? */
-  /*+
-    event->ignore();
-  */
-  event->accept();
+void MainWindow::updateColumnWidths(int pos, int index) {
+  if (index == 1) {
+    G_settings->setValue("prev_name_column_width", pos);
+  }
 }
 
 QPixmap MainWindow::recolorImage(QImage &image, QColor color) {
@@ -250,11 +252,6 @@ QPixmap MainWindow::recolorImage(QImage &image, QColor color) {
       image.setPixelColor(x, y, color);
     }
   }
-  /*+
-  QPixmap pixmap;
-  pixmap.convertFromImage(image);
-  return pixmap;
-  */
   return QPixmap::fromImage(image);
 }
 
@@ -269,23 +266,28 @@ QIcon MainWindow::buildIcon(QString filename, bool is_toggle, QColor normal_colo
   if (is_toggle) {
     icon.addPixmap(recolorImage(image, toggle_off_color), QIcon::Mode::Normal,   QIcon::State::Off);
     icon.addPixmap(recolorImage(image, toggle_on_color),  QIcon::Mode::Normal,   QIcon::State::On);
-    icon.addPixmap(recolorImage(image, disabled_color),   QIcon::Mode::Disabled, QIcon::State::Off);
   } else {
+    icon.addPixmap(recolorImage(image, normal_color),   QIcon::Mode::Normal,   QIcon::State::On);
     icon.addPixmap(recolorImage(image, normal_color),   QIcon::Mode::Normal,   QIcon::State::Off);
-    icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::Off);
   }
+  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::On);
+  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::Off);
+  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Active, QIcon::State::On);
+  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Active, QIcon::State::Off);
+  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Selected, QIcon::State::On);
+  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Selected, QIcon::State::Off);
   return icon;
 }
 
 void MainWindow::setWidgetUsability() {
-  /*+*/
   bool event_files_loaded = false;
   bool event_files_selected = false;
+
+  // Hierarchy toolbar
   ui->closeAllButton->setEnabled(event_files_loaded);
   ui->closeSelectedButton->setEnabled(event_files_selected);
   ui->setFilterButton->setEnabled(event_files_loaded);
   ui->clearFilterButton->setEnabled(event_files_loaded);
-  /*+
   ui->showFoldersButton->setEnabled(event_files_loaded);
   ui->showThreadsButton->setEnabled(event_files_loaded);
   ui->openFoldersButton->setEnabled(event_files_loaded);
@@ -295,11 +297,27 @@ void MainWindow::setWidgetUsability() {
   ui->sortByTimeButton->setEnabled(event_files_loaded);
   ui->increaseFontSizeButton->setEnabled(event_files_loaded);
   ui->decreaseFontSizeButton->setEnabled(event_files_loaded);
-  */
 }
 
 void MainWindow::on_loadButton_clicked() {
-  /*+*/
+  QString prev_folder = G_settings->value("prev_load_folder", "").toString();
+  QStringList files = QFileDialog::getOpenFileNames(this, "Load One Or More Event Files", prev_folder, "Event Files (*.events)");
+  for (auto filename: files) {
+    /*+ if file already loaded, then delete data first */
+    //*+*/QString name = filename.section("/", -1);
+    //*+*/assert(!name.isEmpty());
+    QString folder = filename.section("/", -999, -2);
+    printf("folder: '%s'\n", folder.toLatin1().data());
+    assert(!folder.isEmpty());
+    G_settings->setValue("prev_load_folder", folder);
+
+    Events *instance = loadEventsFile(filename.toLatin1().data());
+    /*+ add to list in alphabetical order */
+    /*+*/freeEvents(instance);
+  }
+  if (files.count() > 0) {
+    /*+ rebuild trees and update display */
+  }
 }
 
 void MainWindow::on_closeAllButton_clicked() {
