@@ -30,10 +30,14 @@ CONFIG += warn_on
 HEADERS += src/main.hpp
 HEADERS += src/MainWindow.hpp
 HEADERS += src/EventTree.hpp
+HEADERS += src/EventsView.hpp
+HEADERS += src/HelpfulFunctions.hpp
 HEADERS += ../ref/events_loader.h
 
 SOURCES += src/main.cpp
 SOURCES += src/MainWindow.cpp
+SOURCES += src/EventsView.cpp
+SOURCES += src/HelpfulFunctions.cpp
 SOURCES += ../ref/events_loader.c
 
 FORMS += dialogs/MainWindow.ui

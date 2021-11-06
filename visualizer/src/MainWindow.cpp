@@ -15,6 +15,7 @@
 #include <QtWidgets>
 #include "ui_MainWindow.h"
 #include "MainWindow.hpp"
+#include "HelpfulFunctions.hpp"
 #include "main.hpp"
 
 #define NORMAL_COLOR     QColor(50, 50, 50)
@@ -55,10 +56,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   // Decorations
   this->setStyleSheet("QWidget { background: rgb(240, 240, 240); }");
-  QString separator_attrs = "QWidget { background: rgb(140, 140, 140); border: none; }";
+  QString separator_attrs = "QWidget { background: rgb(220, 220, 220); border: none; }";
   ui->hierarchyVLine->setStyleSheet(separator_attrs);
   ui->eventsHLine->setStyleSheet(separator_attrs);
   ui->statusHLine->setStyleSheet(separator_attrs);
+  //*+*/ui->hierarchyVLine->setHidden(true);
+  //*+*/ui->eventsHLine->setHidden(true);
+  //*+*/ui->statusHLine->setHidden(true);
+
   // Main view splitter
   QString splitter_attrs =
     "QSplitter {"
@@ -79,19 +84,23 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->eventsView->setStyleSheet("QWidget { background: rgb(255, 255, 255); border: none; }");
   ui->profilingHeader->setStyleSheet("QWidget { background: rgb(220, 220, 220); border: none; }");
   ui->profilingView->setStyleSheet("QWidget { background: rgb(220, 220, 220); border: none; }");
+
   // Scrollbar
   QString hscroll_simple_attrs =
     "QScrollBar:horizontal {"
     "  border: none;"
-    "  background: rgb(200, 200, 200);"
+    "  background: rgb(240, 240, 240);"
     "  height: 14px;"
     "  margin: 0px 0px 0px 0px;"
-    "  padding: 2px 2px 2px 2px;"
+    "  padding: 4px 2px 4px 2px;"
     "}"
     "QScrollBar::handle:horizontal {"
-    "  background: white;"
-    "  border-radius: 5px;"
-    "  min-width: 10px;"
+    "  background: rgb(140, 140, 140);"
+    "  border-radius: 3px;"
+    "  min-width: 6px;"
+    "}"
+    "QScrollBar::handle:horizontal:disabled {"
+    "  background: rgb(200, 200, 200);"
     "}"
     "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {" // Step left/right buttons
     "  background: none;"
@@ -103,27 +112,28 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   QString hscroll_advanced_attrs =
     "QScrollBar:horizontal {"
     "  border: none;"
-    "  background: rgb(200, 200, 200);"
+    "  background: rgb(240, 240, 240);"
     "  height: 14px;"
     "  margin: 0px 14px 0px 14px;"
-    "  padding: 2px 2px 2px 2px;"
+    "  padding: 4px 0px 4px 0px;"
     "}"
     "QScrollBar::handle:horizontal {"
-    "  background: white;"
-    "  border-radius: 5px;"
-    "  min-width: 10px;"
+    "  background: rgb(140, 140, 140);"
+    "  border-radius: 3px;"
+    "  min-width: 6px;"
+    "}"
+    "QScrollBar::handle:horizontal:disabled {"
+    "  background: rgb(200, 200, 200);"
     "}"
     "QScrollBar::add-line:horizontal {" // Step right button
-    "  background: rgb(200, 200, 200);"
-    "  border-left: 1px solid rgb(140, 140, 140);"
-    "  width: 13px;"
+    "  background: rgb(240, 240, 240);"
+    "  width: 14px;"
     "  subcontrol-position: right;"
     "  subcontrol-origin: margin;"
     "}"
     "QScrollBar::sub-line:horizontal {" // Step left button
-    "  background: rgb(200, 200, 200);"
-    "  border-right: 1px solid rgb(140, 140, 140);"
-    "  width: 13px;"
+    "  background: rgb(240, 240, 240);"
+    "  width: 14px;"
     "  subcontrol-position: left;"
     "  subcontrol-origin: margin;"
     "}"
@@ -131,7 +141,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     "  border-radius: 3px;"
     "  width: 6px;"
     "  height: 6px;"
-    "  background: white;"
+    "  background: rgb(140, 140, 140);"
+    "}"
+    "QScrollBar:left-arrow:horizontal:disabled, QScrollBar::right-arrow:horizontal:disabled {"
+    "  background: rgb(200, 200, 200);"
     "}"
     "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {"
     "  background: none;"
@@ -139,15 +152,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   QString vscroll_simple_attrs =
     "QScrollBar:vertical {"
     "  border: none;"
-    "  background: rgb(200, 200, 200);"
+    "  background: rgb(240, 240, 240);"
     "  width: 14px;"
     "  margin: 0px 0px 0px 0px;"
-    "  padding: 2px 2px 2px 2px;"
+    "  padding: 2px 4px 2px 4px;"
     "}"
     "QScrollBar::handle:vertical {"
-    "  background: white;"
-    "  border-radius: 5px;"
-    "  min-height: 10px;"
+    "  background: rgb(140, 140, 140);"
+    "  border-radius: 3px;"
+    "  min-height: 6px;"
+    "}"
+    "QScrollBar::handle:vertical:disabled {"
+    "  background: rgb(200, 200, 200);"
     "}"
     "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {" // Step left/right buttons
     "  background: none;"
@@ -160,6 +176,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->hierarchyHScroll->setStyleSheet(hscroll_simple_attrs);
   ui->eventsHScroll->setStyleSheet(hscroll_advanced_attrs);
   ui->profilingHScroll->setStyleSheet(hscroll_simple_attrs);
+  ui->hierarchyVScroll->setEnabled(false);
+  ui->hierarchyHScroll->setEnabled(false);
+  ui->eventsHScroll->setEnabled(false);
+  ui->profilingHScroll->setEnabled(false);
 
   // Create the list of tool buttons
   QList<QToolButton *> tool_buttons = {
@@ -202,12 +222,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->setFilterButton->setIcon(buildIcon(":/filter.png",                    false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->clearFilterButton->setIcon(buildIcon(":/clear_filter.png",            false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->showFoldersButton->setIcon(buildIcon(":/show_folders.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));/*+ need better icon */
+  ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->openFoldersButton->setIcon(buildIcon(":/open_folders.png",            false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->closeFoldersButton->setIcon(buildIcon(":/close_folders.png",          false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->sortByIdButton->setIcon(buildIcon(":/sort_by_id.png",                 true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->sortByNameButton->setIcon(buildIcon(":/sort_by_name.png",             true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->sortByTimeButton->setIcon(buildIcon(":/sort_by_time.png",             true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR)); /*+ need better icon */
+  ui->sortByTimeButton->setIcon(buildIcon(":/sort_by_time.png",             true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->increaseFontSizeButton->setIcon(buildIcon(":/increase_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->decreaseFontSizeButton->setIcon(buildIcon(":/decrease_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
 
@@ -249,14 +269,8 @@ void MainWindow::updateColumnWidths(int pos, int index) {
   }
 }
 
-QPixmap MainWindow::recolorImage(QImage &image, QColor color) {
-  for (int y=0; y<image.height(); y++) {
-    for (int x=0; x<image.width(); x++) {
-      int alpha = image.pixelColor(x, y).alpha();
-      color.setAlpha(alpha);
-      image.setPixelColor(x, y, color);
-    }
-  }
+static QPixmap recolorImageAndConvertToPixmap(QImage &image, QColor color) {
+  recolorImage(image, color);
   return QPixmap::fromImage(image);
 }
 
@@ -269,18 +283,18 @@ QIcon MainWindow::buildIcon(QString filename, bool is_toggle, QColor normal_colo
   // Build icon
   QIcon icon;
   if (is_toggle) {
-    icon.addPixmap(recolorImage(image, toggle_off_color), QIcon::Mode::Normal, QIcon::State::Off);
-    icon.addPixmap(recolorImage(image, toggle_on_color),  QIcon::Mode::Normal, QIcon::State::On);
+    icon.addPixmap(recolorImageAndConvertToPixmap(image, toggle_off_color), QIcon::Mode::Normal, QIcon::State::Off);
+    icon.addPixmap(recolorImageAndConvertToPixmap(image, toggle_on_color),  QIcon::Mode::Normal, QIcon::State::On);
   } else {
-    icon.addPixmap(recolorImage(image, normal_color), QIcon::Mode::Normal, QIcon::State::On);
-    icon.addPixmap(recolorImage(image, normal_color), QIcon::Mode::Normal, QIcon::State::Off);
+    icon.addPixmap(recolorImageAndConvertToPixmap(image, normal_color), QIcon::Mode::Normal, QIcon::State::On);
+    icon.addPixmap(recolorImageAndConvertToPixmap(image, normal_color), QIcon::Mode::Normal, QIcon::State::Off);
   }
-  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::On);
-  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::Off);
-  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Active, QIcon::State::On);
-  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Active, QIcon::State::Off);
-  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Selected, QIcon::State::On);
-  icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Selected, QIcon::State::Off);
+  icon.addPixmap(recolorImageAndConvertToPixmap(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::On);
+  icon.addPixmap(recolorImageAndConvertToPixmap(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::Off);
+  icon.addPixmap(recolorImageAndConvertToPixmap(image, disabled_color), QIcon::Mode::Active, QIcon::State::On);
+  icon.addPixmap(recolorImageAndConvertToPixmap(image, disabled_color), QIcon::Mode::Active, QIcon::State::Off);
+  icon.addPixmap(recolorImageAndConvertToPixmap(image, disabled_color), QIcon::Mode::Selected, QIcon::State::On);
+  icon.addPixmap(recolorImageAndConvertToPixmap(image, disabled_color), QIcon::Mode::Selected, QIcon::State::Off);
   return icon;
 }
 

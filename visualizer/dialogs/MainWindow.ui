@@ -423,7 +423,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="eventsView" native="true">
+             <widget class="EventsView" name="eventsView" native="true">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -748,6 +748,14 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>EventsView</class>
+   <extends>QWidget</extends>
+   <header>EventsView.hpp</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
