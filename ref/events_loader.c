@@ -91,12 +91,15 @@ Events *loadEventsFile(const char *filename) {
   if (file == NULL) return NULL;
 #endif
 
+  /*+ get total bytes of file to know if the full events fill was recorded or accidentally truncated */
+
   Events *object = calloc(1, sizeof(Events));
   assert(object != NULL);
 
   // Get the event parameters
   bool is_big_endian = readBool(file);
   bool swap_endian = (is_big_endian != isBigEndian());
+  /*+ get version */
   object->is_threaded = readBool(file);
   object->includes_instance = readBool(file);
   object->includes_value = readBool(file);

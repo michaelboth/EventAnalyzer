@@ -29,6 +29,7 @@ CONFIG += warn_on
 
 HEADERS += src/main.hpp
 HEADERS += src/MainWindow.hpp
+HEADERS += src/EventTree.hpp
 HEADERS += ../ref/events_loader.h
 
 SOURCES += src/main.cpp

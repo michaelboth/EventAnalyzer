@@ -16,15 +16,12 @@
 #include "ui_MainWindow.h"
 #include "MainWindow.hpp"
 #include "main.hpp"
-#include "events_loader.h"
 
 #define NORMAL_COLOR     QColor(50, 50, 50)
 #define DISABLED_COLOR   QColor(200, 200, 200)
 #define TOGGLE_ON_COLOR  QColor(0, 100, 255)
 #define TOGGLE_OFF_COLOR QColor(150, 200, 255)
-#define TOOLBAR_BUTTON_SIZE 38
-
-/*+ When loading event file, build three different display trees: sorted by ID, name, time */
+#define TOOLBAR_BUTTON_SIZE 32
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
@@ -36,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   /*+ show_folders */
   /*+ show_threads */
   /*+ font size */
+
+  /*+ draw unikorn watermark in event area if nothing loaded (Apple's Pages stock image) */
 
   // Hide the status bar
   //statusBar()->hide();
@@ -224,7 +223,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->viewSplitter->setStretchFactor(2, 0);
   // Make sure the name column has a reasonable width
   int prev_name_column_width = G_settings->value("prev_name_column_width", 300).toInt();
-  QList<int> column_widths = {prev_name_column_width};
+  int event_column_width = 0; // Since the splitter widget does not allow hid, then the event colum will use all remaining width
+  int prev_profiling_column_width = G_settings->value("prev_profiling_column_width", 150).toInt();
+  QList<int> column_widths = {prev_name_column_width, event_column_width, prev_profiling_column_width};
   ui->viewSplitter->setSizes(column_widths);
 
   // Set usable widgets
@@ -241,6 +242,10 @@ MainWindow::~MainWindow() {
 void MainWindow::updateColumnWidths(int pos, int index) {
   if (index == 1) {
     G_settings->setValue("prev_name_column_width", pos);
+  }
+  if (index == 2) {
+    int profiling_column_width = ui->viewSplitter->width() - pos - 2;
+    G_settings->setValue("prev_profiling_column_width", profiling_column_width);
   }
 }
 
@@ -264,11 +269,11 @@ QIcon MainWindow::buildIcon(QString filename, bool is_toggle, QColor normal_colo
   // Build icon
   QIcon icon;
   if (is_toggle) {
-    icon.addPixmap(recolorImage(image, toggle_off_color), QIcon::Mode::Normal,   QIcon::State::Off);
-    icon.addPixmap(recolorImage(image, toggle_on_color),  QIcon::Mode::Normal,   QIcon::State::On);
+    icon.addPixmap(recolorImage(image, toggle_off_color), QIcon::Mode::Normal, QIcon::State::Off);
+    icon.addPixmap(recolorImage(image, toggle_on_color),  QIcon::Mode::Normal, QIcon::State::On);
   } else {
-    icon.addPixmap(recolorImage(image, normal_color),   QIcon::Mode::Normal,   QIcon::State::On);
-    icon.addPixmap(recolorImage(image, normal_color),   QIcon::Mode::Normal,   QIcon::State::Off);
+    icon.addPixmap(recolorImage(image, normal_color), QIcon::Mode::Normal, QIcon::State::On);
+    icon.addPixmap(recolorImage(image, normal_color), QIcon::Mode::Normal, QIcon::State::Off);
   }
   icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::On);
   icon.addPixmap(recolorImage(image, disabled_color), QIcon::Mode::Disabled, QIcon::State::Off);
@@ -280,43 +285,53 @@ QIcon MainWindow::buildIcon(QString filename, bool is_toggle, QColor normal_colo
 }
 
 void MainWindow::setWidgetUsability() {
-  bool event_files_loaded = false;
+  bool event_files_loaded = (event_files.count() > 0);
   bool event_files_selected = false;
 
   // Hierarchy toolbar
   ui->closeAllButton->setEnabled(event_files_loaded);
   ui->closeSelectedButton->setEnabled(event_files_selected);
   ui->setFilterButton->setEnabled(event_files_loaded);
-  ui->clearFilterButton->setEnabled(event_files_loaded);
-  ui->showFoldersButton->setEnabled(event_files_loaded);
-  ui->showThreadsButton->setEnabled(event_files_loaded);
+  ui->clearFilterButton->setEnabled(event_files_loaded); /*+ only if filters are set */
+  ui->showFoldersButton->setEnabled(event_files_loaded); /*+ only if folders are recorded */
+  ui->showThreadsButton->setEnabled(event_files_loaded); /*+ only if threads are recorded */
   ui->openFoldersButton->setEnabled(event_files_loaded);
   ui->closeFoldersButton->setEnabled(event_files_loaded);
   ui->sortByIdButton->setEnabled(event_files_loaded);
   ui->sortByNameButton->setEnabled(event_files_loaded);
   ui->sortByTimeButton->setEnabled(event_files_loaded);
-  ui->increaseFontSizeButton->setEnabled(event_files_loaded);
-  ui->decreaseFontSizeButton->setEnabled(event_files_loaded);
+  ui->increaseFontSizeButton->setEnabled(event_files_loaded); /*+ disable is max'ed out */
+  ui->decreaseFontSizeButton->setEnabled(event_files_loaded); /*+ disable is min'ed out */
 }
 
 void MainWindow::on_loadButton_clicked() {
   QString prev_folder = G_settings->value("prev_load_folder", "").toString();
   QStringList files = QFileDialog::getOpenFileNames(this, "Load One Or More Event Files", prev_folder, "Event Files (*.events)");
   for (auto filename: files) {
-    /*+ if file already loaded, then delete data first */
-    //*+*/QString name = filename.section("/", -1);
-    //*+*/assert(!name.isEmpty());
+    // Get folder
     QString folder = filename.section("/", -999, -2);
-    printf("folder: '%s'\n", folder.toLatin1().data());
+    //printf("folder: '%s'\n", folder.toLatin1().data());
     assert(!folder.isEmpty());
     G_settings->setValue("prev_load_folder", folder);
+    //QString name = filename.section("/", -1);
+    //assert(!name.isEmpty());
 
-    Events *instance = loadEventsFile(filename.toLatin1().data());
-    /*+ add to list in alphabetical order */
-    /*+*/freeEvents(instance);
+    // If events file already loaded, then delete old data first
+    if (event_files.contains(folder)) {
+      // Remove old events file
+      Events *old_events = event_files[folder];
+      int items_removed = event_files.remove(folder);
+      assert(items_removed == 1);
+      freeEvents(old_events);
+    }
+
+    // Load the events
+    Events *events = loadEventsFile(filename.toLatin1().data());
+    event_files[folder] = events; // NOTE: QMaps are ordered alphabetically
   }
   if (files.count() > 0) {
-    /*+ rebuild trees and update display */
+    /*+ rebuild event tree and update display */
+    setWidgetUsability();
   }
 }
 
