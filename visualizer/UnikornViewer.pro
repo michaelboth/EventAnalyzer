@@ -36,6 +36,7 @@ HEADERS += ../ref/events_loader.h
 
 SOURCES += src/main.cpp
 SOURCES += src/MainWindow.cpp
+SOURCES += src/EventTree.cpp
 SOURCES += src/EventsView.cpp
 SOURCES += src/HelpfulFunctions.cpp
 SOURCES += ../ref/events_loader.c

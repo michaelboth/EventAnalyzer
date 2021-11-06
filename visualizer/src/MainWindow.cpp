@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <QtWidgets>
+//*+*/#include <QtWidgets>
+#include <QFileDialog>
 #include "ui_MainWindow.h"
 #include "MainWindow.hpp"
 #include "HelpfulFunctions.hpp"
@@ -40,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   // Hide the status bar
   //statusBar()->hide();
   /*+ show event stats: number of files, total events */
-  statusBar()->showMessage("Event files loaded: 0");
+  statusBar()->showMessage("Event files loaded: 0, Filters: none, ");
 
   // Margins and spacing
   centralWidget()->layout()->setContentsMargins(0,0,0,0);
@@ -341,10 +342,25 @@ void MainWindow::on_loadButton_clicked() {
 
     // Load the events
     Events *events = loadEventsFile(filename.toLatin1().data());
+    /*+ store the tree instead */
     event_files[folder] = events; // NOTE: QMaps are ordered alphabetically
+
+    // Build the display tree
+    EventTree tree = EventTree(events, filename);
+    //*+*/tree.sortTree(SortType sort_type);
   }
   if (files.count() > 0) {
-    /*+ rebuild event tree and update display */
+    /*+
+    QMapIterator<QString, Events*> i(map);
+    while (i.hasNext()) {
+      i.next();
+      QString filename = i.key();
+      Events *events = i.value();
+      //printf("Build tree for '%s'\n", filename.toLatin1().data());
+    }
+    */
+
+    /*+ update display */
     setWidgetUsability();
   }
 }

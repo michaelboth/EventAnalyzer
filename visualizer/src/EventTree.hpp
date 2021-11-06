@@ -15,27 +15,43 @@
 #ifndef _EventTree_hpp_
 #define _EventTree_hpp_
 
+#include <QList>
+#include "events_loader.h"
+
 typedef enum {
   SORT_BY_ID,
   SORT_BY_NAME,
   SORT_BY_TIME
 } SortType;
 
-class EventLeaf {
+typedef enum {
+  TREE_NODE_IS_FILE,
+  TREE_NODE_IS_FOLDER,
+  TREE_NODE_IS_THREAD,
+  TREE_NODE_IS_EVENT
+} TreeNodeType;
+
+class EventTreeNode {
 public:
-  bool is_folder = false;
+  TreeNodeType tree_node_type = TREE_NODE_IS_FILE;
   uint16_t ID = 0;
+  uint32_t max_event_instances = 0;
+  uint32_t num_event_instances = 0;
   uint32_t *event_indices = NULL; // Ordered list of indices into the events
-  QList<EventLeaf*> children;
+  QList<EventTreeNode*> children;
 };
 
 class EventTree {
 public:
-  explicit EventTree(void *events, SortType sort_type);
+  EventTree(Events *events, QString filename);
   ~EventTree();
+  void sortTree(SortType sort_type);
 private:
-  void *events;
-  EventLeaf *tree;
+  Events *events;
+  QString filename;
+  EventTreeNode *tree;
+  void buildTree(EventTreeNode *node, uint32_t &event_index, QList<uint16_t> &open_folders);
+  EventTreeNode *getChildWithEventId(EventTreeNode *parent, uint16_t event_id);
 };
 
 #endif

@@ -13,7 +13,8 @@
 // limitations under the License.
 
 #include <QApplication>
-#include <QtWidgets>
+#include <QScreen>
+#include <QDesktopWidget>
 #include <QStyleFactory>
 #include "main.hpp"
 #include "MainWindow.hpp"
