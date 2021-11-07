@@ -29,14 +29,26 @@ EventTree::EventTree(Events *_events, QString _filename) {
 }
 
 EventTree::~EventTree() {
-  /*+ recursively free tree */
-  /*+*/printf("Delete tree\n");
+  deleteTree(tree);
+}
+
+/*+ valgrind */
+void EventTree::deleteTree(EventTreeNode *node) {
+  for (auto child: node->children) {
+    if (child->tree_node_type == TREE_NODE_IS_FOLDER || child->tree_node_type == TREE_NODE_IS_THREAD) {
+      deleteTree(child);
+    }
+  }
+  if (node->max_event_instances > 0) {
+    free(node->event_indices);
+  }
+  delete node;
 }
 
 EventTreeNode *EventTree::getChildWithEventId(EventTreeNode *parent, uint16_t event_id) {
   QList<EventTreeNode*> children;
   for (auto child: parent->children) {
-    if (child->tree_node_type == TREE_NODE_IS_FILE && child->ID == event_id) return child;
+    if (child->tree_node_type == TREE_NODE_IS_EVENT && child->ID == event_id) return child;
   }
   return NULL;
 }
@@ -63,6 +75,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, QList<uint
         child->max_event_instances = MIN_EVENT_INSTANCE_LIST_ELEMENTS;
         child->num_event_instances = 0;
         child->event_indices = (uint32_t *)malloc(child->max_event_instances * sizeof(uint32_t));
+	node->children += child;
       }
       if (child->num_event_instances == child->max_event_instances) {
         // Instance list is full, double its size
@@ -77,6 +90,25 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, QList<uint
   }
 }
 
+/*+
+static int compare(const void* x, const void* y) {
+  int* a = (int*)x;
+  int* b = (int*)y;
+  if (*a==*b) return 0;
+  return *a > *b ? +1 : -1;
+}
+*/
+
+/*+
+QMAKE_CXXFLAGS += /std:c++17
+or
+CONFIG += c++17
+*/
+
 void EventTree::sortTree(SortType /*+sort_type*/) {
-  /*+*/
+  /*+ recursive */
+  std::sort(tree->children.begin(), tree->children.end());
+  /*+
+  std::qsort(arr, 5, sizeof(int), compare);
+  */
 }

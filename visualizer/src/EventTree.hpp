@@ -51,6 +51,7 @@ private:
   QString filename;
   EventTreeNode *tree;
   void buildTree(EventTreeNode *node, uint32_t &event_index, QList<uint16_t> &open_folders);
+  void deleteTree(EventTreeNode *node);
   EventTreeNode *getChildWithEventId(EventTreeNode *parent, uint16_t event_id);
 };
 
