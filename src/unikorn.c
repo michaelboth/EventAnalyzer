@@ -457,7 +457,10 @@ static void flushEvents(EventObject *object) {
 #endif
   assert(object->flush(object->flush_user_data, &is_big_endian, sizeof(is_big_endian)));
 
-  /*+ version */
+  /*+ version
+    #define UK_API_VERSION_MAJOR 1
+    #define UK_API_VERSION_MINOR 0
+  */
 
   // Miscellanyous info
 #ifdef PRINT_FLUSH_INFO

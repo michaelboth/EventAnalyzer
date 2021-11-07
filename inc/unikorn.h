@@ -19,7 +19,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-/*+ version */
+#define UK_API_VERSION_MAJOR 1
+#define UK_API_VERSION_MINOR 0
 
 // Predefined RGB colors. Application can still use custom color values, format is 0x0RGB
 enum {
@@ -37,7 +38,7 @@ enum {
 
 typedef struct {
   const char *name;
-  uint16_t id;        // ID's must start with 1 and be contiguous across folders (defined first) and events
+  uint16_t id;        // ID's must start with 1 and be contiguous across folders (defined first) and events. ID 0 is reserved for 'close folder' event.
 } UkFolderInfo;
 
 typedef struct {
@@ -132,7 +133,6 @@ void ukDestroy(void *instance);  // Will not automatically save unsaved events
 // The remaining functions are thread safe if the library is compiled with THREADED=Yes and UkAttrs::is_threaded==true
 
 // Record event
-/*+ maybe change 'double value' to 'void *value_ptr, uint16_t bytes', and allow a variable number of bytes for event in the event buffer? This seems like overkill */
 void ukRecordEvent(void *instance, uint16_t event_id, double value, const char *file, const char *function, uint16_t line_number);
 
 // Open a folder to contain any subsequent events that are recorded

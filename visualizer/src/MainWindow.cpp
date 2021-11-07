@@ -17,6 +17,7 @@
 #include "MainWindow.hpp"
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
+#include "unikorn.h"
 
 #define NORMAL_COLOR     QColor(50, 50, 50)
 #define DISABLED_COLOR   QColor(200, 200, 200)
@@ -27,17 +28,13 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
 
-  // Initial variables
-  sort_type = SORT_BY_ID;
-  /*+ sessions */
-  /*+ filters (encapsulate in main structure) */
-  /*+ show_folders */
-  /*+ show_threads */
-  /*+ font size */
+  // Set title
+  setWindowTitle("Unikorn Viewer (version " + QString::number(UK_API_VERSION_MAJOR) + "." + QString::number(UK_API_VERSION_MINOR) + ")"); /*+ get from unikorn.h */
 
   // Hide the status bar
   //statusBar()->hide();
-  statusBar()->showMessage("Event files loaded: 0, Filters: none, Total Events: 0");
+  statusBar()->showMessage("Event files loaded: 0, Filters Set: none, Total Events: 0");
+  //*+ seems to be enabled by default: verify on Windows and Mac */statusBar()->setSizeGripEnabled(true);
 
   // Margins and spacing
   centralWidget()->layout()->setContentsMargins(0,0,0,0);
@@ -254,14 +251,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 MainWindow::~MainWindow() {
   // Free loaded event files
-  QMapIterator<QString, EventTree*> i(event_tree_map);
-  while (i.hasNext()) {
-    i.next();
-    EventTree *tree = i.value();
-    freeEvents(tree->events);
-    delete tree;
-  }
-  event_tree_map.clear();
+  freeAllEventFiles();
 
   // Free main layout
   delete ui;
@@ -309,15 +299,18 @@ QIcon MainWindow::buildIcon(QString filename, bool is_toggle, QColor normal_colo
 
 void MainWindow::setWidgetUsability() {
   bool event_files_loaded = (event_tree_map.count() > 0);
-  bool event_files_selected = false;
+  bool event_files_selected = false;/*+*/
+  bool folders_exist = eventFilesHaveFolders();
+  bool threads_exist = eventFilesHaveThreads();
+  bool filters_are_set = false;/*+*/
 
   // Hierarchy toolbar
   ui->closeAllButton->setEnabled(event_files_loaded);
   ui->closeSelectedButton->setEnabled(event_files_selected);
   ui->setFilterButton->setEnabled(event_files_loaded);
-  ui->clearFilterButton->setEnabled(event_files_loaded); /*+ only if filters are set */
-  ui->showFoldersButton->setEnabled(event_files_loaded); /*+ only if folders are recorded */
-  ui->showThreadsButton->setEnabled(event_files_loaded); /*+ only if threads are recorded */
+  ui->clearFilterButton->setEnabled(filters_are_set);
+  ui->showFoldersButton->setEnabled(folders_exist);
+  ui->showThreadsButton->setEnabled(threads_exist);
   ui->openFoldersButton->setEnabled(event_files_loaded);
   ui->closeFoldersButton->setEnabled(event_files_loaded);
   ui->sortByIdButton->setEnabled(event_files_loaded);
@@ -326,7 +319,9 @@ void MainWindow::setWidgetUsability() {
   ui->increaseFontSizeButton->setEnabled(event_files_loaded); /*+ disable is max'ed out */
   ui->decreaseFontSizeButton->setEnabled(event_files_loaded); /*+ disable is min'ed out */
 
-  //*+*/statusBar()->showMessage("Event files loaded: 0, Filters: none, Total Events: 0");
+  // Update status bar
+  QString message = "Event files loaded: " + QString::number(event_tree_map.count()) + "          Filters Set: none          Total Events: " + QString::number(totalEventInstances()); /*+ filters set */
+  statusBar()->showMessage(message);
 }
 
 void MainWindow::on_loadButton_clicked() {
@@ -356,7 +351,8 @@ void MainWindow::on_loadButton_clicked() {
     Events *events = loadEventsFile(filename.toLatin1().data());
 
     // Build the display tree
-    EventTree *tree = new EventTree(events, name, folder);
+    EventTree *tree = new EventTree(events, name, folder, ui->showFoldersButton->isChecked(), ui->showThreadsButton->isChecked());
+    SortType sort_type = ui->sortByIdButton->isChecked() ? SORT_BY_ID : ui->sortByNameButton->isChecked() ? SORT_BY_NAME : SORT_BY_TIME;
     tree->sortTree(sort_type);
     event_tree_map[filename] = tree; // NOTE: QMaps are ordered alphabetically
   }
@@ -367,7 +363,9 @@ void MainWindow::on_loadButton_clicked() {
 }
 
 void MainWindow::on_closeAllButton_clicked() {
-  /*+*/
+  freeAllEventFiles();
+  setWidgetUsability();
+  /*+ update display */
 }
 
 void MainWindow::on_closeSelectedButton_clicked() {
@@ -382,12 +380,82 @@ void MainWindow::on_clearFilterButton_clicked() {
   /*+*/
 }
 
+void MainWindow::updateEventTreeBuild() {
+  SortType sort_type = ui->sortByIdButton->isChecked() ? SORT_BY_ID : ui->sortByNameButton->isChecked() ? SORT_BY_NAME : SORT_BY_TIME;
+  QMapIterator<QString, EventTree*> i(event_tree_map);
+  while (i.hasNext()) {
+    // Get old tree info
+    i.next();
+    QString filename = i.key();
+    EventTree *tree = i.value();
+    Events *events = tree->events;
+    QString name = tree->name;
+    QString folder = tree->folder;
+    delete tree;
+    // Build new tree
+    tree = new EventTree(events, name, folder, ui->showFoldersButton->isChecked(), ui->showThreadsButton->isChecked());
+    tree->sortTree(sort_type);
+    event_tree_map[filename] = tree; // NOTE: QMaps are ordered alphabetically
+  }
+  /*+ redraw */
+}
+
+void MainWindow::freeAllEventFiles() {
+  QMapIterator<QString, EventTree*> i(event_tree_map);
+  while (i.hasNext()) {
+    i.next();
+    EventTree *tree = i.value();
+    freeEvents(tree->events);
+    delete tree;
+  }
+  event_tree_map.clear();
+}
+
+uint32_t MainWindow::totalEventInstances() {
+  uint32_t count = 0;
+  QMapIterator<QString, EventTree*> i(event_tree_map);
+  while (i.hasNext()) {
+    // Get old tree info
+    i.next();
+    EventTree *tree = i.value();
+    Events *events = tree->events;
+    count += events->event_count;
+  }
+  return count;
+}
+
+bool MainWindow::eventFilesHaveFolders() {
+  QMapIterator<QString, EventTree*> i(event_tree_map);
+  while (i.hasNext()) {
+    // Get old tree info
+    i.next();
+    EventTree *tree = i.value();
+    Events *events = tree->events;
+    if (events->folder_info_count > 0) return true;
+  }
+  return false;
+}
+
+bool MainWindow::eventFilesHaveThreads() {
+  QMapIterator<QString, EventTree*> i(event_tree_map);
+  while (i.hasNext()) {
+    // Get old tree info
+    i.next();
+    EventTree *tree = i.value();
+    Events *events = tree->events;
+    if (events->is_threaded) return true;
+  }
+  return false;
+}
+
 void MainWindow::on_showFoldersButton_clicked() {
-  /*+*/
+  bool folders_exist = eventFilesHaveFolders();
+  if (folders_exist) updateEventTreeBuild();
 }
 
 void MainWindow::on_showThreadsButton_clicked() {
-  /*+*/
+  bool threads_exist = eventFilesHaveThreads();
+  if (threads_exist) updateEventTreeBuild();
 }
 
 void MainWindow::on_openFoldersButton_clicked() {
@@ -399,6 +467,7 @@ void MainWindow::on_closeFoldersButton_clicked() {
 }
 
 void MainWindow::updateEventTreeSort() {
+  SortType sort_type = ui->sortByIdButton->isChecked() ? SORT_BY_ID : ui->sortByNameButton->isChecked() ? SORT_BY_NAME : SORT_BY_TIME;
   QMapIterator<QString, EventTree*> i(event_tree_map);
   while (i.hasNext()) {
     i.next();
@@ -409,24 +478,33 @@ void MainWindow::updateEventTreeSort() {
 }
 
 void MainWindow::on_sortByIdButton_clicked() {
-  sort_type = SORT_BY_ID;
+  bool is_checked = ui->sortByIdButton->isChecked();
+  if (!is_checked) {
+    ui->sortByIdButton->setChecked(true);
+  }
   ui->sortByNameButton->setChecked(false);
   ui->sortByTimeButton->setChecked(false);
-  updateEventTreeSort();
+  if (is_checked) updateEventTreeSort();
 }
 
 void MainWindow::on_sortByNameButton_clicked() {
-  sort_type = SORT_BY_NAME;
+  bool is_checked = ui->sortByNameButton->isChecked();
+  if (!is_checked) {
+    ui->sortByNameButton->setChecked(true);
+  }
   ui->sortByIdButton->setChecked(false);
   ui->sortByTimeButton->setChecked(false);
-  updateEventTreeSort();
+  if (is_checked) updateEventTreeSort();
 }
 
 void MainWindow::on_sortByTimeButton_clicked() {
-  sort_type = SORT_BY_TIME;
+  bool is_checked = ui->sortByTimeButton->isChecked();
+  if (!is_checked) {
+    ui->sortByTimeButton->setChecked(true);
+  }
   ui->sortByIdButton->setChecked(false);
   ui->sortByNameButton->setChecked(false);
-  updateEventTreeSort();
+  if (is_checked) updateEventTreeSort();
 }
 
 void MainWindow::on_increaseFontSizeButton_clicked() {

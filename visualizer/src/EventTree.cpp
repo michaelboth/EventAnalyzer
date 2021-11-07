@@ -17,7 +17,7 @@
 #define MIN_EVENT_INSTANCE_LIST_ELEMENTS 100
 #define PRINT_HELPFUL_MESSAGES
 
-EventTree::EventTree(Events *_events, QString _name, QString _folder) {
+EventTree::EventTree(Events *_events, QString _name, QString _folder, bool show_folders, bool show_threads) {
   events = _events;
   name = _name;
   folder = _folder;
@@ -27,8 +27,7 @@ EventTree::EventTree(Events *_events, QString _name, QString _folder) {
   tree->name = _folder + "/" + _name + ".events";
   // Recursively build tree
   uint32_t event_index = 0;
-  QList<uint16_t> open_folders;
-  buildTree(tree, event_index, open_folders);
+  buildTree(tree, event_index, show_folders, show_threads);
 }
 
 EventTree::~EventTree() {
@@ -72,7 +71,7 @@ EventTreeNode *EventTree::getThreadFolder(EventTreeNode *parent, uint16_t thread
   return thread_folder;
 }
 
-void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, QList<uint16_t> &/*+open_folders*/) {
+void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_folders, bool show_threads) {
   while (true) {
     if (event_index == events->event_count) return; // Done processing events
 
@@ -80,7 +79,27 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, QList<uint
     Event *event = &events->event_buffer[event_index];
     if (event->event_id < events->folder_info_count) {
       // Process folder
-      /*+ process folder */
+      if (!show_folders) {
+        // Skip over folder events
+        event_index++;
+      } else if (event->event_id == 0) {
+        // This is the 'close folder' event. Move back to the parent node
+        event_index++;
+        return;
+      } else {
+        // Create the new folder and recurse into it
+        EventTreeNode *folder = new EventTreeNode();
+        folder->tree_node_type = TREE_NODE_IS_FOLDER;
+        folder->ID = event->event_id;
+        folder->name = events->folder_info_list[event->event_id].name;
+        node->children += folder;
+#ifdef PRINT_HELPFUL_MESSAGES
+        printf("Creating folder for ID %d, name=%s\n", event->event_id, folder->name.toLatin1().data());
+#endif
+        // Recurse into folder node
+        event_index++;
+        buildTree(folder, event_index, show_folders, show_threads);
+      }
 
     } else {
       // Process event
@@ -89,7 +108,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, QList<uint
       EventInfo *event_info = &events->event_info_list[event_info_index];
       EventTreeNode *parent = node;
       // Get thread folder if threaded
-      if (events->is_threaded) { /*+ only if thread folders are visible? */
+      if (events->is_threaded && show_threads) {
         parent = getThreadFolder(node, event->thread_index);
       }
       EventTreeNode *child = getChildWithEventInfoIndex(parent, event_info_index);
@@ -116,9 +135,8 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, QList<uint
       }
       child->event_indices[child->num_event_instances] = event_index;
       child->num_event_instances++;
+      event_index++;
     }
-
-    event_index++;
   }
 }
 

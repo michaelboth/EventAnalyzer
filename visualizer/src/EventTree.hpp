@@ -48,14 +48,14 @@ public:
 class EventTree {
 public:
   Events *events;
-  EventTree(Events *events, QString name, QString folder);
+  QString name;
+  QString folder;
+  EventTree(Events *events, QString name, QString folder, bool show_folders, bool show_threads);
   ~EventTree();
   void sortTree(SortType sort_type);
 private:
-  QString name;
-  QString folder;
   EventTreeNode *tree;
-  void buildTree(EventTreeNode *node, uint32_t &event_index, QList<uint16_t> &open_folders);
+  void buildTree(EventTreeNode *node, uint32_t &event_index, bool show_folders, bool show_threads);
   void deleteTree(EventTreeNode *node);
   EventTreeNode *getChildWithEventInfoIndex(EventTreeNode *parent, uint16_t event_info_index);
   EventTreeNode *getThreadFolder(EventTreeNode *parent, uint16_t thread_index);

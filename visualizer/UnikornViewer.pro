@@ -16,8 +16,8 @@ QT += widgets
 
 RESOURCES += resources.qrc
 
-DEPENDPATH  += src ../ref
-INCLUDEPATH += src ../ref
+DEPENDPATH  += src ../ref ../inc
+INCLUDEPATH += src ../ref ../inc
 
 win32:CONFIG += embed_manifest_exe
 #win32:CONFIG += console
@@ -35,6 +35,7 @@ HEADERS += src/EventTree.hpp
 HEADERS += src/EventsView.hpp
 HEADERS += src/HelpfulFunctions.hpp
 HEADERS += ../ref/events_loader.h
+HEADERS += ../inc/unikorn.h
 
 SOURCES += src/main.cpp
 SOURCES += src/MainWindow.cpp

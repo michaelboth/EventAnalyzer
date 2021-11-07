@@ -99,7 +99,10 @@ Events *loadEventsFile(const char *filename) {
   // Get the event parameters
   bool is_big_endian = readBool(file);
   bool swap_endian = (is_big_endian != isBigEndian());
-  /*+ get version */
+  /*+ get version
+    MAJOR
+    MINOR
+  */
   object->is_threaded = readBool(file);
   object->includes_instance = readBool(file);
   object->includes_value = readBool(file);
