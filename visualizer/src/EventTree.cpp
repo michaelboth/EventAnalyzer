@@ -15,6 +15,7 @@
 #include "EventTree.hpp"
 
 #define MIN_EVENT_INSTANCE_LIST_ELEMENTS 100
+#define PRINT_HELPFUL_MESSAGES
 
 EventTree::EventTree(Events *_events, QString _name, QString _folder) {
   events = _events;
@@ -34,12 +35,12 @@ EventTree::~EventTree() {
   deleteTree(tree);
 }
 
-/*+ valgrind */
 void EventTree::deleteTree(EventTreeNode *node) {
+#ifdef PRINT_HELPFUL_MESSAGES
+  printf("deleteTree: %s\n", node->name.toLatin1().data());
+#endif
   for (auto child: node->children) {
-    if (child->tree_node_type == TREE_NODE_IS_FOLDER || child->tree_node_type == TREE_NODE_IS_THREAD) {
-      deleteTree(child);
-    }
+    deleteTree(child);
   }
   if (node->max_event_instances > 0) {
     free(node->event_indices);
@@ -65,7 +66,9 @@ EventTreeNode *EventTree::getThreadFolder(EventTreeNode *parent, uint16_t thread
   thread_folder->thread_index = thread_index;
   thread_folder->name = "Thread " + QString::number(events->thread_id_list[thread_index]);
   parent->children += thread_folder;
-  /*+*/printf("Creating thread folder for index %d, name=%s\n", thread_index, thread_folder->name.toLatin1().data());
+#ifdef PRINT_HELPFUL_MESSAGES
+  printf("Creating thread folder for index %d, name=%s\n", thread_index, thread_folder->name.toLatin1().data());
+#endif
   return thread_folder;
 }
 
@@ -78,6 +81,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, QList<uint
     if (event->event_id < events->folder_info_count) {
       // Process folder
       /*+ process folder */
+
     } else {
       // Process event
       uint16_t first_event_id = (events->folder_info_count==0) ? 1 : events->folder_info_count;
@@ -91,7 +95,9 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, QList<uint
       EventTreeNode *child = getChildWithEventInfoIndex(parent, event_info_index);
       if (child == NULL) {
         // Create event child
-        /*+*/printf("Creating event node for ID %d, %s\n", event->event_id, event_info->name);
+#ifdef PRINT_HELPFUL_MESSAGES
+        printf("Creating event node for ID %d, %s\n", event->event_id, event_info->name);
+#endif
         child = new EventTreeNode();
         child->tree_node_type = TREE_NODE_IS_EVENT;
         child->event_info_index = event_info_index;
@@ -162,5 +168,7 @@ void EventTree::sortNode(EventTreeNode *parent, SortType sort_type) {
 
 void EventTree::sortTree(SortType sort_type) {
   sortNode(tree, sort_type);
+#ifdef PRINT_HELPFUL_MESSAGES
   printTree(tree, sort_type, name.toLatin1().data(), 0);
+#endif
 }

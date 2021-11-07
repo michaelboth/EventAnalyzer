@@ -53,10 +53,11 @@ private slots:
 private:
   Ui::MainWindow *ui;
   SortType sort_type;
-  QMap<QString,Events*> event_files; // QMap is always sorted by key
+  QMap<QString,EventTree*> event_tree_map; // QMap is always sorted by key
 
   void setWidgetUsability();
   QIcon buildIcon(QString filename, bool is_toggle, QColor normal_color, QColor disabled_color, QColor toggle_on_color, QColor toggle_off_color);
+  void updateEventTreeSort();
 };
 
 #endif

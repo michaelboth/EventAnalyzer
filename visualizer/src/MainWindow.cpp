@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//*+*/#include <QtWidgets>
 #include <QFileDialog>
 #include "ui_MainWindow.h"
 #include "MainWindow.hpp"
@@ -36,12 +35,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   /*+ show_threads */
   /*+ font size */
 
-  /*+ draw unikorn watermark in event area if nothing loaded (Apple's Pages stock image) */
-
   // Hide the status bar
   //statusBar()->hide();
-  /*+ show event stats: number of files, total events */
-  statusBar()->showMessage("Event files loaded: 0, Filters: none, ");
+  statusBar()->showMessage("Event files loaded: 0, Filters: none, Total Events: 0");
 
   // Margins and spacing
   centralWidget()->layout()->setContentsMargins(0,0,0,0);
@@ -257,7 +253,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 }
 
 MainWindow::~MainWindow() {
-  // Nothing to do
+  // Free loaded event files
+  QMapIterator<QString, EventTree*> i(event_tree_map);
+  while (i.hasNext()) {
+    i.next();
+    EventTree *tree = i.value();
+    freeEvents(tree->events);
+    delete tree;
+  }
+  event_tree_map.clear();
+
+  // Free main layout
+  delete ui;
+  ui = NULL;
 }
 
 void MainWindow::updateColumnWidths(int pos, int index) {
@@ -300,7 +308,7 @@ QIcon MainWindow::buildIcon(QString filename, bool is_toggle, QColor normal_colo
 }
 
 void MainWindow::setWidgetUsability() {
-  bool event_files_loaded = (event_files.count() > 0);
+  bool event_files_loaded = (event_tree_map.count() > 0);
   bool event_files_selected = false;
 
   // Hierarchy toolbar
@@ -317,6 +325,8 @@ void MainWindow::setWidgetUsability() {
   ui->sortByTimeButton->setEnabled(event_files_loaded);
   ui->increaseFontSizeButton->setEnabled(event_files_loaded); /*+ disable is max'ed out */
   ui->decreaseFontSizeButton->setEnabled(event_files_loaded); /*+ disable is min'ed out */
+
+  //*+*/statusBar()->showMessage("Event files loaded: 0, Filters: none, Total Events: 0");
 }
 
 void MainWindow::on_loadButton_clicked() {
@@ -325,47 +335,34 @@ void MainWindow::on_loadButton_clicked() {
   for (auto filename: files) {
     // Get folder
     QString folder = filename.section("/", -999, -2);
-    /*+*/printf("folder: '%s'\n", folder.toLatin1().data());
+    //printf("folder: '%s'\n", folder.toLatin1().data());
     assert(!folder.isEmpty());
     G_settings->setValue("prev_load_folder", folder);
     QString name = filename.section("/", -1).section(".events", 0, 0);
     assert(!name.isEmpty());
-    /*+*/printf("name: '%s'\n", name.toLatin1().data());
+    //printf("name: '%s'\n", name.toLatin1().data());
 
     // If events file already loaded, then delete old data first
-    if (event_files.contains(folder)) {
+    if (event_tree_map.contains(filename)) {
       // Remove old events file
-      Events *old_events = event_files[folder];
-      int items_removed = event_files.remove(folder);
+      EventTree *old_tree = event_tree_map[filename];
+      int items_removed = event_tree_map.remove(filename);
       assert(items_removed == 1);
-      freeEvents(old_events);
+      freeEvents(old_tree->events);
+      delete old_tree;
     }
 
     // Load the events
     Events *events = loadEventsFile(filename.toLatin1().data());
-    /*+ store the tree instead */
-    event_files[folder] = events; // NOTE: QMaps are ordered alphabetically
 
     // Build the display tree
-    EventTree tree = EventTree(events, name, folder);
-    /*+*/tree.sortTree(SORT_BY_NAME);
-    /*+*/tree.sortTree(SORT_BY_ID);
-    /*+*/tree.sortTree(SORT_BY_TIME);
-    /*+*/tree.sortTree(SORT_BY_NAME);
+    EventTree *tree = new EventTree(events, name, folder);
+    tree->sortTree(sort_type);
+    event_tree_map[filename] = tree; // NOTE: QMaps are ordered alphabetically
   }
   if (files.count() > 0) {
-    /*+
-    QMapIterator<QString, Events*> i(map);
-    while (i.hasNext()) {
-      i.next();
-      QString filename = i.key();
-      Events *events = i.value();
-      //printf("Build tree for '%s'\n", filename.toLatin1().data());
-    }
-    */
-
-    /*+ update display */
     setWidgetUsability();
+    /*+ update display */
   }
 }
 
@@ -401,25 +398,35 @@ void MainWindow::on_closeFoldersButton_clicked() {
   /*+*/
 }
 
+void MainWindow::updateEventTreeSort() {
+  QMapIterator<QString, EventTree*> i(event_tree_map);
+  while (i.hasNext()) {
+    i.next();
+    EventTree *tree = i.value();
+    tree->sortTree(sort_type);
+  }
+  /*+ redraw */
+}
+
 void MainWindow::on_sortByIdButton_clicked() {
   sort_type = SORT_BY_ID;
   ui->sortByNameButton->setChecked(false);
   ui->sortByTimeButton->setChecked(false);
-  /*+ switch to ID tree */
+  updateEventTreeSort();
 }
 
 void MainWindow::on_sortByNameButton_clicked() {
   sort_type = SORT_BY_NAME;
   ui->sortByIdButton->setChecked(false);
   ui->sortByTimeButton->setChecked(false);
-  /*+ switch to name tree */
+  updateEventTreeSort();
 }
 
 void MainWindow::on_sortByTimeButton_clicked() {
   sort_type = SORT_BY_TIME;
   ui->sortByIdButton->setChecked(false);
   ui->sortByNameButton->setChecked(false);
-  /*+ switch to time tree */
+  updateEventTreeSort();
 }
 
 void MainWindow::on_increaseFontSizeButton_clicked() {

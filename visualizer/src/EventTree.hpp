@@ -47,11 +47,11 @@ public:
 
 class EventTree {
 public:
+  Events *events;
   EventTree(Events *events, QString name, QString folder);
   ~EventTree();
   void sortTree(SortType sort_type);
 private:
-  Events *events;
   QString name;
   QString folder;
   EventTreeNode *tree;
