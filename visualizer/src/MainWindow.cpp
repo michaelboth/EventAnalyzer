@@ -325,11 +325,12 @@ void MainWindow::on_loadButton_clicked() {
   for (auto filename: files) {
     // Get folder
     QString folder = filename.section("/", -999, -2);
-    //printf("folder: '%s'\n", folder.toLatin1().data());
+    /*+*/printf("folder: '%s'\n", folder.toLatin1().data());
     assert(!folder.isEmpty());
     G_settings->setValue("prev_load_folder", folder);
-    //QString name = filename.section("/", -1);
-    //assert(!name.isEmpty());
+    QString name = filename.section("/", -1).section(".events", 0, 0);
+    assert(!name.isEmpty());
+    /*+*/printf("name: '%s'\n", name.toLatin1().data());
 
     // If events file already loaded, then delete old data first
     if (event_files.contains(folder)) {
@@ -346,8 +347,11 @@ void MainWindow::on_loadButton_clicked() {
     event_files[folder] = events; // NOTE: QMaps are ordered alphabetically
 
     // Build the display tree
-    EventTree tree = EventTree(events, filename);
-    //*+*/tree.sortTree(SortType sort_type);
+    EventTree tree = EventTree(events, name, folder);
+    /*+*/tree.sortTree(SORT_BY_NAME);
+    /*+*/tree.sortTree(SORT_BY_ID);
+    /*+*/tree.sortTree(SORT_BY_TIME);
+    /*+*/tree.sortTree(SORT_BY_NAME);
   }
   if (files.count() > 0) {
     /*+

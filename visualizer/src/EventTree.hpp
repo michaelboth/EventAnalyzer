@@ -34,7 +34,11 @@ typedef enum {
 class EventTreeNode {
 public:
   TreeNodeType tree_node_type = TREE_NODE_IS_FILE;
+  uint16_t thread_index = 0;
+  uint16_t event_info_index = 0;
   uint16_t ID = 0;
+  uint64_t first_time = 0; // A convenince here for sorting
+  QString name; // A convenince here for sorting
   uint32_t max_event_instances = 0;
   uint32_t num_event_instances = 0;
   uint32_t *event_indices = NULL; // Ordered list of indices into the events
@@ -43,16 +47,20 @@ public:
 
 class EventTree {
 public:
-  EventTree(Events *events, QString filename);
+  EventTree(Events *events, QString name, QString folder);
   ~EventTree();
   void sortTree(SortType sort_type);
 private:
   Events *events;
-  QString filename;
+  QString name;
+  QString folder;
   EventTreeNode *tree;
   void buildTree(EventTreeNode *node, uint32_t &event_index, QList<uint16_t> &open_folders);
   void deleteTree(EventTreeNode *node);
-  EventTreeNode *getChildWithEventId(EventTreeNode *parent, uint16_t event_id);
+  EventTreeNode *getChildWithEventInfoIndex(EventTreeNode *parent, uint16_t event_info_index);
+  EventTreeNode *getThreadFolder(EventTreeNode *parent, uint16_t thread_index);
+  void printTree(EventTreeNode *parent, SortType sort_type, const char *title, int level);
+  void sortNode(EventTreeNode *parent, SortType sort_type);
 };
 
 #endif

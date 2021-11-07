@@ -24,6 +24,8 @@ win32:CONFIG += embed_manifest_exe
 #+CONFIG += release
 CONFIG += debug
 CONFIG += warn_on
+#CONFIG += c99
+CONFIG += c++17
 
 #+DEFINES += NAME_HERE
 
