@@ -29,12 +29,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->setupUi(this);
 
   // Set title
-  setWindowTitle("Unikorn Viewer (version " + QString::number(UK_API_VERSION_MAJOR) + "." + QString::number(UK_API_VERSION_MINOR) + ")"); /*+ get from unikorn.h */
+  setWindowTitle("Unikorn Viewer (version " + QString::number(UK_API_VERSION_MAJOR) + "." + QString::number(UK_API_VERSION_MINOR) + ")");
 
   // Hide the status bar
   //statusBar()->hide();
   statusBar()->showMessage("Event files loaded: 0, Filters Set: none, Total Events: 0");
-  //*+ seems to be enabled by default: verify on Windows and Mac */statusBar()->setSizeGripEnabled(true);
+
+  // Set the height of the headers to the font size
+  /*+ update headers heights */
 
   // Margins and spacing
   centralWidget()->layout()->setContentsMargins(0,0,0,0);
@@ -54,9 +56,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->hierarchyVLine->setStyleSheet(separator_attrs);
   ui->eventsHLine->setStyleSheet(separator_attrs);
   ui->statusHLine->setStyleSheet(separator_attrs);
-  //*+*/ui->hierarchyVLine->setHidden(true);
-  //*+*/ui->eventsHLine->setHidden(true);
-  //*+*/ui->statusHLine->setHidden(true);
 
   // Main view splitter
   QString splitter_attrs =
@@ -303,6 +302,8 @@ void MainWindow::setWidgetUsability() {
   bool folders_exist = eventFilesHaveFolders();
   bool threads_exist = eventFilesHaveThreads();
   bool filters_are_set = false;/*+*/
+  bool font_size_can_grow = (G_font_point_size < G_max_font_point_size);
+  bool font_size_can_shrink = (G_font_point_size > G_min_font_point_size);
 
   // Hierarchy toolbar
   ui->closeAllButton->setEnabled(event_files_loaded);
@@ -316,8 +317,8 @@ void MainWindow::setWidgetUsability() {
   ui->sortByIdButton->setEnabled(event_files_loaded);
   ui->sortByNameButton->setEnabled(event_files_loaded);
   ui->sortByTimeButton->setEnabled(event_files_loaded);
-  ui->increaseFontSizeButton->setEnabled(event_files_loaded); /*+ disable is max'ed out */
-  ui->decreaseFontSizeButton->setEnabled(event_files_loaded); /*+ disable is min'ed out */
+  ui->increaseFontSizeButton->setEnabled(event_files_loaded && font_size_can_grow);
+  ui->decreaseFontSizeButton->setEnabled(event_files_loaded && font_size_can_shrink);
 
   // Update status bar
   QString message = "Event files loaded: " + QString::number(event_tree_map.count()) + "          Filters Set: none          Total Events: " + QString::number(totalEventInstances()); /*+ filters set */
@@ -508,9 +509,19 @@ void MainWindow::on_sortByTimeButton_clicked() {
 }
 
 void MainWindow::on_increaseFontSizeButton_clicked() {
-  /*+*/
+  if (G_font_point_size < G_max_font_point_size) {
+    G_font_point_size++;
+    setWidgetUsability();
+    /*+ update headers heights */
+    /*+ redraw */
+  }
 }
 
 void MainWindow::on_decreaseFontSizeButton_clicked() {
-  /*+*/
+  if (G_font_point_size > G_min_font_point_size) {
+    G_font_point_size--;
+    setWidgetUsability();
+    /*+ update headers heights */
+    /*+ redraw */
+  }
 }

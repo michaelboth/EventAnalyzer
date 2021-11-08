@@ -14,6 +14,12 @@
 
 #include "EventTree.hpp"
 
+#ifdef __APPLE__
+  #define UINT64_FORMAT "llu"
+#else
+  #define UINT64_FORMAT "zu"
+#endif
+
 #define MIN_EVENT_INSTANCE_LIST_ELEMENTS 100
 #define PRINT_HELPFUL_MESSAGES
 
@@ -162,7 +168,7 @@ void EventTree::printTree(EventTreeNode *parent, SortType sort_type, const char 
   }
   for (auto child: parent->children) {
     for (int i=0; i<level*2; i++) printf(" ");
-    printf("  %s: %s, ID=%d, first_time=%zu\n",
+    printf("  %s: %s, ID=%d, first_time=%" UINT64_FORMAT "\n",
            (child->tree_node_type == TREE_NODE_IS_FILE) ? "FILE" : (child->tree_node_type == TREE_NODE_IS_FOLDER) ? "FOLDER" : (child->tree_node_type == TREE_NODE_IS_THREAD) ? "THREAD" : "EVENT",
            child->name.toLatin1().data(), child->ID, child->first_time);
     if (child->tree_node_type == TREE_NODE_IS_FILE || child->tree_node_type == TREE_NODE_IS_FOLDER || child->tree_node_type == TREE_NODE_IS_THREAD) {

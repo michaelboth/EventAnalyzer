@@ -19,5 +19,9 @@
 
 extern QSettings *G_settings;
 extern double G_pixels_per_point;
+extern int G_default_font_point_size;
+extern int G_font_point_size;
+extern int G_min_font_point_size;
+extern int G_max_font_point_size;
 
 #endif
