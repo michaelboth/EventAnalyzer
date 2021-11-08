@@ -12,25 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _main_hpp_
-#define _main_hpp_
-
-#include <QSettings>
-#include <QMap>
+#ifndef _HierarchyView_h_
+#define _HierarchyView_h_
+ 
+#include <QWidget>
+#include <QPainter>
 #include "EventTree.hpp"
-#include "events_loader.h"
 
-extern QSettings *G_settings;
-extern double G_pixels_per_point;
-extern int G_font_point_size;
-extern int G_min_font_point_size;
-extern int G_max_font_point_size;
+class HierarchyView : public QWidget
+{
+  Q_OBJECT
 
-extern QMap<QString,EventTree*> G_event_tree_map; // QMap is always sorted by key
+public:
+  HierarchyView(QWidget *parent=0);
+  ~HierarchyView();
 
-#define HIERARCHY_PROFILING_BG_COLOR QColor(220, 220, 220)
-#define EVENTS_BG_COLOR QColor(255, 255, 255)
-#define HEADER_TEXT_COLOR QColor(100, 100, 100)
-#define HEADER_SEPARATOR_COLOR QColor(200, 200, 200)
+protected:
+  void paintEvent(QPaintEvent *event);
+
+signals:
+
+public slots:
+
+private:
+  void drawHierarchyLine(QPainter *painter, EventTreeNode *tree, int &line_index, int level);
+};
 
 #endif

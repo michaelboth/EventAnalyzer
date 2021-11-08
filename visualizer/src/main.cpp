@@ -21,10 +21,10 @@
 
 QSettings *G_settings = NULL;
 double G_pixels_per_point = 0;
-int G_default_font_point_size = 0;
 int G_font_point_size = 0;
 int G_min_font_point_size = 0;
 int G_max_font_point_size = 0;
+QMap<QString,EventTree*> G_event_tree_map;
 
 int main(int argc, char *argv[]) {
   QApplication *app = new QApplication(argc, argv);

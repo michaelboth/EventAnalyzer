@@ -16,9 +16,6 @@
 #define _MainWindow_hpp_
 
 #include <QMainWindow>
-#include <QMap>
-#include "EventTree.hpp"
-#include "events_loader.h"
 
 namespace Ui {
   class MainWindow;
@@ -52,7 +49,6 @@ private slots:
 
 private:
   Ui::MainWindow *ui;
-  QMap<QString,EventTree*> event_tree_map; // QMap is always sorted by key
 
   void setWidgetUsability();
   QIcon buildIcon(QString filename, bool is_toggle, QColor normal_color, QColor disabled_color, QColor toggle_on_color, QColor toggle_off_color);
@@ -62,6 +58,7 @@ private:
   bool eventFilesHaveThreads();
   uint32_t totalEventInstances();
   void freeAllEventFiles();
+  void updateViews();
 };
 
 #endif

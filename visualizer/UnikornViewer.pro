@@ -35,6 +35,7 @@ HEADERS += src/EventTree.hpp
 HEADERS += src/EventsView.hpp
 HEADERS += src/HelpfulFunctions.hpp
 HEADERS += src/GenericHeader.hpp
+HEADERS += src/HierarchyView.hpp
 HEADERS += ../ref/events_loader.h
 HEADERS += ../inc/unikorn.h
 
@@ -44,6 +45,7 @@ SOURCES += src/EventTree.cpp
 SOURCES += src/EventsView.cpp
 SOURCES += src/HelpfulFunctions.cpp
 SOURCES += src/GenericHeader.cpp
+SOURCES += src/HierarchyView.cpp
 SOURCES += ../ref/events_loader.c
 
 FORMS += dialogs/MainWindow.ui
