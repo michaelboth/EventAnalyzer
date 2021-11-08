@@ -330,9 +330,9 @@
           <widget class="QWidget" name="layoutWidget">
            <layout class="QGridLayout" name="hierarchyLayout">
             <item row="0" column="1">
-             <widget class="QWidget" name="hierarchyHeader" native="true">
+             <widget class="GenericHeader" name="hierarchyHeader" native="true">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -404,7 +404,7 @@
             <item>
              <widget class="QWidget" name="eventsHeader" native="true">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -461,9 +461,9 @@
           <widget class="QWidget" name="layoutWidget_2">
            <layout class="QVBoxLayout" name="profilingLayout">
             <item>
-             <widget class="QWidget" name="profilingHeader" native="true">
+             <widget class="GenericHeader" name="profilingHeader" native="true">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -753,6 +753,12 @@
    <class>EventsView</class>
    <extends>QWidget</extends>
    <header>EventsView.hpp</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>GenericHeader</class>
+   <extends>QWidget</extends>
+   <header>GenericHeader.hpp</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

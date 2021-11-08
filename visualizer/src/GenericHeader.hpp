@@ -12,21 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _main_hpp_
-#define _main_hpp_
+#ifndef _GenericHeader_h_
+#define _GenericHeader_h_
+ 
+#include <QWidget>
+#include <QPixmap>
 
-#include <QSettings>
+class GenericHeader : public QWidget
+{
+  Q_OBJECT
 
-extern QSettings *G_settings;
-extern double G_pixels_per_point;
-extern int G_default_font_point_size;
-extern int G_font_point_size;
-extern int G_min_font_point_size;
-extern int G_max_font_point_size;
+public:
+  GenericHeader(QWidget *parent=0);
+  ~GenericHeader();
+  void updateHeight();
+  void setTitle(QString title);
 
-#define HIERARCHY_PROFILING_BG_COLOR QColor(220, 220, 220)
-#define EVENTS_BG_COLOR QColor(255, 255, 255)
-#define HEADER_TEXT_COLOR QColor(100, 100, 100)
-#define HEADER_SEPARATOR_COLOR QColor(200, 200, 200)
+protected:
+  void paintEvent(QPaintEvent *event);
+
+signals:
+
+public slots:
+
+private:
+  QString title;
+};
 
 #endif

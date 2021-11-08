@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <QFileDialog>
+#include <QPainter>
 #include "ui_MainWindow.h"
 #include "MainWindow.hpp"
 #include "HelpfulFunctions.hpp"
@@ -35,8 +36,28 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   //statusBar()->hide();
   statusBar()->showMessage("Event files loaded: 0, Filters Set: none, Total Events: 0");
 
+  // Get the standard font size
+  {
+    QPainter painter(this);
+    QFont font = painter.font();
+    int pixel_size = font.pixelSize();
+    int point_size = font.pointSize();
+    qreal point_size_real = font.pointSizeF();
+    G_default_font_point_size = point_size;
+    G_min_font_point_size = point_size / 2;
+    G_max_font_point_size = point_size * 2;
+    G_font_point_size = G_settings->value("font_point_size", point_size).toInt();
+    if (G_font_point_size < G_min_font_point_size) G_font_point_size = G_min_font_point_size;
+    if (G_font_point_size > G_max_font_point_size) G_font_point_size = G_max_font_point_size;
+    /*+*/printf("pixel_size=%d, point_size=%d, point_size_real=%f, G_font_point_size=%d\n", pixel_size, point_size, point_size_real, G_font_point_size);
+  }
+
   // Set the height of the headers to the font size
-  /*+ update headers heights */
+  ui->hierarchyHeader->updateHeight();
+  //*+*/ui->eventsHeader->updateHeight();
+  ui->profilingHeader->updateHeight();
+  ui->hierarchyHeader->setTitle("Hierarchy");
+  ui->profilingHeader->setTitle("Profiling");
 
   // Margins and spacing
   centralWidget()->layout()->setContentsMargins(0,0,0,0);
@@ -460,11 +481,25 @@ void MainWindow::on_showThreadsButton_clicked() {
 }
 
 void MainWindow::on_openFoldersButton_clicked() {
-  /*+*/
+  QMapIterator<QString, EventTree*> i(event_tree_map);
+  while (i.hasNext()) {
+    // Get old tree info
+    i.next();
+    EventTree *tree = i.value();
+    tree->openAllFolders();
+  }
+  /*+ redraw */
 }
 
 void MainWindow::on_closeFoldersButton_clicked() {
-  /*+*/
+  QMapIterator<QString, EventTree*> i(event_tree_map);
+  while (i.hasNext()) {
+    // Get old tree info
+    i.next();
+    EventTree *tree = i.value();
+    tree->closeAllFolders();
+  }
+  /*+ redraw */
 }
 
 void MainWindow::updateEventTreeSort() {
@@ -511,6 +546,9 @@ void MainWindow::on_sortByTimeButton_clicked() {
 void MainWindow::on_increaseFontSizeButton_clicked() {
   if (G_font_point_size < G_max_font_point_size) {
     G_font_point_size++;
+    ui->hierarchyHeader->updateHeight();
+    //*+*/ui->eventsHeader->updateHeight();
+    ui->profilingHeader->updateHeight();
     setWidgetUsability();
     /*+ update headers heights */
     /*+ redraw */
@@ -520,6 +558,9 @@ void MainWindow::on_increaseFontSizeButton_clicked() {
 void MainWindow::on_decreaseFontSizeButton_clicked() {
   if (G_font_point_size > G_min_font_point_size) {
     G_font_point_size--;
+    ui->hierarchyHeader->updateHeight();
+    //*+*/ui->eventsHeader->updateHeight();
+    ui->profilingHeader->updateHeight();
     setWidgetUsability();
     /*+ update headers heights */
     /*+ redraw */

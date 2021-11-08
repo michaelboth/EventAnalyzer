@@ -92,6 +92,7 @@ Events *loadEventsFile(const char *filename) {
 #endif
 
   /*+ get total bytes of file to know if the full events fill was recorded or accidentally truncated */
+  /*+ allow loading multiple flushes */
 
   Events *object = calloc(1, sizeof(Events));
   assert(object != NULL);

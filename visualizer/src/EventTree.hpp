@@ -34,6 +34,7 @@ typedef enum {
 class EventTreeNode {
 public:
   TreeNodeType tree_node_type = TREE_NODE_IS_FILE;
+  bool is_open = true;
   uint16_t thread_index = 0;
   uint16_t event_info_index = 0;
   uint16_t ID = 0;
@@ -53,14 +54,17 @@ public:
   EventTree(Events *events, QString name, QString folder, bool show_folders, bool show_threads);
   ~EventTree();
   void sortTree(SortType sort_type);
+  void openAllFolders();
+  void closeAllFolders();
 private:
   EventTreeNode *tree;
   void buildTree(EventTreeNode *node, uint32_t &event_index, bool show_folders, bool show_threads);
   void deleteTree(EventTreeNode *node);
   EventTreeNode *getChildWithEventInfoIndex(EventTreeNode *parent, uint16_t event_info_index);
   EventTreeNode *getThreadFolder(EventTreeNode *parent, uint16_t thread_index);
-  void printTree(EventTreeNode *parent, SortType sort_type, const char *title, int level);
+  void printTree(EventTreeNode *parent, const char *title, int level);
   void sortNode(EventTreeNode *parent, SortType sort_type);
+  void setFoldersExpanded(EventTreeNode *parent, bool is_expanded);
 };
 
 #endif

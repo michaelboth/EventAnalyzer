@@ -162,17 +162,19 @@ static bool eventFirstTimeIncreasing(const EventTreeNode *a, const EventTreeNode
   return a->first_time < b->first_time;
 }
 
-void EventTree::printTree(EventTreeNode *parent, SortType sort_type, const char *title, int level) {
+void EventTree::printTree(EventTreeNode *parent, const char *title, int level) {
   if (level == 0) {
-    printf("%s sorted by %s:\n", title, (sort_type==SORT_BY_NAME) ? "name" : (sort_type==SORT_BY_ID) ? "ID" : "time");
+    printf("%s\n", title);
   }
-  for (auto child: parent->children) {
-    for (int i=0; i<level*2; i++) printf(" ");
-    printf("  %s: %s, ID=%d, first_time=%" UINT64_FORMAT "\n",
-           (child->tree_node_type == TREE_NODE_IS_FILE) ? "FILE" : (child->tree_node_type == TREE_NODE_IS_FOLDER) ? "FOLDER" : (child->tree_node_type == TREE_NODE_IS_THREAD) ? "THREAD" : "EVENT",
-           child->name.toLatin1().data(), child->ID, child->first_time);
-    if (child->tree_node_type == TREE_NODE_IS_FILE || child->tree_node_type == TREE_NODE_IS_FOLDER || child->tree_node_type == TREE_NODE_IS_THREAD) {
-      printTree(child, sort_type, NULL, level+1);
+  if (parent->is_open) {
+    for (auto child: parent->children) {
+      for (int i=0; i<level*2; i++) printf(" ");
+      printf("  %s: %s, ID=%d, first_time=%" UINT64_FORMAT "\n",
+             (child->tree_node_type == TREE_NODE_IS_FILE) ? "FILE" : (child->tree_node_type == TREE_NODE_IS_FOLDER) ? "FOLDER" : (child->tree_node_type == TREE_NODE_IS_THREAD) ? "THREAD" : "EVENT",
+             child->name.toLatin1().data(), child->ID, child->first_time);
+      if (child->tree_node_type == TREE_NODE_IS_FILE || child->tree_node_type == TREE_NODE_IS_FOLDER || child->tree_node_type == TREE_NODE_IS_THREAD) {
+        printTree(child, NULL, level+1);
+      }
     }
   }
 }
@@ -193,6 +195,29 @@ void EventTree::sortNode(EventTreeNode *parent, SortType sort_type) {
 void EventTree::sortTree(SortType sort_type) {
   sortNode(tree, sort_type);
 #ifdef PRINT_HELPFUL_MESSAGES
-  printTree(tree, sort_type, name.toLatin1().data(), 0);
+  QString title = name;
+  title += (sort_type==SORT_BY_NAME) ? " sorted by name:" : (sort_type==SORT_BY_ID) ? " sorted by ID:" : " sorted by time:";
+  printTree(tree, title.toLatin1().data(), 0);
 #endif
+}
+
+void EventTree::openAllFolders() {
+  setFoldersExpanded(tree, true);
+#ifdef PRINT_HELPFUL_MESSAGES
+  printTree(tree, name.toLatin1().data(), 0);
+#endif
+}
+
+void EventTree::closeAllFolders() {
+  setFoldersExpanded(tree, false);
+#ifdef PRINT_HELPFUL_MESSAGES
+  printTree(tree, name.toLatin1().data(), 0);
+#endif
+}
+
+void EventTree::setFoldersExpanded(EventTreeNode *parent, bool is_expanded) {
+  parent->is_open = is_expanded;
+  for (auto child: parent->children) {
+    setFoldersExpanded(child, is_expanded);
+  }
 }
