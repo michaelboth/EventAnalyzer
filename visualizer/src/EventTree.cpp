@@ -21,7 +21,7 @@
 #endif
 
 #define MIN_EVENT_INSTANCE_LIST_ELEMENTS 100
-#define PRINT_HELPFUL_MESSAGES
+//#define PRINT_HELPFUL_MESSAGES
 
 EventTree::EventTree(Events *_events, QString _name, QString _folder, bool show_folders, bool show_threads) {
   events = _events;
@@ -146,22 +146,6 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
   }
 }
 
-static bool eventNameIncreasing(const EventTreeNode *a, const EventTreeNode *b) {
-  return a->name < b->name;
-}
-
-static bool eventIdIncreasing(const EventTreeNode *a, const EventTreeNode *b) {
-  // IMPORTANT: container will have the same ID, so sort by name
-  if (a->ID == b->ID) return a->name < b->name;
-  return a->ID < b->ID;
-}
-
-static bool eventFirstTimeIncreasing(const EventTreeNode *a, const EventTreeNode *b) {
-  // IMPORTANT: container will have the same starting time, so sort by name
-  if (a->first_time == b->first_time) return a->name < b->name;
-  return a->first_time < b->first_time;
-}
-
 void EventTree::printTree(EventTreeNode *parent, const char *title, int level) {
   if (level == 0) {
     printf("%s\n", title);
@@ -177,6 +161,28 @@ void EventTree::printTree(EventTreeNode *parent, const char *title, int level) {
       }
     }
   }
+}
+
+static bool eventNameIncreasing(const EventTreeNode *a, const EventTreeNode *b) {
+  if (a->tree_node_type == TREE_NODE_IS_EVENT && b->tree_node_type != TREE_NODE_IS_EVENT) return true;
+  if (a->tree_node_type != TREE_NODE_IS_EVENT && b->tree_node_type == TREE_NODE_IS_EVENT) return false;
+  return a->name < b->name;
+}
+
+static bool eventIdIncreasing(const EventTreeNode *a, const EventTreeNode *b) {
+  if (a->tree_node_type == TREE_NODE_IS_EVENT && b->tree_node_type != TREE_NODE_IS_EVENT) return true;
+  if (a->tree_node_type != TREE_NODE_IS_EVENT && b->tree_node_type == TREE_NODE_IS_EVENT) return false;
+  // IMPORTANT: container will have the same ID, so sort by name
+  if (a->ID == b->ID) return a->name < b->name;
+  return a->ID < b->ID;
+}
+
+static bool eventFirstTimeIncreasing(const EventTreeNode *a, const EventTreeNode *b) {
+  if (a->tree_node_type == TREE_NODE_IS_EVENT && b->tree_node_type != TREE_NODE_IS_EVENT) return true;
+  if (a->tree_node_type != TREE_NODE_IS_EVENT && b->tree_node_type == TREE_NODE_IS_EVENT) return false;
+  // IMPORTANT: container will have the same starting time, so sort by name
+  if (a->first_time == b->first_time) return a->name < b->name;
+  return a->first_time < b->first_time;
 }
 
 void EventTree::sortNode(EventTreeNode *parent, SortType sort_type) {

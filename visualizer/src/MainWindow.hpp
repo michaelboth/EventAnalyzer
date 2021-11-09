@@ -28,6 +28,9 @@ public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
 
+protected:
+  void resizeEvent(QResizeEvent *event);
+
 private slots:
   // Hierarchy tool bar
   void on_loadButton_clicked();
@@ -59,6 +62,7 @@ private:
   uint32_t totalEventInstances();
   void freeAllEventFiles();
   void updateViews();
+  void updateScrollbars();
 };
 
 #endif

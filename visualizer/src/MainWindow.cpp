@@ -186,10 +186,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->hierarchyHScroll->setStyleSheet(hscroll_simple_attrs);
   ui->eventsHScroll->setStyleSheet(hscroll_advanced_attrs);
   ui->profilingHScroll->setStyleSheet(hscroll_simple_attrs);
-  ui->hierarchyVScroll->setEnabled(false);
-  ui->hierarchyHScroll->setEnabled(false);
-  ui->eventsHScroll->setEnabled(false);
-  ui->profilingHScroll->setEnabled(false);
 
   // Create the list of tool buttons
   QList<QToolButton *> tool_buttons = {
@@ -241,12 +237,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->increaseFontSizeButton->setIcon(buildIcon(":/increase_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->decreaseFontSizeButton->setIcon(buildIcon(":/decrease_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
 
-  // Set initial scroll bar ranges
-  ui->hierarchyVScroll->setRange(0, 0);
-  ui->hierarchyHScroll->setRange(0, 0);
-  ui->eventsHScroll->setRange(0, 0);
-  ui->profilingHScroll->setRange(0, 0);
-
   // Make sure events window stretches
   ui->viewSplitter->setStretchFactor(0, 0);
   ui->viewSplitter->setStretchFactor(1, 255);
@@ -260,6 +250,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   // Set usable widgets
   setWidgetUsability();
+
+  // Update scrollbars
+  updateScrollbars();
 
   // Update views
   updateViews();
@@ -277,6 +270,11 @@ MainWindow::~MainWindow() {
   ui = NULL;
 }
 
+void MainWindow::resizeEvent(QResizeEvent * /*event*/) {
+  //printf("new window size = %d x %d\n", event->size().width(), event->size().height());
+  updateScrollbars();
+}
+
 void MainWindow::updateColumnWidths(int pos, int index) {
   if (index == 1) {
     G_settings->setValue("prev_name_column_width", pos);
@@ -285,6 +283,7 @@ void MainWindow::updateColumnWidths(int pos, int index) {
     int profiling_column_width = ui->viewSplitter->width() - pos - 2;
     G_settings->setValue("prev_profiling_column_width", profiling_column_width);
   }
+  updateScrollbars();
 }
 
 static QPixmap recolorImageAndConvertToPixmap(QImage &image, QColor color) {
@@ -379,6 +378,7 @@ void MainWindow::on_loadButton_clicked() {
   }
   if (files.count() > 0) {
     setWidgetUsability();
+    updateScrollbars();
     updateViews();
   }
 }
@@ -386,6 +386,7 @@ void MainWindow::on_loadButton_clicked() {
 void MainWindow::on_closeAllButton_clicked() {
   freeAllEventFiles();
   setWidgetUsability();
+  updateScrollbars();
   updateViews();
 }
 
@@ -418,6 +419,7 @@ void MainWindow::updateEventTreeBuild() {
     tree->sortTree(sort_type);
     G_event_tree_map[filename] = tree; // NOTE: QMaps are ordered alphabetically
   }
+  updateScrollbars();
   updateViews();
 }
 
@@ -487,6 +489,7 @@ void MainWindow::on_openFoldersButton_clicked() {
     EventTree *tree = i.value();
     tree->openAllFolders();
   }
+  updateScrollbars();
   updateViews();
 }
 
@@ -498,6 +501,7 @@ void MainWindow::on_closeFoldersButton_clicked() {
     EventTree *tree = i.value();
     tree->closeAllFolders();
   }
+  updateScrollbars();
   updateViews();
 }
 
@@ -509,6 +513,7 @@ void MainWindow::updateEventTreeSort() {
     EventTree *tree = i.value();
     tree->sortTree(sort_type);
   }
+  updateScrollbars();
   updateViews();
 }
 
@@ -556,6 +561,7 @@ void MainWindow::on_increaseFontSizeButton_clicked() {
     ui->profilingHeader->updateHeight();
     ui->hierarchyView->updateLineHeight();
     setWidgetUsability();
+    updateScrollbars();
     updateViews();
   }
 }
@@ -568,8 +574,57 @@ void MainWindow::on_decreaseFontSizeButton_clicked() {
     ui->profilingHeader->updateHeight();
     ui->hierarchyView->updateLineHeight();
     setWidgetUsability();
+    updateScrollbars();
     updateViews();
   }
+}
+
+void MainWindow::updateScrollbars() {
+  int hierarchy_visible_w, hierarchy_actual_w, hierarchy_visible_h, hierarchy_actual_h;
+  ui->hierarchyView->calculateGeometry(&hierarchy_visible_w, &hierarchy_actual_w, &hierarchy_visible_h, &hierarchy_actual_h);
+  printf("hierarchy: visible_w=%d, actual_w=%d, visible_h=%d, actual_h=%d\n", hierarchy_visible_w, hierarchy_actual_w, hierarchy_visible_h, hierarchy_actual_h);
+
+  // Set scroll bar ranges
+  {
+    int value = ui->hierarchyVScroll->value();
+    int max = 0;
+    int max_value = 0;
+    if (hierarchy_visible_h < hierarchy_actual_h) {
+      max = hierarchy_visible_h;
+      max_value = hierarchy_actual_h - hierarchy_visible_h;
+    }
+    if (value > max_value) value = max_value;
+    ui->hierarchyVScroll->setRange(0, max);
+    ui->hierarchyVScroll->setValue(value);
+    ui->hierarchyVScroll->setEnabled(max > 0);
+  }
+
+  {
+    int value = ui->hierarchyHScroll->value();
+    int min = 0;
+    int max = 0;
+    int page_step = 1;
+    if (hierarchy_visible_w < hierarchy_actual_w) {
+      min = hierarchy_visible_w;
+      max = hierarchy_actual_w;
+      page_step = hierarchy_actual_w - hierarchy_visible_w;
+    }
+    if (value > max) value = max;
+    ui->hierarchyHScroll->setRange(min, max);
+    ui->hierarchyHScroll->setValue(value);
+    /*+*/ui->hierarchyHScroll->setSingleStep(1);
+    /*+*/ui->hierarchyHScroll->setPageStep(1/*+page_step*/);
+    /*+*/printf("  min=%d, max=%d, value=%d, page_step=%d\n", min, max, value, page_step);
+    ui->hierarchyHScroll->setEnabled(max > 0);
+  }
+
+  /*+*/
+  ui->eventsHScroll->setRange(0, 0);
+  ui->eventsHScroll->setEnabled(false);
+
+  /*+*/
+  ui->profilingHScroll->setRange(0, 0);
+  ui->profilingHScroll->setEnabled(false);
 }
 
 void MainWindow::updateViews() {

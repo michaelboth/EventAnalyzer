@@ -28,6 +28,7 @@ public:
   HierarchyView(QWidget *parent=0);
   ~HierarchyView();
   void updateLineHeight();
+  void calculateGeometry(int *visible_w_ret, int *actual_w_ret, int *visible_h_ret, int *actual_h_ret);
 
 protected:
   void paintEvent(QPaintEvent *event);
@@ -44,6 +45,7 @@ private:
 
   void drawHierarchyLine(QPainter *painter, EventTreeNode *tree, int &line_index, int level);
   void prepareIcon(QString filename, bool recolor, QColor color);
+  void calculateGeometry(EventTreeNode *parent, int &line_index, int &max_width, int level);
 };
 
 #endif

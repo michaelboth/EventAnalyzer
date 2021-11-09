@@ -18,20 +18,12 @@
 #include "main.hpp"
 
 #define ARROW_ICON_COLOR QColor(0,0,0)
-#define FOLDER_ICON_COLOR QColor(100,100,100)
-#define EVENTS_ICON_COLOR QColor(0,100,255)
+#define FOLDER_ICON_COLOR QColor(50, 50, 50)
+#define EVENTS_ICON_COLOR QColor(50, 50, 50)
+#define EXTRA_MARGIN_FACTOR 0.5f
 
 HierarchyView::HierarchyView(QWidget *parent) : QWidget(parent) {
-  /*+
-  prepareIcon("hierarchy_closed_arrow.png", true, ARROW_ICON_COLOR);
-  prepareIcon("hierarchy_closed_folder.png", true, FOLDER_ICON_COLOR);
-  prepareIcon("hierarchy_closed_thread.png", true, FOLDER_ICON_COLOR);
-  prepareIcon("hierarchy_events.png", true, EVENTS_ICON_COLOR);
-  prepareIcon("hierarchy_file.png", false, Qt::black);
-  prepareIcon("hierarchy_opened_arrow.png", true, ARROW_ICON_COLOR);
-  prepareIcon("hierarchy_opened_folder.png", true, FOLDER_ICON_COLOR);
-  prepareIcon("hierarchy_opened_thread.png", true, FOLDER_ICON_COLOR);
-  */
+  // Nothing to do
 }
 
 HierarchyView::~HierarchyView() {
@@ -43,26 +35,22 @@ void HierarchyView::prepareIcon(QString filename, bool recolor, QColor color) {
   if (recolor) {
     recolorImage(image, color);
   }
-  /*+ test */image = image.scaledToHeight((int)(line_h*G_pixels_per_point), Qt::SmoothTransformation);
+  image = image.scaledToHeight((int)(line_h*G_pixels_per_point), Qt::SmoothTransformation);
   QPixmap pixmap = QPixmap::fromImage(image);
-  //*+*/pixmap.setDevicePixelRatio(G_pixels_per_point);
-  //*+*/printf("QPixmap::devicePixelRatio() = %f\n", pixmap.devicePixelRatio());
-  /*+ validate on Mac
-    QPixmap::devicePixelRatio()
-  */
+  //pixmap.setDevicePixelRatio(G_pixels_per_point); // Does not seems to be needed probably because main.cpp calls QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
   icon_map[filename] = pixmap;
 }
 
 void HierarchyView::updateLineHeight() {
   // Calculate geometry
-  line_h = (int)(G_font_point_size * 1.5f); /*+ Tune and create global constant */
+  line_h = (int)(G_font_point_size * LINE_HEIGHT_FACTOR);
 
   // Update font size
   QFont font = this->font();
   font.setPointSize(G_font_point_size);
   this->setFont(font);
 
-  /*+ test */
+  // Rebuild icons to make sure there are correctly sized; if not, then edges will looked aliased
   prepareIcon("hierarchy_closed_arrow.png", true, ARROW_ICON_COLOR);
   prepareIcon("hierarchy_closed_folder.png", true, FOLDER_ICON_COLOR);
   prepareIcon("hierarchy_closed_thread.png", true, FOLDER_ICON_COLOR);
@@ -79,7 +67,35 @@ void HierarchyView::updateLineHeight() {
   image_w = line_h * image_icon.width() / (float)image_icon.height();
 }
 
-/*+ get max width and number of lines needed for the scrollbars */
+void HierarchyView::calculateGeometry(EventTreeNode *parent, int &line_index, int &max_width, int level) {
+  QFontMetrics fm = fontMetrics();
+  int x = level * G_font_point_size + arrow_w + image_w + (int)(line_h * EXTRA_MARGIN_FACTOR);
+  int w = x + fm.horizontalAdvance(parent->name);
+  if (w > max_width) max_width = w;
+  line_index++;
+  if (parent->is_open) {
+    for (auto child: parent->children) {
+      calculateGeometry(child, line_index, max_width, level+1);
+    }
+  }
+}
+
+void HierarchyView::calculateGeometry(int *visible_w_ret, int *actual_w_ret, int *visible_h_ret, int *actual_h_ret) {
+  int line_index = 0;
+  int max_width = 0;
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  while (i.hasNext()) {
+    // Get old tree info
+    i.next();
+    EventTree *event_tree = i.value();
+    calculateGeometry(event_tree->tree, line_index, max_width, 0);
+  }
+
+  *visible_w_ret = width();
+  *visible_h_ret = height();
+  *actual_w_ret = max_width;
+  *actual_h_ret = line_index * line_h;
+}
 
 void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, int &line_index, int level) {
   int w = width();
@@ -117,6 +133,7 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
     painter->setRenderHint(QPainter::SmoothPixmapTransform,false);
   }
   x += image_w;
+  x += (int)(line_h * EXTRA_MARGIN_FACTOR);
 
   // Draw name
   painter->drawText(x, y, w-x, line_h, Qt::AlignLeft | Qt::AlignVCenter, parent->name);
