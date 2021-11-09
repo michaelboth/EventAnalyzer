@@ -17,6 +17,7 @@
  
 #include <QWidget>
 #include <QPainter>
+#include <QMap>
 #include "EventTree.hpp"
 
 class HierarchyView : public QWidget
@@ -26,6 +27,7 @@ class HierarchyView : public QWidget
 public:
   HierarchyView(QWidget *parent=0);
   ~HierarchyView();
+  void updateLineHeight();
 
 protected:
   void paintEvent(QPaintEvent *event);
@@ -35,7 +37,13 @@ signals:
 public slots:
 
 private:
+  QMap<QString,QPixmap> icon_map;
+  int line_h = 0;
+  int arrow_w = 0;
+  int image_w = 0;
+
   void drawHierarchyLine(QPainter *painter, EventTreeNode *tree, int &line_index, int level);
+  void prepareIcon(QString filename, bool recolor, QColor color);
 };
 
 #endif

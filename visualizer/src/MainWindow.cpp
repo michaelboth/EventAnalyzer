@@ -38,8 +38,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   // Get the standard font size
   {
-    QPainter painter(this);
-    QFont font = painter.font();
+    QFont font = this->font();
     int point_size = font.pointSize();
     G_min_font_point_size = point_size / 2;
     G_max_font_point_size = point_size * 2;
@@ -52,6 +51,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->hierarchyHeader->updateHeight();
   //*+*/ui->eventsHeader->updateHeight();
   ui->profilingHeader->updateHeight();
+  ui->hierarchyView->updateLineHeight();
   ui->hierarchyHeader->setTitle("Hierarchy");
   ui->profilingHeader->setTitle("Profiling");
 
@@ -554,6 +554,7 @@ void MainWindow::on_increaseFontSizeButton_clicked() {
     ui->hierarchyHeader->updateHeight();
     //*+*/ui->eventsHeader->updateHeight();
     ui->profilingHeader->updateHeight();
+    ui->hierarchyView->updateLineHeight();
     setWidgetUsability();
     updateViews();
   }
@@ -565,6 +566,7 @@ void MainWindow::on_decreaseFontSizeButton_clicked() {
     ui->hierarchyHeader->updateHeight();
     //*+*/ui->eventsHeader->updateHeight();
     ui->profilingHeader->updateHeight();
+    ui->hierarchyView->updateLineHeight();
     setWidgetUsability();
     updateViews();
   }

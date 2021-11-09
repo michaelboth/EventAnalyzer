@@ -17,5 +17,15 @@
         <file alias="sort_by_id.png">icons/sort_by_id.png</file>
         <file alias="sort_by_name.png">icons/sort_by_name.png</file>
         <file alias="sort_by_time.png">icons/sort_by_time.png</file>
+
+        <file alias="hierarchy_closed_arrow.png">icons/hierarchy_closed_arrow.png</file>
+        <file alias="hierarchy_closed_folder.png">icons/hierarchy_closed_folder.png</file>
+        <file alias="hierarchy_closed_thread.png">icons/hierarchy_closed_thread.png</file>
+        <file alias="hierarchy_events.png">icons/hierarchy_events.png</file>
+        <file alias="hierarchy_file.png">icons/hierarchy_file.png</file>
+        <file alias="hierarchy_opened_arrow.png">icons/hierarchy_opened_arrow.png</file>
+        <file alias="hierarchy_opened_folder.png">icons/hierarchy_opened_folder.png</file>
+        <file alias="hierarchy_opened_thread.png">icons/hierarchy_opened_thread.png</file>
+
     </qresource>
 </RCC>
