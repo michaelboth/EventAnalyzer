@@ -43,11 +43,10 @@ void HierarchyView::prepareIcon(QString filename, bool recolor, QColor color) {
   if (recolor) {
     recolorImage(image, color);
   }
-  /*+
-  G_pixels_per_point
-  */
-  /*+ test */image = image.scaledToHeight(line_h, Qt::SmoothTransformation);
+  /*+ test */image = image.scaledToHeight((int)(line_h*G_pixels_per_point), Qt::SmoothTransformation);
   QPixmap pixmap = QPixmap::fromImage(image);
+  //*+*/pixmap.setDevicePixelRatio(G_pixels_per_point);
+  //*+*/printf("QPixmap::devicePixelRatio() = %f\n", pixmap.devicePixelRatio());
   /*+ validate on Mac
     QPixmap::devicePixelRatio()
   */
