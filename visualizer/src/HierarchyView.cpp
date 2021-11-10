@@ -17,9 +17,10 @@
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
 
-#define ARROW_ICON_COLOR QColor(0,0,0)
-#define FOLDER_ICON_COLOR QColor(50, 50, 50)
-#define EVENTS_ICON_COLOR QColor(50, 50, 50)
+#define ARROW_ICON_COLOR QColor(0, 0, 0)
+#define FOLDER_ICON_COLOR QColor(0, 100, 255)
+#define THREAD_ICON_COLOR QColor(0, 100, 0)
+#define EVENTS_ICON_COLOR QColor(100, 0, 255)
 #define EXTRA_MARGIN_FACTOR 0.5f
 
 HierarchyView::HierarchyView(QWidget *parent) : QWidget(parent) {
@@ -28,6 +29,16 @@ HierarchyView::HierarchyView(QWidget *parent) : QWidget(parent) {
 
 HierarchyView::~HierarchyView() {
   // Nothing to do
+}
+
+void HierarchyView::updateHOffset(int offset) {
+  h_offset = offset;
+  update();
+}
+
+void HierarchyView::updateVOffset(int offset) {
+  v_offset = offset;
+  update();
 }
 
 void HierarchyView::prepareIcon(QString filename, bool recolor, QColor color) {
@@ -53,12 +64,12 @@ void HierarchyView::updateLineHeight() {
   // Rebuild icons to make sure there are correctly sized; if not, then edges will looked aliased
   prepareIcon("hierarchy_closed_arrow.png", true, ARROW_ICON_COLOR);
   prepareIcon("hierarchy_closed_folder.png", true, FOLDER_ICON_COLOR);
-  prepareIcon("hierarchy_closed_thread.png", true, FOLDER_ICON_COLOR);
+  prepareIcon("hierarchy_closed_thread.png", true, THREAD_ICON_COLOR);
   prepareIcon("hierarchy_events.png", true, EVENTS_ICON_COLOR);
   prepareIcon("hierarchy_file.png", false, Qt::black);
   prepareIcon("hierarchy_opened_arrow.png", true, ARROW_ICON_COLOR);
   prepareIcon("hierarchy_opened_folder.png", true, FOLDER_ICON_COLOR);
-  prepareIcon("hierarchy_opened_thread.png", true, FOLDER_ICON_COLOR);
+  prepareIcon("hierarchy_opened_thread.png", true, THREAD_ICON_COLOR);
 
   // Update icon geometry
   QPixmap arrow_icon = icon_map["hierarchy_opened_arrow.png"];
@@ -98,9 +109,11 @@ void HierarchyView::calculateGeometry(int *visible_w_ret, int *actual_w_ret, int
 }
 
 void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, int &line_index, int level) {
+  int h = height();
   int w = width();
-  int x = level * G_font_point_size;
-  int y = line_index * line_h;
+  int x = -h_offset + level * G_font_point_size;
+  int y = -v_offset + line_index * line_h;
+  if (y > h) return;
 
   // Determine icons to draw
   QPixmap arrow_icon;
@@ -118,33 +131,63 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
     image_icon = icon_map["hierarchy_events.png"];
   }
 
-  // Draw arrow
-  if (!arrow_icon.isNull()) {
-    painter->setRenderHint(QPainter::SmoothPixmapTransform,true);
-    painter->drawPixmap(x, y, arrow_w, line_h, arrow_icon);
-    painter->setRenderHint(QPainter::SmoothPixmapTransform,false);
-  }
-  x += arrow_w;
+  // only draw if visible
+  if (y > -line_h) {
+    // Draw arrow
+    if (!arrow_icon.isNull()) {
+      painter->setRenderHint(QPainter::SmoothPixmapTransform,true);
+      painter->drawPixmap(x, y, arrow_w, line_h, arrow_icon);
+      painter->setRenderHint(QPainter::SmoothPixmapTransform,false);
+    }
+    x += arrow_w;
 
-  // Draw image
-  if (!image_icon.isNull()) {
-    painter->setRenderHint(QPainter::SmoothPixmapTransform,true);
-    painter->drawPixmap(x, y, image_w, line_h, image_icon);
-    painter->setRenderHint(QPainter::SmoothPixmapTransform,false);
-  }
-  x += image_w;
-  x += (int)(line_h * EXTRA_MARGIN_FACTOR);
+    // Draw image
+    if (!image_icon.isNull()) {
+      painter->setRenderHint(QPainter::SmoothPixmapTransform,true);
+      painter->drawPixmap(x, y, image_w, line_h, image_icon);
+      painter->setRenderHint(QPainter::SmoothPixmapTransform,false);
+    }
+    x += image_w;
+    x += (int)(line_h * EXTRA_MARGIN_FACTOR);
 
-  // Draw name
-  painter->drawText(x, y, w-x, line_h, Qt::AlignLeft | Qt::AlignVCenter, parent->name);
-  line_index++;
+    // Draw name
+    painter->drawText(x, y, w-x, line_h, Qt::AlignLeft | Qt::AlignVCenter, parent->name);
+
+    /*+ draw to events view here? */
+    /*+ draw to profiling view here? */
+  }
 
   // Recurse
+  line_index++;
   if (parent->is_open) {
     for (auto child: parent->children) {
       drawHierarchyLine(painter, child, line_index, level+1);
     }
   }
+}
+
+void HierarchyView::mousePressEvent(QMouseEvent * /*event*/) {
+  /*+
+  if (event->button() == Qt::LeftButton) {
+    // Prepare for mouse motion
+    prev_mouse_location = QPoint(event->x(), event->y());
+  }
+  update();
+  */
+}
+
+void HierarchyView::mouseMoveEvent(QMouseEvent * /*event*/) {
+  // Determine the change in motion
+  /*+
+  int dx = event->x() - prev_mouse_location.x();
+  int dy = event->y() - prev_mouse_location.y();
+  prev_mouse_location = QPoint(event->x(), event->y());
+  */
+}
+
+void HierarchyView::mouseReleaseEvent(QMouseEvent * /*event*/) {
+  // Nothing to do
+  /*+*/
 }
 
 void HierarchyView::paintEvent(QPaintEvent* /*event*/) {

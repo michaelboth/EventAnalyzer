@@ -259,6 +259,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   // Connect some signals
   this->connect(ui->viewSplitter, SIGNAL(splitterMoved(int,int)), this, SLOT(updateColumnWidths(int,int)));
+  this->connect(ui->hierarchyHScroll, SIGNAL(valueChanged(int)), ui->hierarchyView, SLOT(updateHOffset(int)));
+  this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->hierarchyView, SLOT(updateVOffset(int)));
 }
 
 MainWindow::~MainWindow() {
@@ -582,39 +584,42 @@ void MainWindow::on_decreaseFontSizeButton_clicked() {
 void MainWindow::updateScrollbars() {
   int hierarchy_visible_w, hierarchy_actual_w, hierarchy_visible_h, hierarchy_actual_h;
   ui->hierarchyView->calculateGeometry(&hierarchy_visible_w, &hierarchy_actual_w, &hierarchy_visible_h, &hierarchy_actual_h);
-  printf("hierarchy: visible_w=%d, actual_w=%d, visible_h=%d, actual_h=%d\n", hierarchy_visible_w, hierarchy_actual_w, hierarchy_visible_h, hierarchy_actual_h);
+  //*+*/printf("hierarchy: visible_w=%d, actual_w=%d, visible_h=%d, actual_h=%d\n", hierarchy_visible_w, hierarchy_actual_w, hierarchy_visible_h, hierarchy_actual_h);
 
   // Set scroll bar ranges
   {
-    int value = ui->hierarchyVScroll->value();
+    int min = 0;
     int max = 0;
-    int max_value = 0;
+    int page_step = 1;
+    int value = ui->hierarchyVScroll->value();
     if (hierarchy_visible_h < hierarchy_actual_h) {
-      max = hierarchy_visible_h;
-      max_value = hierarchy_actual_h - hierarchy_visible_h;
+      // Some stuff is hidden
+      min = 0;
+      max = hierarchy_actual_h - hierarchy_visible_h;
+      page_step = hierarchy_visible_h;
     }
-    if (value > max_value) value = max_value;
-    ui->hierarchyVScroll->setRange(0, max);
+    if (value > max) value = max;
+    ui->hierarchyVScroll->setRange(min, max);
     ui->hierarchyVScroll->setValue(value);
+    ui->hierarchyVScroll->setPageStep(page_step);
     ui->hierarchyVScroll->setEnabled(max > 0);
   }
 
   {
-    int value = ui->hierarchyHScroll->value();
     int min = 0;
     int max = 0;
     int page_step = 1;
+    int value = ui->hierarchyHScroll->value();
     if (hierarchy_visible_w < hierarchy_actual_w) {
-      min = hierarchy_visible_w;
-      max = hierarchy_actual_w;
-      page_step = hierarchy_actual_w - hierarchy_visible_w;
+      // Some stuff is hidden
+      min = 0;
+      max = hierarchy_actual_w - hierarchy_visible_w;
+      page_step = hierarchy_visible_w;
     }
     if (value > max) value = max;
     ui->hierarchyHScroll->setRange(min, max);
     ui->hierarchyHScroll->setValue(value);
-    /*+*/ui->hierarchyHScroll->setSingleStep(1);
-    /*+*/ui->hierarchyHScroll->setPageStep(1/*+page_step*/);
-    /*+*/printf("  min=%d, max=%d, value=%d, page_step=%d\n", min, max, value, page_step);
+    ui->hierarchyHScroll->setPageStep(page_step);
     ui->hierarchyHScroll->setEnabled(max > 0);
   }
 
