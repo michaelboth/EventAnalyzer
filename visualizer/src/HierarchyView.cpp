@@ -18,13 +18,16 @@
 #include "main.hpp"
 
 #define ARROW_ICON_COLOR QColor(0, 0, 0)
-#define FOLDER_ICON_COLOR QColor(0, 100, 255)
+#define FOLDER_ICON_COLOR QColor(100, 0, 255)
 #define THREAD_ICON_COLOR QColor(0, 100, 0)
-#define EVENTS_ICON_COLOR QColor(100, 0, 255)
+#define EVENTS_ICON_COLOR QColor(0, 100, 255)
+#define ROW_HIGHLIGHT_COLOR QColor(0, 0, 0, 50)
+#define ROW_SELECTED_COLOR QColor(0, 100, 255, 50)
 #define EXTRA_MARGIN_FACTOR 0.5f
 
 HierarchyView::HierarchyView(QWidget *parent) : QWidget(parent) {
-  // Nothing to do
+  // Track mouse when not pressed
+  setMouseTracking(true);
 }
 
 HierarchyView::~HierarchyView() {
@@ -131,10 +134,31 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
     image_icon = icon_map["hierarchy_events.png"];
   }
 
+  // Reset some visual info
+  parent->row_rect = QRect();
+  parent->folder_rect = QRect();
+  content_bottom_y = y + line_h;
+
   // only draw if visible
   if (y > -line_h) {
+    // Remember the row geometry
+    parent->row_rect = QRect(0,y,w,line_h);
+
+    // If mouse is on row, then highlight it
+    if (parent->row_rect.contains(mouse_location)) {
+      node_with_mouse = parent;
+      row_with_mouse = parent->row_rect;
+      painter->fillRect(parent->row_rect, ROW_HIGHLIGHT_COLOR);
+    }
+
+    // Highlight row if selected
+    if (parent->row_selected) {
+      painter->fillRect(parent->row_rect, ROW_SELECTED_COLOR);
+    }
+
     // Draw arrow
     if (!arrow_icon.isNull()) {
+      parent->folder_rect = QRect(x, y, arrow_w+image_w, line_h);
       painter->setRenderHint(QPainter::SmoothPixmapTransform,true);
       painter->drawPixmap(x, y, arrow_w, line_h, arrow_icon);
       painter->setRenderHint(QPainter::SmoothPixmapTransform,false);
@@ -166,28 +190,51 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
   }
 }
 
-void HierarchyView::mousePressEvent(QMouseEvent * /*event*/) {
-  /*+
-  if (event->button() == Qt::LeftButton) {
-    // Prepare for mouse motion
-    prev_mouse_location = QPoint(event->x(), event->y());
+void HierarchyView::mousePressEvent(QMouseEvent *event) {
+  clearSelection();
+  if (node_with_mouse != NULL) {
+    node_with_mouse->row_selected = true;
+    // Check if on folder to open/close
+    if (node_with_mouse->folder_rect.contains(event->x(), event->y())) {
+      node_with_mouse->is_open = !node_with_mouse->is_open;
+    }
   }
+  emit fileSelectionChanged(); // Tool button, to close selected files, may need to be enabled
   update();
-  */
 }
 
-void HierarchyView::mouseMoveEvent(QMouseEvent * /*event*/) {
-  // Determine the change in motion
-  /*+
-  int dx = event->x() - prev_mouse_location.x();
-  int dy = event->y() - prev_mouse_location.y();
-  prev_mouse_location = QPoint(event->x(), event->y());
-  */
+void HierarchyView::mouseMoveEvent(QMouseEvent *event) {
+  mouse_location = QPoint(event->x(), event->y());
+  if ((node_with_mouse != NULL && !row_with_mouse.contains(mouse_location)) || (node_with_mouse == NULL && mouse_location.y() < content_bottom_y)) {
+    // Need to update since a different row should be highlighted
+    update();
+  }
 }
 
 void HierarchyView::mouseReleaseEvent(QMouseEvent * /*event*/) {
   // Nothing to do
-  /*+*/
+}
+
+void HierarchyView::leaveEvent(QEvent * /*event*/) {
+  mouse_location = QPoint(-1,-1);
+  update();
+}
+
+void HierarchyView::clearSelection(EventTreeNode *parent) {
+  parent->row_selected = false;
+  for (auto child: parent->children) {
+    clearSelection(child);
+  }
+}
+
+void HierarchyView::clearSelection() {
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  while (i.hasNext()) {
+    // Get old tree info
+    i.next();
+    EventTree *event_tree = i.value();
+    clearSelection(event_tree->tree);
+  }
 }
 
 void HierarchyView::paintEvent(QPaintEvent* /*event*/) {
@@ -200,6 +247,11 @@ void HierarchyView::paintEvent(QPaintEvent* /*event*/) {
 
   // Fill in background
   painter.fillRect(QRect(0,0,w,h), HIERARCHY_PROFILING_BG_COLOR);
+
+  // Update some high level geometry
+  content_bottom_y = 0;
+  row_with_mouse = QRect();
+  node_with_mouse = NULL;
 
   // Draw hierarchy tree
   painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));

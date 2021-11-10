@@ -35,8 +35,10 @@ protected:
   void mousePressEvent(QMouseEvent *event);
   void mouseMoveEvent(QMouseEvent *event);
   void mouseReleaseEvent(QMouseEvent *event);
+  void leaveEvent(QEvent *event);
 
 signals:
+  void fileSelectionChanged();
 
 public slots:
   void updateHOffset(int offset);
@@ -49,10 +51,16 @@ private:
   int image_w = 0;
   int h_offset = 0;
   int v_offset = 0;
+  QPoint mouse_location = QPoint(-1,-1);
+  QRect row_with_mouse;
+  int content_bottom_y = 0;
+  EventTreeNode *node_with_mouse = NULL;
 
   void drawHierarchyLine(QPainter *painter, EventTreeNode *tree, int &line_index, int level);
   void prepareIcon(QString filename, bool recolor, QColor color);
   void calculateGeometry(EventTreeNode *parent, int &line_index, int &max_width, int level);
+  void clearSelection();
+  void clearSelection(EventTreeNode *parent);
 };
 
 #endif

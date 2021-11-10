@@ -49,16 +49,17 @@ private slots:
   void on_decreaseFontSizeButton_clicked();
   // Custom
   void updateColumnWidths(int pos, int index);
+  void setWidgetUsability();
 
 private:
   Ui::MainWindow *ui;
 
-  void setWidgetUsability();
   QIcon buildIcon(QString filename, bool is_toggle, QColor normal_color, QColor disabled_color, QColor toggle_on_color, QColor toggle_off_color);
   void updateEventTreeSort();
   void updateEventTreeBuild();
   bool eventFilesHaveFolders();
   bool eventFilesHaveThreads();
+  bool eventFilesSelected();
   uint32_t totalEventInstances();
   void freeAllEventFiles();
   void updateViews();

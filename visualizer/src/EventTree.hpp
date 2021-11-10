@@ -43,6 +43,9 @@ public:
   uint32_t max_event_instances = 0;
   uint32_t num_event_instances = 0;
   uint32_t *event_indices = NULL; // Ordered list of indices into the events
+  QRect row_rect;
+  QRect folder_rect;
+  bool row_selected = false;
   QList<EventTreeNode*> children;
 };
 

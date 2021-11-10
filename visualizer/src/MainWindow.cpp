@@ -261,6 +261,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   this->connect(ui->viewSplitter, SIGNAL(splitterMoved(int,int)), this, SLOT(updateColumnWidths(int,int)));
   this->connect(ui->hierarchyHScroll, SIGNAL(valueChanged(int)), ui->hierarchyView, SLOT(updateHOffset(int)));
   this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->hierarchyView, SLOT(updateVOffset(int)));
+  this->connect(ui->hierarchyView, SIGNAL(fileSelectionChanged()), this, SLOT(setWidgetUsability()));
 }
 
 MainWindow::~MainWindow() {
@@ -319,7 +320,7 @@ QIcon MainWindow::buildIcon(QString filename, bool is_toggle, QColor normal_colo
 
 void MainWindow::setWidgetUsability() {
   bool event_files_loaded = (G_event_tree_map.count() > 0);
-  bool event_files_selected = false;/*+*/
+  bool event_files_selected = eventFilesSelected();
   bool folders_exist = eventFilesHaveFolders();
   bool threads_exist = eventFilesHaveThreads();
   bool filters_are_set = false;/*+*/
@@ -393,7 +394,23 @@ void MainWindow::on_closeAllButton_clicked() {
 }
 
 void MainWindow::on_closeSelectedButton_clicked() {
-  /*+*/
+  QStringList delete_filenames;
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  while (i.hasNext()) {
+    i.next();
+    EventTree *tree = i.value();
+    if (tree->tree->row_selected) {
+      freeEvents(tree->events);
+      delete tree;
+      delete_filenames += i.key();
+    }
+  }
+  for (auto filename: delete_filenames) {
+    G_event_tree_map.remove(filename);
+  }
+  setWidgetUsability();
+  updateScrollbars();
+  updateViews();
 }
 
 void MainWindow::on_setFilterButton_clicked() {
@@ -469,6 +486,17 @@ bool MainWindow::eventFilesHaveThreads() {
     EventTree *tree = i.value();
     Events *events = tree->events;
     if (events->is_threaded) return true;
+  }
+  return false;
+}
+
+bool MainWindow::eventFilesSelected() {
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  while (i.hasNext()) {
+    // Get old tree info
+    i.next();
+    EventTree *tree = i.value();
+    if (tree->tree->row_selected) return true;
   }
   return false;
 }
@@ -584,7 +612,6 @@ void MainWindow::on_decreaseFontSizeButton_clicked() {
 void MainWindow::updateScrollbars() {
   int hierarchy_visible_w, hierarchy_actual_w, hierarchy_visible_h, hierarchy_actual_h;
   ui->hierarchyView->calculateGeometry(&hierarchy_visible_w, &hierarchy_actual_w, &hierarchy_visible_h, &hierarchy_actual_h);
-  //*+*/printf("hierarchy: visible_w=%d, actual_w=%d, visible_h=%d, actual_h=%d\n", hierarchy_visible_w, hierarchy_actual_w, hierarchy_visible_h, hierarchy_actual_h);
 
   // Set scroll bar ranges
   {
