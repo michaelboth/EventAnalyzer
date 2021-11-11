@@ -65,40 +65,39 @@ void EventsView::mouseReleaseEvent(QMouseEvent * /*event*/) {
   // Nothing to do
 }
 
+void EventsView::leaveEvent(QEvent * /*event*/) {
+  mouse_location = QPoint(-1,-1);
+  update();
+}
+
 void EventsView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, int &line_index, int level) {
-/*+*/
-#ifdef HIDE
   int h = height();
   int w = width();
-  int x = 0; /*+ adjust by time offset */
+  //*+*/int x = 0; /*+ adjust by time offset */
   int y = -v_offset + line_index * line_h;
   if (y > h) return;
 
-  /*+
   // Reset some visual info
-  parent->row_rect = QRect();
-  parent->folder_rect = QRect();
-  content_bottom_y = y + line_h;
-  */
+  //*+*/parent->row_rect = QRect();
+  //*+*/content_bottom_y = y + line_h;
 
   // only draw if visible
   if (y > -line_h) {
-    /*+
     // Remember the row geometry
-    parent->row_rect = QRect(0,y,w,line_h);
+    QRect row_rect = QRect(0,y,w,line_h);
+    //*+*/parent->row_rect = row_rect;
 
     // If mouse is on row, then highlight it
-    if (parent->row_rect.contains(mouse_location)) {
+    if (row_rect.contains(mouse_location)) {
       node_with_mouse = parent;
-      row_with_mouse = parent->row_rect;
-      painter->fillRect(parent->row_rect, ROW_HIGHLIGHT_COLOR);
+      row_with_mouse_rect = row_rect;
+      painter->fillRect(row_rect, ROW_HIGHLIGHT_COLOR);
     }
 
     // Highlight row if selected
     if (parent->row_selected) {
-      painter->fillRect(parent->row_rect, ROW_SELECTED_COLOR);
+      painter->fillRect(row_rect, ROW_SELECTED_COLOR);
     }
-    */
 
     // Draw events
     /*+
@@ -107,7 +106,6 @@ void EventsView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, int
 
     /*+ draw to profiling view here? */
   }
-#endif
 
   // Recurse
   line_index++;
@@ -128,6 +126,11 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
 
   // Fill in background
   painter.fillRect(QRect(0,0,w,h), QColor(255,255,255));
+
+  // Update some high level geometry
+  //*+*/content_bottom_y = 0;
+  row_with_mouse_rect = QRect();
+  node_with_mouse = NULL;
 
   if (G_event_tree_map.count() == 0) {
     // Draw the logo

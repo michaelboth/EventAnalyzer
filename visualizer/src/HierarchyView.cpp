@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <QPainter>
+#include <QMouseEvent>
 #include "HierarchyView.hpp"
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
@@ -21,8 +22,6 @@
 #define FOLDER_ICON_COLOR QColor(100, 0, 255)
 #define THREAD_ICON_COLOR QColor(0, 100, 0)
 #define EVENTS_ICON_COLOR QColor(0, 100, 255)
-#define ROW_HIGHLIGHT_COLOR QColor(0, 0, 0, 50)
-#define ROW_SELECTED_COLOR QColor(0, 100, 255, 50)
 #define EXTRA_MARGIN_FACTOR 0.5f
 
 HierarchyView::HierarchyView(QWidget *parent) : QWidget(parent) {
@@ -147,7 +146,7 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
     // If mouse is on row, then highlight it
     if (parent->row_rect.contains(mouse_location)) {
       node_with_mouse = parent;
-      row_with_mouse = parent->row_rect;
+      row_with_mouse_rect = parent->row_rect;
       painter->fillRect(parent->row_rect, ROW_HIGHLIGHT_COLOR);
     }
 
@@ -202,7 +201,7 @@ void HierarchyView::mousePressEvent(QMouseEvent *event) {
 
 void HierarchyView::mouseMoveEvent(QMouseEvent *event) {
   mouse_location = QPoint(event->x(), event->y());
-  if ((node_with_mouse != NULL && !row_with_mouse.contains(mouse_location)) || (node_with_mouse == NULL && mouse_location.y() < content_bottom_y)) {
+  if ((node_with_mouse != NULL && !row_with_mouse_rect.contains(mouse_location)) || (node_with_mouse == NULL && mouse_location.y() < content_bottom_y)) {
     // Need to update since a different row should be highlighted
     update();
   }
@@ -247,7 +246,7 @@ void HierarchyView::paintEvent(QPaintEvent* /*event*/) {
 
   // Update some high level geometry
   content_bottom_y = 0;
-  row_with_mouse = QRect();
+  row_with_mouse_rect = QRect();
   node_with_mouse = NULL;
 
   // Draw hierarchy tree

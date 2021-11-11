@@ -33,5 +33,7 @@ extern QMap<QString,EventTree*> G_event_tree_map; // QMap is always sorted by ke
 #define HEADER_TEXT_COLOR QColor(100, 100, 100)
 #define HEADER_SEPARATOR_COLOR QColor(200, 200, 200)
 #define LINE_HEIGHT_FACTOR 1.5f
+#define ROW_HIGHLIGHT_COLOR QColor(0, 0, 0, 50)
+#define ROW_SELECTED_COLOR QColor(0, 100, 255, 50)
 
 #endif

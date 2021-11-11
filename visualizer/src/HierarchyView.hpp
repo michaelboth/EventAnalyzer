@@ -52,7 +52,7 @@ private:
   int h_offset = 0;
   int v_offset = 0;
   QPoint mouse_location = QPoint(-1,-1);
-  QRect row_with_mouse;
+  QRect row_with_mouse_rect;
   int content_bottom_y = 0;
   EventTreeNode *node_with_mouse = NULL;
 

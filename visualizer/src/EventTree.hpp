@@ -16,6 +16,7 @@
 #define _EventTree_hpp_
 
 #include <QList>
+#include <QRect>
 #include "events_loader.h"
 
 typedef enum {

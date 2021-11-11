@@ -32,6 +32,7 @@ protected:
   void mousePressEvent(QMouseEvent *event);
   void mouseMoveEvent(QMouseEvent *event);
   void mouseReleaseEvent(QMouseEvent *event);
+  void leaveEvent(QEvent *event);
 
 signals:
 
@@ -40,7 +41,11 @@ public slots:
 
 private:
   QPixmap logo;
+  int line_h = 0;
   int v_offset = 0;
+  QPoint mouse_location = QPoint(-1,-1);
+  QRect row_with_mouse_rect;
+  EventTreeNode *node_with_mouse = NULL;
 
   void drawHierarchyLine(QPainter *painter, EventTreeNode *tree, int &line_index, int level);
 };
