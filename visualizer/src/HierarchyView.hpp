@@ -38,7 +38,7 @@ protected:
   void leaveEvent(QEvent *event);
 
 signals:
-  void fileSelectionChanged();
+  void hierarchyChanged();
 
 public slots:
   void updateHOffset(int offset);

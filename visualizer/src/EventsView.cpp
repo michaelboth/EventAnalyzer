@@ -16,10 +16,11 @@
 #include <QPainter>
 #include "EventsView.hpp"
 #include "HelpfulFunctions.hpp"
+#include "main.hpp"
 
 EventsView::EventsView(QWidget *parent) : QWidget(parent) {
   // Track mouse when not pressed
-  //setMouseTracking(true);
+  setMouseTracking(true);
 
   // Allow keyboard input
   //setFocusPolicy(Qt::StrongFocus);
@@ -36,25 +37,85 @@ EventsView::~EventsView() {
   // Nothing to do
 }
 
-void EventsView::mousePressEvent(QMouseEvent *event) {
+void EventsView::updateVOffset(int offset) {
+  v_offset = offset;
+  update();
+}
+
+void EventsView::mousePressEvent(QMouseEvent * /*event*/) {
+  /*+
   if (event->button() == Qt::LeftButton) {
     // Prepare for mouse motion
     prev_mouse_location = QPoint(event->x(), event->y());
   }
   update();
+  */
 }
 
-void EventsView::mouseMoveEvent(QMouseEvent *event) {
-  // Determine the change in motion
+void EventsView::mouseMoveEvent(QMouseEvent * /*event*/) {
   /*+
+  // Determine the change in motion
   int dx = event->x() - prev_mouse_location.x();
   int dy = event->y() - prev_mouse_location.y();
-  */
   prev_mouse_location = QPoint(event->x(), event->y());
+  */
 }
 
 void EventsView::mouseReleaseEvent(QMouseEvent * /*event*/) {
   // Nothing to do
+}
+
+void EventsView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, int &line_index, int level) {
+/*+*/
+#ifdef HIDE
+  int h = height();
+  int w = width();
+  int x = 0; /*+ adjust by time offset */
+  int y = -v_offset + line_index * line_h;
+  if (y > h) return;
+
+  /*+
+  // Reset some visual info
+  parent->row_rect = QRect();
+  parent->folder_rect = QRect();
+  content_bottom_y = y + line_h;
+  */
+
+  // only draw if visible
+  if (y > -line_h) {
+    /*+
+    // Remember the row geometry
+    parent->row_rect = QRect(0,y,w,line_h);
+
+    // If mouse is on row, then highlight it
+    if (parent->row_rect.contains(mouse_location)) {
+      node_with_mouse = parent;
+      row_with_mouse = parent->row_rect;
+      painter->fillRect(parent->row_rect, ROW_HIGHLIGHT_COLOR);
+    }
+
+    // Highlight row if selected
+    if (parent->row_selected) {
+      painter->fillRect(parent->row_rect, ROW_SELECTED_COLOR);
+    }
+    */
+
+    // Draw events
+    /*+
+      painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
+    */
+
+    /*+ draw to profiling view here? */
+  }
+#endif
+
+  // Recurse
+  line_index++;
+  if (parent->is_open) {
+    for (auto child: parent->children) {
+      drawHierarchyLine(painter, child, line_index, level+1);
+    }
+  }
 }
 
 void EventsView::paintEvent(QPaintEvent* /*event*/) {
@@ -68,10 +129,48 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   // Fill in background
   painter.fillRect(QRect(0,0,w,h), QColor(255,255,255));
 
-  // Draw the logo
-  QRect inside_rect = getFittedRect(FitType::Inside, w/2, h, logo.width(), logo.height());
-  inside_rect.moveLeft(w/4);
-  painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
-  painter.drawPixmap(inside_rect, logo);
-  painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+  if (G_event_tree_map.count() == 0) {
+    // Draw the logo
+    QRect inside_rect = getFittedRect(FitType::Inside, w/2, h, logo.width(), logo.height());
+    inside_rect.moveLeft(w/4);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
+    painter.drawPixmap(inside_rect, logo);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+    return;
+  }
+
+  // Determine time range
+  uint64_t start_time = 0;
+  uint64_t end_time = 0;
+  {
+    bool got_time_range = false;
+    QMapIterator<QString, EventTree*> i(G_event_tree_map);
+    while (i.hasNext()) {
+      // Get old tree info
+      i.next();
+      EventTree *event_tree = i.value();
+      Events *events = event_tree->events;
+      Event *first_event = &events->event_buffer[0];
+      Event *last_event = &events->event_buffer[events->event_count-1];
+      if (!got_time_range) {
+        // Record initial times
+        start_time = first_event->time;
+        end_time = last_event->time;
+      } else {
+        // Update time range
+        if (first_event->time < start_time) start_time = first_event->time;
+        if (last_event->time < end_time) end_time = last_event->time;
+      }
+    }
+  }
+
+  // Draw event tree
+  int line_index = 0;
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  while (i.hasNext()) {
+    // Get old tree info
+    i.next();
+    EventTree *event_tree = i.value();
+    drawHierarchyLine(&painter, event_tree->tree, line_index, 0);
+  }
 }

@@ -176,9 +176,6 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
 
     // Draw name
     painter->drawText(x, y, w-x, line_h, Qt::AlignLeft | Qt::AlignVCenter, parent->name);
-
-    /*+ draw to events view here? */
-    /*+ draw to profiling view here? */
   }
 
   // Recurse
@@ -199,7 +196,7 @@ void HierarchyView::mousePressEvent(QMouseEvent *event) {
       node_with_mouse->is_open = !node_with_mouse->is_open;
     }
   }
-  emit fileSelectionChanged(); // Tool button, to close selected files, may need to be enabled
+  emit hierarchyChanged(); // Tool button, to close selected files, may need to be enabled
   update();
 }
 

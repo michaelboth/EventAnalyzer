@@ -55,11 +55,13 @@ public:
   QString name;
   QString folder;
   EventTreeNode *tree;
+
   EventTree(Events *events, QString name, QString folder, bool show_folders, bool show_threads);
   ~EventTree();
   void sortTree(SortType sort_type);
   void openAllFolders();
   void closeAllFolders();
+
 private:
   void buildTree(EventTreeNode *node, uint32_t &event_index, bool show_folders, bool show_threads);
   void deleteTree(EventTreeNode *node);

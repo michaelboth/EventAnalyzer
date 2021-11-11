@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1145</width>
-    <height>753</height>
+    <width>1481</width>
+    <height>920</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -402,7 +402,7 @@
           <widget class="QWidget" name="layoutWidget_1">
            <layout class="QVBoxLayout" name="eventsLayout">
             <item>
-             <widget class="QWidget" name="eventsHeader" native="true">
+             <widget class="EventsHeader" name="eventsHeader" native="true">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -741,7 +741,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1145</width>
+     <width>1481</width>
      <height>22</height>
     </rect>
    </property>
@@ -765,6 +765,12 @@
    <class>HierarchyView</class>
    <extends>QWidget</extends>
    <header>HierarchyView.hpp</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EventsHeader</class>
+   <extends>QWidget</extends>
+   <header>EventsHeader.hpp</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

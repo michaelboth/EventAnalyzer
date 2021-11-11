@@ -16,7 +16,6 @@
 #define _GenericHeader_h_
  
 #include <QWidget>
-#include <QPixmap>
 
 class GenericHeader : public QWidget
 {

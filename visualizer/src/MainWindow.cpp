@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   // Set the height of the headers to the font size
   ui->hierarchyHeader->updateHeight();
-  //*+*/ui->eventsHeader->updateHeight();
+  ui->eventsHeader->updateHeight();
   ui->profilingHeader->updateHeight();
   ui->hierarchyView->updateLineHeight();
   ui->hierarchyHeader->setTitle("Hierarchy");
@@ -261,7 +261,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   this->connect(ui->viewSplitter, SIGNAL(splitterMoved(int,int)), this, SLOT(updateColumnWidths(int,int)));
   this->connect(ui->hierarchyHScroll, SIGNAL(valueChanged(int)), ui->hierarchyView, SLOT(updateHOffset(int)));
   this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->hierarchyView, SLOT(updateVOffset(int)));
-  this->connect(ui->hierarchyView, SIGNAL(fileSelectionChanged()), this, SLOT(setWidgetUsability()));
+  this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), this, SLOT(setWidgetUsability()));
+  this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), ui->eventsView, SLOT(update()));
 }
 
 MainWindow::~MainWindow() {
@@ -587,7 +588,7 @@ void MainWindow::on_increaseFontSizeButton_clicked() {
   if (G_font_point_size < G_max_font_point_size) {
     G_font_point_size++;
     ui->hierarchyHeader->updateHeight();
-    //*+*/ui->eventsHeader->updateHeight();
+    ui->eventsHeader->updateHeight();
     ui->profilingHeader->updateHeight();
     ui->hierarchyView->updateLineHeight();
     setWidgetUsability();
@@ -600,7 +601,7 @@ void MainWindow::on_decreaseFontSizeButton_clicked() {
   if (G_font_point_size > G_min_font_point_size) {
     G_font_point_size--;
     ui->hierarchyHeader->updateHeight();
-    //*+*/ui->eventsHeader->updateHeight();
+    ui->eventsHeader->updateHeight();
     ui->profilingHeader->updateHeight();
     ui->hierarchyView->updateLineHeight();
     setWidgetUsability();
@@ -650,7 +651,7 @@ void MainWindow::updateScrollbars() {
     ui->hierarchyHScroll->setEnabled(max > 0);
   }
 
-  /*+*/
+  /*+ max is 10000? */
   ui->eventsHScroll->setRange(0, 0);
   ui->eventsHScroll->setEnabled(false);
 
@@ -661,6 +662,6 @@ void MainWindow::updateScrollbars() {
 
 void MainWindow::updateViews() {
   ui->hierarchyView->update();
-  /*+ events */
+  ui->eventsView->update();
   /*+ profiling */
 }

@@ -12,37 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _EventsView_h_
-#define _EventsView_h_
+#ifndef _EventsHeader_h_
+#define _EventsHeader_h_
  
 #include <QWidget>
-#include <QPixmap>
-#include "EventTree.hpp"
 
-class EventsView : public QWidget
+class EventsHeader : public QWidget
 {
   Q_OBJECT
 
 public:
-  EventsView(QWidget *parent=0);
-  ~EventsView();
+  EventsHeader(QWidget *parent=0);
+  ~EventsHeader();
+  void updateHeight();
 
 protected:
   void paintEvent(QPaintEvent *event);
-  void mousePressEvent(QMouseEvent *event);
-  void mouseMoveEvent(QMouseEvent *event);
-  void mouseReleaseEvent(QMouseEvent *event);
 
 signals:
 
 public slots:
-  void updateVOffset(int offset);
 
 private:
-  QPixmap logo;
-  int v_offset = 0;
-
-  void drawHierarchyLine(QPainter *painter, EventTreeNode *tree, int &line_index, int level);
 };
 
 #endif
