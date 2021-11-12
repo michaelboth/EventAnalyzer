@@ -1,4 +1,7 @@
-# Unikorn Software Event Analyzer (C API and GUI Visualizer)
+<img src="visualizer/icons/unikorn_logo.png" alt="drawing" style="width:200px;"/>
+
+# Unikorn Software Event Analyzer
+This is a C API and GUI Visualizer.
 With the increased complexity of modern hardware and software, optimizing an application for performance is sometimes like trying to find a **unicorn**. Going green is more important than ever. Stop accepting poor performing software or using more hardware as a kludge to fix bad performance. Unikorn is so easy to use, it should be with daily development from the application's inception to distribution.
 ## Building Unikorn's C Library
 ### Linux (gcc), Mac (xCode command line)
