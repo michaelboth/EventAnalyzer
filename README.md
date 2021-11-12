@@ -1,8 +1,13 @@
-<img src="visualizer/icons/unikorn_logo.png" alt="drawing" style="width:200px;"/>
+<img src="visualizer/icons/unikorn_logo.png" alt="Logo" style="width:400px;"/>
 
 # Unikorn Software Event Analyzer
-This is a C API and GUI Visualizer.
-With the increased complexity of modern hardware and software, optimizing an application for performance is sometimes like trying to find a **unicorn**. Going green is more important than ever. Stop accepting poor performing software or using more hardware as a kludge to fix bad performance. Unikorn is so easy to use, it should be with daily development from the application's inception to distribution.
+With the increased complexity of modern hardware and software, optimizing an application for performance is sometimes like trying to find a **unicorn**. Going green is more important than ever. Stop accepting poor performing software or using more hardware to fix bad performance. Unikorn is easy to use, and should be part of daily development from the application's inception to distribution.
+<br><br>
+Unikorn is a C API and graphical visualizer (Windows, Mac, and Linux). These are the simple steps to discovering the behaviour of your application:
+1. Instrument your application with custom events (names and colors)
+2. Run your application; make sure the events get flushed to a file
+3. View the events in the visualizer
+
 ## Building Unikorn's C Library
 ### Linux (gcc), Mac (xCode command line)
 ```
@@ -22,6 +27,7 @@ Unikorn's API can optionally be thread safe, and if so require Posix threads. Vi
 ```
 > cd unikorn/lib
 > nmake -f windows.Makefile RELEASE=Yes THREAD_SAFE=Yes
+```
 ## Instrumenting Your Application with Events
 I'll step through the ```examples/hello1/``` example to get you familiar with event instrumentation.
 First, include the Unikorn header file plus some standard header files:
