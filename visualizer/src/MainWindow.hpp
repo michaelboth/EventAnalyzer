@@ -47,14 +47,11 @@ private slots:
   void on_sortByTimeButton_clicked();
   void on_increaseFontSizeButton_clicked();
   void on_decreaseFontSizeButton_clicked();
-  // Events toolbar
-  void on_zoomToAllButton_clicked();
-  void on_zoomInButton_clicked();
-  void on_zoomOutButton_clicked();
-  void on_zoomToSelectedButton_clicked();
   // Custom
   void updateColumnWidths(int pos, int index);
   void setWidgetUsability();
+  void updateEventsScrollRange();
+  void updateEventsTimeOffset(int scroll_offset);
 
 private:
   Ui::MainWindow *ui;
@@ -68,7 +65,7 @@ private:
   uint32_t totalEventInstances();
   void freeAllEventFiles();
   void updateViews();
-  void updateScrollbars();
+  void updateHierarchyScrollbars();
 };
 
 #endif

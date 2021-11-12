@@ -27,6 +27,9 @@ public:
   EventsView(QWidget *parent=0);
   ~EventsView();
   void updateLineHeight();
+  void getTimeRange(double *percent_visible_ret, double *percent_offset_ret);
+  void updateTimeOffset(double percent_offset);
+  bool timeRangeSelected();
 
 protected:
   void paintEvent(QPaintEvent *event);
@@ -36,19 +39,31 @@ protected:
   void leaveEvent(QEvent *event);
 
 signals:
+  void timeRangeChanged();
+  void timeRangeSelectionChanged();
 
 public slots:
   void updateVOffset(int offset);
+  void zoomToAll();
+  void zoomIn();
+  void zoomOut();
+  void zoomToRegion();
 
 private:
   QPixmap logo;
   int line_h = 0;
   int v_offset = 0;
   QPoint mouse_location = QPoint(-1,-1);
-  QRect row_with_mouse_rect;
-  EventTreeNode *node_with_mouse = NULL;
+  //*+*/QRect row_with_mouse_rect;
+  //*+*/EventTreeNode *node_with_mouse = NULL;
   uint64_t start_time = 0;
   uint64_t end_time = 0;
+  double time_range = 0;
+  double percent_visible = 1.0;
+  double percent_offset = 0.0;
+  bool mouse_button_pressed = false;
+  int selected_time_range_x1 = -1;
+  int selected_time_range_x2 = -1;
 
   void drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *tree, int &line_index, int ancestor_open);
 };

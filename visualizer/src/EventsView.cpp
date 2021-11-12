@@ -18,7 +18,12 @@
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
 
+/*+ allow right click menu in events area to zoom? */
+
 #define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
+#define TIME_SELECTION_COLOR1 QColor(255, 155, 0)
+#define TIME_SELECTION_COLOR2 QColor(255, 155, 0, 20)
+#define MIN_SELECTION_PIXEL_DIFF 10
 
 EventsView::EventsView(QWidget *parent) : QWidget(parent) {
   // Track mouse when not pressed
@@ -54,27 +59,111 @@ void EventsView::updateVOffset(int offset) {
   update();
 }
 
-void EventsView::mousePressEvent(QMouseEvent * /*event*/) {
-  /*+
-  if (event->button() == Qt::LeftButton) {
-    // Prepare for mouse motion
-    prev_mouse_location = QPoint(event->x(), event->y());
-  }
-  update();
-  */
+void EventsView::getTimeRange(double *percent_visible_ret, double *percent_offset_ret) {
+  *percent_visible_ret = percent_visible;
+  *percent_offset_ret = percent_offset;
 }
 
-void EventsView::mouseMoveEvent(QMouseEvent * /*event*/) {
-  /*+
-  // Determine the change in motion
-  int dx = event->x() - prev_mouse_location.x();
-  int dy = event->y() - prev_mouse_location.y();
-  prev_mouse_location = QPoint(event->x(), event->y());
-  */
+bool EventsView::timeRangeSelected() {
+  return (selected_time_range_x1 != -1 && selected_time_range_x2 != -1);
+}
+
+void EventsView::updateTimeOffset(double _percent_offset) {
+  percent_offset = _percent_offset;
+  /*+*/printf("UPDATE: percent_offset = %f\n", percent_offset);
+  update();
+}
+
+void EventsView::zoomToAll() {
+  percent_visible = 1.0;
+  percent_offset = 0.0;
+  selected_time_range_x1 = -1;
+  selected_time_range_x2 = -1;
+  emit timeRangeChanged();
+  update();
+}
+
+void EventsView::zoomIn() {
+  percent_visible /= 2.0;
+  percent_offset += percent_visible/2.0;
+  selected_time_range_x1 = -1;
+  selected_time_range_x2 = -1;
+  emit timeRangeChanged();
+  update();
+}
+
+void EventsView::zoomOut() {
+  percent_offset -= percent_visible/2.0;
+  percent_visible *= 2.0;
+  if (percent_visible > 1.0) {
+    percent_visible = 1.0;
+    percent_offset = 0.0;
+  }
+  if (percent_offset < 0) {
+    percent_offset = 0.0;
+  }
+  if (percent_offset > (1.0 - percent_visible)) {
+    percent_offset = 1.0 - percent_visible;
+  }
+  selected_time_range_x1 = -1;
+  selected_time_range_x2 = -1;
+  emit timeRangeChanged();
+  update();
+}
+
+void EventsView::zoomToRegion() {
+  //*+*/printf("selected_time_range_x1 = %d, selected_time_range_x2 = %d\n", selected_time_range_x1, selected_time_range_x2);
+  if (selected_time_range_x1 != -1 && selected_time_range_x2 != -1) {
+    int w = width();
+    int x1 = std::min(selected_time_range_x1, selected_time_range_x2);
+    int x2 = std::max(selected_time_range_x1, selected_time_range_x2);
+    x1 = std::max(x1, 0);
+    x2 = std::min(x2, w-1);
+    double w_factor = (x2-x1) / (double)w;
+    double offset_factor = x1 / (double)w;
+    /*+*/printf("BEFORE: percent_offset = %f, percent_visible = %f\n", percent_offset, percent_visible);
+    /*+*/printf("w_factor = %f, offset_factor = %f\n", w_factor, offset_factor);
+    percent_offset += offset_factor*percent_visible;
+    percent_visible *= w_factor;
+    /*+*/printf("  AFTER: percent_offset = %f, percent_visible = %f\n", percent_offset, percent_visible);
+  }
+  selected_time_range_x1 = -1;
+  selected_time_range_x2 = -1;
+  emit timeRangeChanged();
+  update();
+}
+
+void EventsView::mousePressEvent(QMouseEvent *event) {
+  if (G_event_tree_map.count() == 0) return;
+  if (event->button() == Qt::LeftButton) {
+    mouse_button_pressed = true;
+    selected_time_range_x1 = event->x();
+    selected_time_range_x2 = selected_time_range_x1;
+    update();
+  }
+}
+
+void EventsView::mouseMoveEvent(QMouseEvent *event) {
+  if (mouse_button_pressed) {
+    selected_time_range_x2 = event->x();
+    /*+ to avoid a full redraw, draw to QImage and then redisplay */
+    update();
+  } else {
+    mouse_location = QPoint(event->x(), event->y());
+  }
 }
 
 void EventsView::mouseReleaseEvent(QMouseEvent * /*event*/) {
-  // Nothing to do
+  if (mouse_button_pressed) {
+    mouse_button_pressed = false;
+    int diff = std::abs(selected_time_range_x1 - selected_time_range_x2);
+    if (diff < MIN_SELECTION_PIXEL_DIFF) {
+      selected_time_range_x1 = -1;
+      selected_time_range_x2 = -1;
+    }
+    emit timeRangeSelectionChanged();
+    update();
+  }
 }
 
 void EventsView::leaveEvent(QEvent * /*event*/) {
@@ -99,12 +188,12 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
     //*+*/parent->row_rect = row_rect;
 
     // If mouse is on row, then highlight it
-    if (row_rect.contains(mouse_location)) {
+    //*+*/if (row_rect.contains(mouse_location)) {
       /*+ if these are only use to display rollover, then don't need class variables */
-      node_with_mouse = parent;
-      row_with_mouse_rect = row_rect;
-      painter->fillRect(row_rect, ROW_HIGHLIGHT_COLOR);
-    }
+      //*+*/node_with_mouse = parent;
+      //*+*/row_with_mouse_rect = row_rect;
+      //*+*/painter->fillRect(row_rect, ROW_HIGHLIGHT_COLOR);
+    //*+*/}
 
     // Highlight row if selected (selected in hierarchy view)
     if (parent->row_selected) {
@@ -130,15 +219,13 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
     int y4 = y + (int)(line_h * 0.6f);
     int y5 = y + (int)(line_h * 0.8f);
     int range_h = y4 - y3 + 1;
-    int x_offset = 0; /*+ adjust by time offset */
-    double time_range = (double)(end_time - start_time);/*+ pre calculate as a class var */
     for (uint32_t i=0; i<parent->num_event_instances; i++) {
       uint32_t event_index = parent->event_indices[i];
       Event *event = &events->event_buffer[event_index];
       bool is_start = event->event_id == event_info->start_id;
       // X location in visible region
       double x_percent = (event->time - start_time) / time_range;
-      int x = x_offset + (int)(x_percent * (w-1));
+      int x = (int)(x_percent * (w-1));
       int top_y = is_start ? y2 : y3;
       int bottom_y = is_start ? y4 : y5;
       painter->drawLine(x, top_y, x, bottom_y);
@@ -182,8 +269,8 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
 
   // Update some high level geometry
   //*+*/content_bottom_y = 0;
-  row_with_mouse_rect = QRect();
-  node_with_mouse = NULL;
+  //*+*/row_with_mouse_rect = QRect();
+  //*+*/node_with_mouse = NULL;
 
   if (G_event_tree_map.count() == 0) {
     // Draw the logo
@@ -192,6 +279,9 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
     painter.drawPixmap(inside_rect, logo);
     painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+    // Clear some stuff just in case it's active
+    selected_time_range_x1 = -1;
+    selected_time_range_x2 = -1;
     return;
   }
 
@@ -219,6 +309,15 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       }
     }
   }
+  // Zoom in as needed
+  if (percent_visible < 1.0) {
+    uint64_t elapsed_nanoseconds = end_time - start_time;
+    uint64_t visible_nanoseconds = (uint64_t)(elapsed_nanoseconds * percent_visible);
+    uint64_t remaining_nanoseconds = elapsed_nanoseconds - visible_nanoseconds;
+    start_time = (uint64_t)(remaining_nanoseconds * percent_offset);
+    end_time = start_time + visible_nanoseconds;
+  }
+  time_range = (double)(end_time - start_time);
 
   // Draw event tree
   int line_index = 0;
@@ -230,5 +329,19 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     drawHierarchyLine(&painter, event_tree->events, event_tree->tree, line_index, true);
   }
 
-  /*+ draw rollover info */
+  // Draw selection area
+  if (selected_time_range_x1 != -1 && selected_time_range_x2 != -1) {
+    int x1 = std::min(selected_time_range_x1, selected_time_range_x2);
+    int x2 = std::max(selected_time_range_x1, selected_time_range_x2);
+    x1 = std::max(x1, 0);
+    x2 = std::min(x2, w-1);
+    painter.setPen(QPen(TIME_SELECTION_COLOR1, 1, Qt::SolidLine));
+    painter.drawLine(x1, 0, x1, h-1);
+    painter.drawLine(x2, 0, x2, h-1);
+    painter.fillRect(QRect(x1,0,x2-x1+1,h), TIME_SELECTION_COLOR2);
+  }
+
+  /*+ draw rollover info
+    mouse_location
+  */
 }

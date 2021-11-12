@@ -268,7 +268,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   setWidgetUsability();
 
   // Update scrollbars
-  updateScrollbars();
+  updateHierarchyScrollbars();
+  updateEventsScrollRange();
 
   // Update views
   updateViews();
@@ -280,6 +281,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->eventsView, SLOT(updateVOffset(int)));
   this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), this, SLOT(setWidgetUsability()));
   this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), ui->eventsView, SLOT(update()));
+  this->connect(ui->eventsView, SIGNAL(timeRangeChanged()), this, SLOT(updateEventsScrollRange()));
+  this->connect(ui->eventsView, SIGNAL(timeRangeSelectionChanged()), this, SLOT(setWidgetUsability()));
+  this->connect(ui->zoomToAllButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomToAll()));
+  this->connect(ui->zoomInButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomIn()));
+  this->connect(ui->zoomOutButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomOut()));
+  this->connect(ui->zoomToSelectedButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomToRegion()));
+  this->connect(ui->eventsHScroll, SIGNAL(valueChanged(int)), this, SLOT(updateEventsTimeOffset(int)));
 }
 
 MainWindow::~MainWindow() {
@@ -293,7 +301,7 @@ MainWindow::~MainWindow() {
 
 void MainWindow::resizeEvent(QResizeEvent * /*event*/) {
   //printf("new window size = %d x %d\n", event->size().width(), event->size().height());
-  updateScrollbars();
+  updateHierarchyScrollbars();
 }
 
 void MainWindow::updateColumnWidths(int pos, int index) {
@@ -307,7 +315,7 @@ void MainWindow::updateColumnWidths(int pos, int index) {
     int profiling_column_width = ui->viewSplitter->width() - pos - 2;
     G_settings->setValue("prev_profiling_column_width", profiling_column_width);
   }
-  updateScrollbars();
+  updateHierarchyScrollbars();
 }
 
 static QPixmap recolorImageAndConvertToPixmap(QImage &image, QColor color) {
@@ -347,6 +355,9 @@ void MainWindow::setWidgetUsability() {
   bool filters_are_set = false;/*+*/
   bool font_size_can_grow = (G_font_point_size < G_max_font_point_size);
   bool font_size_can_shrink = (G_font_point_size > G_min_font_point_size);
+  double percent_visible, percent_offset;
+  ui->eventsView->getTimeRange(&percent_visible, &percent_offset);
+  bool zoomed_to_all = (percent_visible == 1.0);
 
   // Hierarchy toolbar
   ui->closeAllButton->setEnabled(event_files_loaded);
@@ -364,10 +375,10 @@ void MainWindow::setWidgetUsability() {
   ui->decreaseFontSizeButton->setEnabled(event_files_loaded && font_size_can_shrink);
 
   // Events toolbar
-  ui->zoomToAllButton->setEnabled(event_files_loaded/*+*/);
-  ui->zoomInButton->setEnabled(event_files_loaded/*+*/);
-  ui->zoomOutButton->setEnabled(event_files_loaded/*+*/);
-  ui->zoomToSelectedButton->setEnabled(event_files_loaded/*+*/);
+  ui->zoomToAllButton->setEnabled(event_files_loaded && !zoomed_to_all);
+  ui->zoomInButton->setEnabled(event_files_loaded);
+  ui->zoomOutButton->setEnabled(event_files_loaded && !zoomed_to_all);
+  ui->zoomToSelectedButton->setEnabled(event_files_loaded && ui->eventsView->timeRangeSelected());
 
   // Update status bar
   QString message = "Event files loaded: " + QString::number(G_event_tree_map.count()) + "          Filters Set: none          Total Events: " + QString::number(totalEventInstances()); /*+ filters set */
@@ -408,7 +419,7 @@ void MainWindow::on_loadButton_clicked() {
   }
   if (files.count() > 0) {
     setWidgetUsability();
-    updateScrollbars();
+    updateHierarchyScrollbars();
     updateViews();
   }
 }
@@ -416,7 +427,7 @@ void MainWindow::on_loadButton_clicked() {
 void MainWindow::on_closeAllButton_clicked() {
   freeAllEventFiles();
   setWidgetUsability();
-  updateScrollbars();
+  updateHierarchyScrollbars();
   updateViews();
 }
 
@@ -436,7 +447,7 @@ void MainWindow::on_closeSelectedButton_clicked() {
     G_event_tree_map.remove(filename);
   }
   setWidgetUsability();
-  updateScrollbars();
+  updateHierarchyScrollbars();
   updateViews();
 }
 
@@ -465,7 +476,7 @@ void MainWindow::updateEventTreeBuild() {
     tree->sortTree(sort_type);
     G_event_tree_map[filename] = tree; // NOTE: QMaps are ordered alphabetically
   }
-  updateScrollbars();
+  updateHierarchyScrollbars();
   updateViews();
 }
 
@@ -546,7 +557,7 @@ void MainWindow::on_openFoldersButton_clicked() {
     EventTree *tree = i.value();
     tree->openAllFolders();
   }
-  updateScrollbars();
+  updateHierarchyScrollbars();
   updateViews();
 }
 
@@ -558,7 +569,7 @@ void MainWindow::on_closeFoldersButton_clicked() {
     EventTree *tree = i.value();
     tree->closeAllFolders();
   }
-  updateScrollbars();
+  updateHierarchyScrollbars();
   updateViews();
 }
 
@@ -570,7 +581,7 @@ void MainWindow::updateEventTreeSort() {
     EventTree *tree = i.value();
     tree->sortTree(sort_type);
   }
-  updateScrollbars();
+  updateHierarchyScrollbars();
   updateViews();
 }
 
@@ -619,7 +630,7 @@ void MainWindow::on_increaseFontSizeButton_clicked() {
     ui->hierarchyView->updateLineHeight();
     ui->eventsView->updateLineHeight();
     setWidgetUsability();
-    updateScrollbars();
+    updateHierarchyScrollbars();
     updateViews();
   }
 }
@@ -633,28 +644,12 @@ void MainWindow::on_decreaseFontSizeButton_clicked() {
     ui->hierarchyView->updateLineHeight();
     ui->eventsView->updateLineHeight();
     setWidgetUsability();
-    updateScrollbars();
+    updateHierarchyScrollbars();
     updateViews();
   }
 }
 
-void MainWindow::on_zoomToAllButton_clicked() {
-  /*+*/
-}
-
-void MainWindow::on_zoomInButton_clicked() {
-  /*+*/
-}
-
-void MainWindow::on_zoomOutButton_clicked() {
-  /*+*/
-}
-
-void MainWindow::on_zoomToSelectedButton_clicked() {
-  /*+*/
-}
-
-void MainWindow::updateScrollbars() {
+void MainWindow::updateHierarchyScrollbars() {
   int hierarchy_visible_w, hierarchy_actual_w, hierarchy_visible_h, hierarchy_actual_h;
   ui->hierarchyView->calculateGeometry(&hierarchy_visible_w, &hierarchy_actual_w, &hierarchy_visible_h, &hierarchy_actual_h);
 
@@ -694,14 +689,50 @@ void MainWindow::updateScrollbars() {
     ui->hierarchyHScroll->setPageStep(page_step);
     ui->hierarchyHScroll->setEnabled(max > 0);
   }
+}
 
-  /*+ max is 10000? */
-  ui->eventsHScroll->setRange(0, 0);
-  ui->eventsHScroll->setEnabled(false);
+void MainWindow::updateEventsScrollRange() {
+  double percent_visible, percent_offset;
+  ui->eventsView->getTimeRange(&percent_visible, &percent_offset);
+  //*+*/printf("NEW: percent_offset = %f, percent_visible = %f\n", percent_offset, percent_visible);
 
-  /*+*/
+  {
+    int min = 0;
+    int max = 0;
+    int page_step = 1;
+    int single_step = 1;
+    int actual_w = INT_MAX/2; // Can't use INT_MAX because the scroll handle is not drawn correctly
+    int visible_w = (int)(percent_visible * actual_w);
+    if (visible_w < actual_w) {
+      // Some stuff is hidden
+      min = 0;
+      max = actual_w - visible_w;
+      page_step = visible_w;
+      single_step = page_step/9;
+      if (single_step == 0) single_step = 1;
+    }
+    int value = (int)(percent_offset * max);
+    ui->eventsHScroll->setRange(min, max);
+    ui->eventsHScroll->setValue(value);
+    ui->eventsHScroll->setPageStep(page_step);
+    ui->eventsHScroll->setSingleStep(single_step);
+    ui->eventsHScroll->setEnabled(max > 0);
+  }
+
+  /*+ profiling scroll */
   ui->profilingHScroll->setRange(0, 0);
   ui->profilingHScroll->setEnabled(false);
+
+  setWidgetUsability();
+}
+
+void MainWindow::updateEventsTimeOffset(int scroll_offset) {
+  int max = ui->eventsHScroll->maximum();
+  double percent_offset = 0.0;
+  if (max > 0) {
+    percent_offset = scroll_offset / (double)max;
+  }
+  ui->eventsView->updateTimeOffset(percent_offset);
 }
 
 void MainWindow::updateViews() {
