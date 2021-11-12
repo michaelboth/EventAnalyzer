@@ -20,7 +20,8 @@
 
 #define ARROW_ICON_COLOR QColor(0, 0, 0)
 #define FOLDER_ICON_COLOR QColor(100, 0, 255)
-#define THREAD_ICON_COLOR QColor(0, 100, 0)
+#define THREAD_ICON_COLOR QColor(100, 0, 255)
+//*+*/#define THREAD_ICON_COLOR QColor(0, 100, 0)
 #define EVENTS_ICON_COLOR QColor(0, 100, 255)
 #define EXTRA_MARGIN_FACTOR 0.5f
 
@@ -68,10 +69,10 @@ void HierarchyView::updateLineHeight() {
   prepareIcon("hierarchy_closed_folder.png", true, FOLDER_ICON_COLOR);
   prepareIcon("hierarchy_closed_thread.png", true, THREAD_ICON_COLOR);
   prepareIcon("hierarchy_events.png", true, EVENTS_ICON_COLOR);
-  prepareIcon("hierarchy_file.png", false, Qt::black);
+  prepareIcon("hierarchy_file.png", false, Qt::black); /*+ bigger unikorn */
   prepareIcon("hierarchy_opened_arrow.png", true, ARROW_ICON_COLOR);
   prepareIcon("hierarchy_opened_folder.png", true, FOLDER_ICON_COLOR);
-  prepareIcon("hierarchy_opened_thread.png", true, THREAD_ICON_COLOR);
+  prepareIcon("hierarchy_opened_thread.png", true, THREAD_ICON_COLOR); /*+ better icon */
 
   // Update icon geometry
   QPixmap arrow_icon = icon_map["hierarchy_opened_arrow.png"];

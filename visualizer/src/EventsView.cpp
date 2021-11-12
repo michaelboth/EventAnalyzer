@@ -18,6 +18,8 @@
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
 
+#define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
+
 EventsView::EventsView(QWidget *parent) : QWidget(parent) {
   // Track mouse when not pressed
   setMouseTracking(true);
@@ -35,6 +37,16 @@ EventsView::EventsView(QWidget *parent) : QWidget(parent) {
 
 EventsView::~EventsView() {
   // Nothing to do
+}
+
+void EventsView::updateLineHeight() {
+  // Calculate geometry
+  line_h = (int)(G_font_point_size * LINE_HEIGHT_FACTOR);
+
+  // Update font size
+  QFont font = this->font();
+  font.setPointSize(G_font_point_size);
+  this->setFont(font);
 }
 
 void EventsView::updateVOffset(int offset) {
@@ -70,10 +82,9 @@ void EventsView::leaveEvent(QEvent * /*event*/) {
   update();
 }
 
-void EventsView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, int &line_index, int level) {
+void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *parent, int &line_index, int ancestor_open) {
   int h = height();
   int w = width();
-  //*+*/int x = 0; /*+ adjust by time offset */
   int y = -v_offset + line_index * line_h;
   if (y > h) return;
 
@@ -89,30 +100,85 @@ void EventsView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, int
 
     // If mouse is on row, then highlight it
     if (row_rect.contains(mouse_location)) {
+      /*+ if these are only use to display rollover, then don't need class variables */
       node_with_mouse = parent;
       row_with_mouse_rect = row_rect;
       painter->fillRect(row_rect, ROW_HIGHLIGHT_COLOR);
     }
 
-    // Highlight row if selected
+    // Highlight row if selected (selected in hierarchy view)
     if (parent->row_selected) {
       painter->fillRect(row_rect, ROW_SELECTED_COLOR);
     }
 
     // Draw events
-    /*+
-      painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
-    */
+    /*+ binary search for first visible event */
+    /*+ binary search for last visible event */
+    int prev_x = 0;
+    bool prev_is_start = false;
+    //*+*/uint64_t prev_start_time = 0; /*+ determine based on prev event */
+    //*+*/uint64_t prev_prev_start_time = 0; /*+ determine based on prev prev event */
+    /*+ pre calculate color and store in tree */
+    EventInfo *event_info = &events->event_info_list[parent->event_info_index];
+    int red   = (int)(255 * (((event_info->rgb & 0xf00) >> 8) / (float)0xf));
+    int green = (int)(255 * (((event_info->rgb & 0xf0) >> 4) / (float)0xf));
+    int blue  = (int)(255 * ((event_info->rgb & 0xf) / (float)0xf));
+    QColor color = QColor(red, green, blue);
+    painter->setPen(QPen(color, 1, Qt::SolidLine));
+    int y2 = y + (int)(line_h * 0.2f);
+    int y3 = y + (int)(line_h * 0.4f);
+    int y4 = y + (int)(line_h * 0.6f);
+    int y5 = y + (int)(line_h * 0.8f);
+    int range_h = y4 - y3 + 1;
+    int x_offset = 0; /*+ adjust by time offset */
+    double time_range = (double)(end_time - start_time);/*+ pre calculate as a class var */
+    //*+*/printf("num_event_instances=%u\n", parent->num_event_instances);
+    for (uint32_t i=0; i<parent->num_event_instances; i++) {
+      uint32_t event_index = parent->event_indices[i];
+      Event *event = &events->event_buffer[event_index];
+      bool is_start = event->event_id == event_info->start_id;
+      // X location in visible region
+      double x_percent = (event->time - start_time) / time_range;
+      //*+*/printf("  x_percent=%f, event->time=%zu, start_time=%zu, time_range=%f\n", x_percent, event->time, start_time, time_range);
+      int x = x_offset + (int)(x_percent * (w-1));
+      int top_y = is_start ? y2 : y3;
+      int bottom_y = is_start ? y4 : y5;
+      painter->drawLine(x, top_y, x, bottom_y);
+      //*+*/printf("  x=%d, top=%d, bottom=%d\n", x, top_y, bottom_y);
+      // Draw range
+      if (!is_start && prev_is_start && x > prev_x) {
+        int range_w = x - prev_x;
+        painter->fillRect(QRect(prev_x,y3,range_w,range_h), color);
+      }
+      // Remember some stuff
+      prev_is_start = is_start;
+      prev_x = x;
+    }
+
+    // Draw separator line
+    painter->setPen(QPen(LINE_SEPARATOR_COLOR, 1, Qt::SolidLine));
+    int separator_y = y + line_h - 1;
+    painter->drawLine(0, separator_y, w, separator_y);
 
     /*+ draw to profiling view here? */
   }
 
   // Recurse
-  line_index++;
-  if (parent->is_open) {
-    for (auto child: parent->children) {
-      drawHierarchyLine(painter, child, line_index, level+1);
-    }
+  if (/*+parent->is_open &&*/ ancestor_open) {
+    line_index++;
+    /*+*/printf("Node: %s, line=%d\n", parent->name.toLatin1().data(), line_index);
+  }
+  /*+
+  if (!parent->is_open) {
+    ancestor_open = false;
+  }
+  */
+  /*+
+  if (!parent->is_open) ancestor_open = false;
+  if (ancestor_open) line_index++;
+  */
+  for (auto child: parent->children) {
+    drawHierarchyLine(painter, events, child, line_index, ancestor_open ? parent->is_open : false);
   }
 }
 
@@ -143,8 +209,8 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   }
 
   // Determine time range
-  uint64_t start_time = 0;
-  uint64_t end_time = 0;
+  start_time = 0;
+  end_time = 0;
   {
     bool got_time_range = false;
     QMapIterator<QString, EventTree*> i(G_event_tree_map);
@@ -166,6 +232,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       }
     }
   }
+  //*+*/printf("start_time=%zu, end_time=%zu\n", start_time, end_time);
 
   // Draw event tree
   int line_index = 0;
@@ -174,6 +241,8 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     // Get old tree info
     i.next();
     EventTree *event_tree = i.value();
-    drawHierarchyLine(&painter, event_tree->tree, line_index, 0);
+    drawHierarchyLine(&painter, event_tree->events, event_tree->tree, line_index, /*+*/event_tree->tree->is_open);
   }
+
+  /*+ draw rollover info */
 }

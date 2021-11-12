@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->eventsHeader->updateHeight();
   ui->profilingHeader->updateHeight();
   ui->hierarchyView->updateLineHeight();
+  ui->eventsView->updateLineHeight();
   ui->hierarchyHeader->setTitle("Hierarchy");
   ui->profilingHeader->setTitle("Profiling");
 
@@ -228,7 +229,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->setFilterButton->setIcon(buildIcon(":/filter.png",                    false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->clearFilterButton->setIcon(buildIcon(":/clear_filter.png",            false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->showFoldersButton->setIcon(buildIcon(":/show_folders.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR)); /*+ better icon */
   ui->openFoldersButton->setIcon(buildIcon(":/open_folders.png",            false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->closeFoldersButton->setIcon(buildIcon(":/close_folders.png",          false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->sortByIdButton->setIcon(buildIcon(":/sort_by_id.png",                 true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
@@ -261,6 +262,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   this->connect(ui->viewSplitter, SIGNAL(splitterMoved(int,int)), this, SLOT(updateColumnWidths(int,int)));
   this->connect(ui->hierarchyHScroll, SIGNAL(valueChanged(int)), ui->hierarchyView, SLOT(updateHOffset(int)));
   this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->hierarchyView, SLOT(updateVOffset(int)));
+  this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->eventsView, SLOT(updateVOffset(int)));
   this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), this, SLOT(setWidgetUsability()));
   this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), ui->eventsView, SLOT(update()));
 }
@@ -591,6 +593,7 @@ void MainWindow::on_increaseFontSizeButton_clicked() {
     ui->eventsHeader->updateHeight();
     ui->profilingHeader->updateHeight();
     ui->hierarchyView->updateLineHeight();
+    ui->eventsView->updateLineHeight();
     setWidgetUsability();
     updateScrollbars();
     updateViews();
@@ -604,6 +607,7 @@ void MainWindow::on_decreaseFontSizeButton_clicked() {
     ui->eventsHeader->updateHeight();
     ui->profilingHeader->updateHeight();
     ui->hierarchyView->updateLineHeight();
+    ui->eventsView->updateLineHeight();
     setWidgetUsability();
     updateScrollbars();
     updateViews();

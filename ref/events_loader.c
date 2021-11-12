@@ -233,6 +233,7 @@ Events *loadEventsFile(const char *filename) {
   for (uint16_t i=0; i<object->event_count; i++) {
     Event *event = &object->event_buffer[i];
     event->time = readUint64(swap_endian, file);
+    /*+ verify time is increasing or else state clock is not monotonic. Maybe adjust remaining times? */
     event->event_id = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
     printf("    time = %"UINT64_FORMAT", ID = %d\n", event->time, event->event_id);

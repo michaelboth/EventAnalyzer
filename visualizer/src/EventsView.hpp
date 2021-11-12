@@ -26,6 +26,7 @@ class EventsView : public QWidget
 public:
   EventsView(QWidget *parent=0);
   ~EventsView();
+  void updateLineHeight();
 
 protected:
   void paintEvent(QPaintEvent *event);
@@ -46,8 +47,10 @@ private:
   QPoint mouse_location = QPoint(-1,-1);
   QRect row_with_mouse_rect;
   EventTreeNode *node_with_mouse = NULL;
+  uint64_t start_time = 0;
+  uint64_t end_time = 0;
 
-  void drawHierarchyLine(QPainter *painter, EventTreeNode *tree, int &line_index, int level);
+  void drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *tree, int &line_index, int ancestor_open);
 };
 
 #endif
