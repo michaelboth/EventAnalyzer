@@ -32,7 +32,7 @@ protected:
   void resizeEvent(QResizeEvent *event);
 
 private slots:
-  // Hierarchy tool bar
+  // Hierarchy toolbar
   void on_loadButton_clicked();
   void on_closeAllButton_clicked();
   void on_closeSelectedButton_clicked();
@@ -47,6 +47,11 @@ private slots:
   void on_sortByTimeButton_clicked();
   void on_increaseFontSizeButton_clicked();
   void on_decreaseFontSizeButton_clicked();
+  // Events toolbar
+  void on_zoomToAllButton_clicked();
+  void on_zoomInButton_clicked();
+  void on_zoomOutButton_clicked();
+  void on_zoomToSelectedButton_clicked();
   // Custom
   void updateColumnWidths(int pos, int index);
   void setWidgetUsability();

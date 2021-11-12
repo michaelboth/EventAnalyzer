@@ -106,7 +106,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     "  padding: 4px 2px 4px 2px;"
     "}"
     "QScrollBar::handle:horizontal {"
-    "  background: rgb(140, 140, 140);"
+    "  background: rgb(100, 100, 100);"
     "  border-radius: 3px;"
     "  min-width: 6px;"
     "}"
@@ -129,7 +129,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     "  padding: 4px 0px 4px 0px;"
     "}"
     "QScrollBar::handle:horizontal {"
-    "  background: rgb(140, 140, 140);"
+    "  background: rgb(100, 100, 100);"
     "  border-radius: 3px;"
     "  min-width: 6px;"
     "}"
@@ -152,7 +152,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     "  border-radius: 3px;"
     "  width: 6px;"
     "  height: 6px;"
-    "  background: rgb(140, 140, 140);"
+    "  background: rgb(100, 100, 100);"
     "}"
     "QScrollBar:left-arrow:horizontal:disabled, QScrollBar::right-arrow:horizontal:disabled {"
     "  background: rgb(200, 200, 200);"
@@ -169,7 +169,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     "  padding: 2px 4px 2px 4px;"
     "}"
     "QScrollBar::handle:vertical {"
-    "  background: rgb(140, 140, 140);"
+    "  background: rgb(100, 100, 100);"
     "  border-radius: 3px;"
     "  min-height: 6px;"
     "}"
@@ -190,6 +190,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   // Create the list of tool buttons
   QList<QToolButton *> tool_buttons = {
+    // Hierarcy toolbar
     ui->loadButton,
     ui->closeAllButton,
     ui->closeSelectedButton,
@@ -203,7 +204,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->sortByNameButton,
     ui->sortByTimeButton,
     ui->increaseFontSizeButton,
-    ui->decreaseFontSizeButton
+    ui->decreaseFontSizeButton,
+    // Events toolbar
+    ui->zoomToAllButton,
+    ui->zoomInButton,
+    ui->zoomOutButton,
+    ui->zoomToSelectedButton
   };
 
   // Set button sizes
@@ -222,14 +228,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     "}";
   for (auto button: tool_buttons) button->setStyleSheet(tool_button_style);
 
-  // Set button icons
+  // Set hierarchy toolbar button icons
   ui->loadButton->setIcon(buildIcon(":/load.png",                           false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->closeAllButton->setIcon(buildIcon(":/close.png",                      false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->closeSelectedButton->setIcon(buildIcon(":/close_selected.png",        false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->setFilterButton->setIcon(buildIcon(":/filter.png",                    false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->clearFilterButton->setIcon(buildIcon(":/clear_filter.png",            false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->showFoldersButton->setIcon(buildIcon(":/show_folders.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR)); /*+ better icon */
+  ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->openFoldersButton->setIcon(buildIcon(":/open_folders.png",            false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->closeFoldersButton->setIcon(buildIcon(":/close_folders.png",          false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->sortByIdButton->setIcon(buildIcon(":/sort_by_id.png",                 true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
@@ -237,6 +243,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->sortByTimeButton->setIcon(buildIcon(":/sort_by_time.png",             true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->increaseFontSizeButton->setIcon(buildIcon(":/increase_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->decreaseFontSizeButton->setIcon(buildIcon(":/decrease_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+
+  // Set events toolbar button icons
+  ui->zoomToAllButton->setIcon(buildIcon(":/zoom_to_all.png",      false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomInButton->setIcon(buildIcon(":/zoom_in.png",         false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomOutButton->setIcon(buildIcon(":/zoom_out.png",        false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomToSelectedButton->setIcon(buildIcon(":/zoom_to_selected.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
 
   // Make sure events window stretches
   ui->viewSplitter->setStretchFactor(0, 0);
@@ -248,6 +260,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   int prev_profiling_column_width = G_settings->value("prev_profiling_column_width", 150).toInt();
   QList<int> column_widths = {prev_name_column_width, event_column_width, prev_profiling_column_width};
   ui->viewSplitter->setSizes(column_widths);
+  // Update the events toolbar spacer width
+  ui->eventsToolbarSpacer->changeSize(prev_name_column_width, 5, QSizePolicy::Fixed, QSizePolicy::Minimum);
+  ui->eventsToolbarLayout->invalidate();
 
   // Set usable widgets
   setWidgetUsability();
@@ -284,6 +299,9 @@ void MainWindow::resizeEvent(QResizeEvent * /*event*/) {
 void MainWindow::updateColumnWidths(int pos, int index) {
   if (index == 1) {
     G_settings->setValue("prev_name_column_width", pos);
+    // Update the events toolbar spacer width
+    ui->eventsToolbarSpacer->changeSize(pos, 5, QSizePolicy::Fixed, QSizePolicy::Minimum);
+    ui->eventsToolbarLayout->invalidate();
   }
   if (index == 2) {
     int profiling_column_width = ui->viewSplitter->width() - pos - 2;
@@ -344,6 +362,12 @@ void MainWindow::setWidgetUsability() {
   ui->sortByTimeButton->setEnabled(event_files_loaded);
   ui->increaseFontSizeButton->setEnabled(event_files_loaded && font_size_can_grow);
   ui->decreaseFontSizeButton->setEnabled(event_files_loaded && font_size_can_shrink);
+
+  // Events toolbar
+  ui->zoomToAllButton->setEnabled(event_files_loaded/*+*/);
+  ui->zoomInButton->setEnabled(event_files_loaded/*+*/);
+  ui->zoomOutButton->setEnabled(event_files_loaded/*+*/);
+  ui->zoomToSelectedButton->setEnabled(event_files_loaded/*+*/);
 
   // Update status bar
   QString message = "Event files loaded: " + QString::number(G_event_tree_map.count()) + "          Filters Set: none          Total Events: " + QString::number(totalEventInstances()); /*+ filters set */
@@ -612,6 +636,22 @@ void MainWindow::on_decreaseFontSizeButton_clicked() {
     updateScrollbars();
     updateViews();
   }
+}
+
+void MainWindow::on_zoomToAllButton_clicked() {
+  /*+*/
+}
+
+void MainWindow::on_zoomInButton_clicked() {
+  /*+*/
+}
+
+void MainWindow::on_zoomOutButton_clicked() {
+  /*+*/
+}
+
+void MainWindow::on_zoomToSelectedButton_clicked() {
+  /*+*/
 }
 
 void MainWindow::updateScrollbars() {

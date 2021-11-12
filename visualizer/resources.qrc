@@ -27,5 +27,10 @@
         <file alias="hierarchy_opened_folder.png">icons/hierarchy_opened_folder.png</file>
         <file alias="hierarchy_opened_thread.png">icons/hierarchy_opened_thread.png</file>
 
+        <file alias="zoom_to_all.png">icons/zoom_to_all.png</file>
+        <file alias="zoom_in.png">icons/zoom_in.png</file>
+        <file alias="zoom_out.png">icons/zoom_out.png</file>
+        <file alias="zoom_to_selected.png">icons/zoom_to_selected.png</file>
+
     </qresource>
 </RCC>

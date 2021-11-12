@@ -132,19 +132,16 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
     int range_h = y4 - y3 + 1;
     int x_offset = 0; /*+ adjust by time offset */
     double time_range = (double)(end_time - start_time);/*+ pre calculate as a class var */
-    //*+*/printf("num_event_instances=%u\n", parent->num_event_instances);
     for (uint32_t i=0; i<parent->num_event_instances; i++) {
       uint32_t event_index = parent->event_indices[i];
       Event *event = &events->event_buffer[event_index];
       bool is_start = event->event_id == event_info->start_id;
       // X location in visible region
       double x_percent = (event->time - start_time) / time_range;
-      //*+*/printf("  x_percent=%f, event->time=%zu, start_time=%zu, time_range=%f\n", x_percent, event->time, start_time, time_range);
       int x = x_offset + (int)(x_percent * (w-1));
       int top_y = is_start ? y2 : y3;
       int bottom_y = is_start ? y4 : y5;
       painter->drawLine(x, top_y, x, bottom_y);
-      //*+*/printf("  x=%d, top=%d, bottom=%d\n", x, top_y, bottom_y);
       // Draw range
       if (!is_start && prev_is_start && x > prev_x) {
         int range_w = x - prev_x;
@@ -154,30 +151,20 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
       prev_is_start = is_start;
       prev_x = x;
     }
+    /*+ record usage to tree, to later display in profiling view, and emit signal when done drawing */
 
     // Draw separator line
     painter->setPen(QPen(LINE_SEPARATOR_COLOR, 1, Qt::SolidLine));
     int separator_y = y + line_h - 1;
     painter->drawLine(0, separator_y, w, separator_y);
-
-    /*+ draw to profiling view here? */
   }
 
   // Recurse
-  if (/*+parent->is_open &&*/ ancestor_open) {
-    line_index++;
-    /*+*/printf("Node: %s, line=%d\n", parent->name.toLatin1().data(), line_index);
-  }
-  /*+
   if (!parent->is_open) {
     ancestor_open = false;
   }
-  */
-  /*+
-  if (!parent->is_open) ancestor_open = false;
-  if (ancestor_open) line_index++;
-  */
   for (auto child: parent->children) {
+    if (ancestor_open && parent->is_open) line_index++;
     drawHierarchyLine(painter, events, child, line_index, ancestor_open ? parent->is_open : false);
   }
 }
@@ -232,7 +219,6 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       }
     }
   }
-  //*+*/printf("start_time=%zu, end_time=%zu\n", start_time, end_time);
 
   // Draw event tree
   int line_index = 0;
@@ -241,7 +227,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     // Get old tree info
     i.next();
     EventTree *event_tree = i.value();
-    drawHierarchyLine(&painter, event_tree->events, event_tree->tree, line_index, /*+*/event_tree->tree->is_open);
+    drawHierarchyLine(&painter, event_tree->events, event_tree->tree, line_index, true);
   }
 
   /*+ draw rollover info */

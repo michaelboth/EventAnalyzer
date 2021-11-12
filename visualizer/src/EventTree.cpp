@@ -30,7 +30,7 @@ EventTree::EventTree(Events *_events, QString _name, QString _folder, bool show_
   // Create the root of the tree
   tree = new EventTreeNode();
   tree->tree_node_type = TREE_NODE_IS_FILE;
-  tree->name = _name + " (" + _folder + ")";
+  tree->name = _name + "   (" + _folder + ")";
   // Recursively build tree
   uint32_t event_index = 0;
   buildTree(tree, event_index, show_folders, show_threads);
