@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <QPainter>
+#include <cmath>
 #include "EventsHeader.hpp"
 #include "main.hpp"
 
@@ -22,6 +23,19 @@ EventsHeader::EventsHeader(QWidget *parent) : QWidget(parent) {
 
 EventsHeader::~EventsHeader() {
   // Nothing to do
+}
+
+void EventsHeader::updateUnits(uint64_t _start_time, uint64_t _end_time) {
+  if (start_time != _start_time || end_time != _end_time) {
+    start_time = _start_time;
+    end_time = _end_time;
+    update();
+  }
+}
+
+void EventsHeader::updateSelectionRange(uint64_t _selected_time_range) {
+  selected_time_range = _selected_time_range;
+  update();
 }
 
 void EventsHeader::updateHeight() {
@@ -35,6 +49,43 @@ void EventsHeader::updateHeight() {
   update();
 }
 
+static QString getTimeUnitsAndFactor(uint64_t nsecs, uint64_t max_times_to_display, uint64_t *units_factor_ret) {
+  uint64_t usecs = nsecs / 1000;
+  uint64_t msecs = nsecs / 1000000;
+  uint64_t secs = nsecs / 1000000000;
+  uint64_t mins = nsecs / 1000000000 / 60;
+  uint64_t hours = nsecs / 1000000000 / 60 / 60;
+  uint64_t days = nsecs / 1000000000 / 60 / 60 / 24;
+
+  QString units;
+  uint64_t units_factor;
+  if (days > max_times_to_display) {
+    units = "days";
+    units_factor = 1000000000LLU * 60 * 60 * 24;
+  } else if (hours > max_times_to_display) {
+    units = "hours";
+    units_factor = 1000000000LLU * 60 * 60;
+  } else if (mins > max_times_to_display) {
+    units = "mins";
+    units_factor = 1000000000LLU * 60;
+  } else if (secs > max_times_to_display) {
+    units = "secs";
+    units_factor = 1000000000;
+  } else if (msecs > max_times_to_display) {
+    units = "msecs";
+    units_factor = 1000000;
+  } else if (usecs > max_times_to_display) {
+    units = "usecs";
+    units_factor = 1000;
+  } else {
+    units = "nsecs";
+    units_factor = 1;
+  }
+
+  *units_factor_ret = units_factor;
+  return units;
+}
+
 void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
   int w = width();
   int h = height();
@@ -46,12 +97,63 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
   // Fill in background
   painter.fillRect(QRect(0,0,w,h), EVENTS_BG_COLOR);
 
-  /*+ draw units and selection range
-  painter.setPen(QPen(HEADER_TEXT_COLOR, 1, Qt::SolidLine));
-  painter.drawText(0, 0, w, h, Qt::AlignCenter, title);
-  */
-
   // Separator at bottom
   painter.setPen(QPen(HEADER_SEPARATOR_COLOR, 1, Qt::SolidLine));
   painter.drawLine(0, h-1, w-1, h-1);
+
+  // Check if any units to draw
+  if (start_time == end_time) return;
+
+  // Draw selected range (only report elasped time)
+  if (selected_time_range > 0) {
+    int selection_times_to_display = 1;
+    uint64_t selection_units_factor;
+    QString selection_units = getTimeUnitsAndFactor(selected_time_range, selection_times_to_display, &selection_units_factor);
+    // Highlight the background
+    QColor time_selection_color = TIME_SELECTION_COLOR;
+    time_selection_color.setAlpha(20);
+    painter.fillRect(QRect(0,0,w,h), time_selection_color);
+    // Draw the time
+    QFont font = painter.font();
+    font.setBold(true);
+    painter.setFont(font);
+    painter.setPen(QPen(TIME_SELECTION_COLOR, 1, Qt::SolidLine));
+    uint64_t adjusted_selection_time = selected_time_range / selection_units_factor;
+    QString text = QString::number(adjusted_selection_time) + " " + selection_units;
+    painter.drawText(0, 0, w, h, Qt::AlignCenter, text);
+    return;
+  }
+
+  // Determine how many times can be displayed in the header
+  QFontMetrics fm = painter.fontMetrics();
+  int ref_w = 2 * fm.width("|999 years ");
+  uint64_t max_times_to_display = (uint64_t)ceilf(w / (float)ref_w);
+
+  // Deetermine the time precision; starting with nanoseconds
+  uint64_t units_factor;
+  uint64_t nsecs = end_time - start_time;
+  QString units = getTimeUnitsAndFactor(nsecs, max_times_to_display, &units_factor);
+
+  // Draw units
+  for (uint64_t i=0; i<max_times_to_display; i++) {
+    int x = (int)i*ref_w;
+    double offset_factor = x / (double)w;
+    uint64_t time = start_time + (uint64_t)(offset_factor * nsecs);
+    time = time / units_factor;
+    if (i == 0) {
+      // Time
+      painter.setPen(QPen(HEADER_TEXT_COLOR, 1, Qt::SolidLine));
+      QString text = QString::number(time) + " " + units;
+      painter.drawText(x+1, 0, w, h, Qt::AlignLeft | Qt::AlignBottom, text);
+    } else {
+      // Tick mark
+      painter.setPen(QPen(HEADER_SEPARATOR_COLOR, 1, Qt::SolidLine));
+      painter.drawLine(x, 0, x, h);
+      // Additional time
+      painter.setPen(QPen(HEADER_TEXT_COLOR, 1, Qt::SolidLine));
+      uint64_t diff = time - start_time / units_factor;
+      QString text = "+" + QString::number(diff) + " " + units;
+      painter.drawText(x+1, 0, w, h, Qt::AlignLeft | Qt::AlignBottom, text);
+    }
+  }
 }

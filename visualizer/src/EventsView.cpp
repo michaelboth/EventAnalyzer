@@ -21,8 +21,6 @@
 /*+ allow right click menu in events area to zoom? Or maybe just use keyboard shortcuts */
 
 #define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
-#define TIME_SELECTION_COLOR1 QColor(255, 155, 0)
-#define TIME_SELECTION_COLOR2 QColor(255, 155, 0, 20)
 #define MIN_SELECTION_PIXEL_DIFF 10
 
 EventsView::EventsView(QWidget *parent) : QWidget(parent) {
@@ -285,6 +283,8 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     // Clear some stuff just in case it's active
     selected_time_range_x1 = -1;
     selected_time_range_x2 = -1;
+    emit visibleTimeRangeChanged(0, 0);
+    emit selectionTimeRangeChanged(0);
     return;
   }
 
@@ -321,7 +321,8 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   }
   time_range = (double)(end_time - start_time);
 
-  /*+ update units header */
+  // Update units header
+  emit visibleTimeRangeChanged(start_time, end_time);
 
   // Make sure the frame buffer is the correct size
   if (frame_buffer.width() != w || frame_buffer.height() != h) {
@@ -352,10 +353,15 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     int x2 = std::max(selected_time_range_x1, selected_time_range_x2);
     x1 = std::max(x1, 0);
     x2 = std::min(x2, w-1);
-    painter.setPen(QPen(TIME_SELECTION_COLOR1, 1, Qt::SolidLine));
+    QColor time_selection_color = TIME_SELECTION_COLOR;
+    painter.setPen(QPen(time_selection_color, 1, Qt::SolidLine));
     painter.drawLine(x1, 0, x1, h-1);
     painter.drawLine(x2, 0, x2, h-1);
-    painter.fillRect(QRect(x1,0,x2-x1+1,h), TIME_SELECTION_COLOR2);
+    time_selection_color.setAlpha(20);
+    painter.fillRect(QRect(x1,0,x2-x1+1,h), time_selection_color);
+    double time_range_factor = (x2 - x1)/(double)w;
+    uint64_t selected_time_range = (uint64_t)(time_range_factor * time_range);
+    emit selectionTimeRangeChanged(selected_time_range);
   }
 
   /*+ draw rollover info
