@@ -20,6 +20,8 @@
 #include "main.hpp"
 #include "unikorn.h"
 
+/*+ use stable version of Qt on all platforms */
+
 #define NORMAL_COLOR     QColor(50, 50, 50)
 #define DISABLED_COLOR   QColor(200, 200, 200)
 #define TOGGLE_ON_COLOR  QColor(0, 100, 255)
@@ -694,7 +696,6 @@ void MainWindow::updateHierarchyScrollbars() {
 void MainWindow::updateEventsScrollRange() {
   double percent_visible, percent_offset;
   ui->eventsView->getTimeRange(&percent_visible, &percent_offset);
-  //*+*/printf("NEW: percent_offset = %f, percent_visible = %f\n", percent_offset, percent_visible);
 
   {
     int min = 0;
@@ -711,7 +712,7 @@ void MainWindow::updateEventsScrollRange() {
       single_step = page_step/9;
       if (single_step == 0) single_step = 1;
     }
-    int value = (int)(percent_offset * max);
+    int value = (int)(percent_offset * actual_w);
     ui->eventsHScroll->setRange(min, max);
     ui->eventsHScroll->setValue(value);
     ui->eventsHScroll->setPageStep(page_step);

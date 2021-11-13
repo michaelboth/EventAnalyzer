@@ -18,7 +18,7 @@
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
 
-/*+ allow right click menu in events area to zoom? */
+/*+ allow right click menu in events area to zoom? Or maybe just use keyboard shortcuts */
 
 #define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
 #define TIME_SELECTION_COLOR1 QColor(255, 155, 0)
@@ -68,9 +68,9 @@ bool EventsView::timeRangeSelected() {
   return (selected_time_range_x1 != -1 && selected_time_range_x2 != -1);
 }
 
-void EventsView::updateTimeOffset(double _percent_offset) {
-  percent_offset = _percent_offset;
-  /*+*/printf("UPDATE: percent_offset = %f\n", percent_offset);
+void EventsView::updateTimeOffset(double percent_scroll_offset) {
+  double max_offset = 1.0 - percent_visible;
+  percent_offset = percent_scroll_offset * max_offset;
   update();
 }
 
@@ -112,7 +112,6 @@ void EventsView::zoomOut() {
 }
 
 void EventsView::zoomToRegion() {
-  //*+*/printf("selected_time_range_x1 = %d, selected_time_range_x2 = %d\n", selected_time_range_x1, selected_time_range_x2);
   if (selected_time_range_x1 != -1 && selected_time_range_x2 != -1) {
     int w = width();
     int x1 = std::min(selected_time_range_x1, selected_time_range_x2);
@@ -121,11 +120,8 @@ void EventsView::zoomToRegion() {
     x2 = std::min(x2, w-1);
     double w_factor = (x2-x1) / (double)w;
     double offset_factor = x1 / (double)w;
-    /*+*/printf("BEFORE: percent_offset = %f, percent_visible = %f\n", percent_offset, percent_visible);
-    /*+*/printf("w_factor = %f, offset_factor = %f\n", w_factor, offset_factor);
     percent_offset += offset_factor*percent_visible;
     percent_visible *= w_factor;
-    /*+*/printf("  AFTER: percent_offset = %f, percent_visible = %f\n", percent_offset, percent_visible);
   }
   selected_time_range_x1 = -1;
   selected_time_range_x2 = -1;
@@ -224,7 +220,14 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
       Event *event = &events->event_buffer[event_index];
       bool is_start = event->event_id == event_info->start_id;
       // X location in visible region
-      double x_percent = (event->time - start_time) / time_range;
+      double x_percent;
+      if (event->time < start_time) {
+	// To the left of the visible area
+	x_percent = (start_time - event->time) / -time_range;
+      } else {
+	// In the visible area or to the right
+	x_percent = (event->time - start_time) / time_range;
+      }
       int x = (int)(x_percent * (w-1));
       int top_y = is_start ? y2 : y3;
       int bottom_y = is_start ? y4 : y5;
@@ -313,8 +316,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   if (percent_visible < 1.0) {
     uint64_t elapsed_nanoseconds = end_time - start_time;
     uint64_t visible_nanoseconds = (uint64_t)(elapsed_nanoseconds * percent_visible);
-    uint64_t remaining_nanoseconds = elapsed_nanoseconds - visible_nanoseconds;
-    start_time = (uint64_t)(remaining_nanoseconds * percent_offset);
+    start_time = (uint64_t)(elapsed_nanoseconds * percent_offset);
     end_time = start_time + visible_nanoseconds;
   }
   time_range = (double)(end_time - start_time);
