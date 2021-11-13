@@ -56,7 +56,7 @@ void EventsView::updateLineHeight() {
 
 void EventsView::updateVOffset(int offset) {
   v_offset = offset;
-  update();
+  rebuildAndUpdate();
 }
 
 void EventsView::getTimeRange(double *percent_visible_ret, double *percent_offset_ret) {
@@ -71,7 +71,7 @@ bool EventsView::timeRangeSelected() {
 void EventsView::updateTimeOffset(double percent_scroll_offset) {
   double max_offset = 1.0 - percent_visible;
   percent_offset = percent_scroll_offset * max_offset;
-  update();
+  rebuildAndUpdate();
 }
 
 void EventsView::zoomToAll() {
@@ -80,7 +80,7 @@ void EventsView::zoomToAll() {
   selected_time_range_x1 = -1;
   selected_time_range_x2 = -1;
   emit timeRangeChanged();
-  update();
+  rebuildAndUpdate();
 }
 
 void EventsView::zoomIn() {
@@ -89,7 +89,7 @@ void EventsView::zoomIn() {
   selected_time_range_x1 = -1;
   selected_time_range_x2 = -1;
   emit timeRangeChanged();
-  update();
+  rebuildAndUpdate();
 }
 
 void EventsView::zoomOut() {
@@ -108,7 +108,7 @@ void EventsView::zoomOut() {
   selected_time_range_x1 = -1;
   selected_time_range_x2 = -1;
   emit timeRangeChanged();
-  update();
+  rebuildAndUpdate();
 }
 
 void EventsView::zoomToRegion() {
@@ -126,24 +126,24 @@ void EventsView::zoomToRegion() {
   selected_time_range_x1 = -1;
   selected_time_range_x2 = -1;
   emit timeRangeChanged();
-  update();
+  rebuildAndUpdate();
 }
 
 void EventsView::mousePressEvent(QMouseEvent *event) {
   if (G_event_tree_map.count() == 0) return;
   if (event->button() == Qt::LeftButton) {
+    // Start selection of time range
     mouse_button_pressed = true;
     selected_time_range_x1 = event->x();
     selected_time_range_x2 = selected_time_range_x1;
-    update();
+    update(); // Avoids full redraw
   }
 }
 
 void EventsView::mouseMoveEvent(QMouseEvent *event) {
   if (mouse_button_pressed) {
     selected_time_range_x2 = event->x();
-    /*+ to avoid a full redraw, draw to QImage and then redisplay */
-    update();
+    update(); // Avoids full redraw
   } else {
     mouse_location = QPoint(event->x(), event->y());
   }
@@ -158,13 +158,13 @@ void EventsView::mouseReleaseEvent(QMouseEvent * /*event*/) {
       selected_time_range_x2 = -1;
     }
     emit timeRangeSelectionChanged();
-    update();
+    update(); // Avoids full redraw
   }
 }
 
 void EventsView::leaveEvent(QEvent * /*event*/) {
   mouse_location = QPoint(-1,-1);
-  update();
+  update(); // Avoids full redraw
 }
 
 void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *parent, int &line_index, int ancestor_open) {
@@ -321,15 +321,30 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   }
   time_range = (double)(end_time - start_time);
 
-  // Draw event tree
-  int line_index = 0;
-  QMapIterator<QString, EventTree*> i(G_event_tree_map);
-  while (i.hasNext()) {
-    // Get old tree info
-    i.next();
-    EventTree *event_tree = i.value();
-    drawHierarchyLine(&painter, event_tree->events, event_tree->tree, line_index, true);
+  /*+ update units header */
+
+  // Make sure the frame buffer is the correct size
+  if (frame_buffer.width() != w || frame_buffer.height() != h) {
+    frame_buffer = QImage(w, h, QImage::Format_ARGB32);
+    rebuild_frame_buffer = true;
   }
+
+  // Draw event tree
+  if (rebuild_frame_buffer) {
+    rebuild_frame_buffer = false;
+    QPainter painter2(&frame_buffer);
+    painter2.fillRect(QRect(0,0,w,h), QColor(255,255,255));
+    // Draw event tree
+    int line_index = 0;
+    QMapIterator<QString, EventTree*> i(G_event_tree_map);
+    while (i.hasNext()) {
+      // Get old tree info
+      i.next();
+      EventTree *event_tree = i.value();
+      drawHierarchyLine(&painter2, event_tree->events, event_tree->tree, line_index, true);
+    }
+  }
+  painter.drawImage(QRect(0,0,w,h), frame_buffer);
 
   // Draw selection area
   if (selected_time_range_x1 != -1 && selected_time_range_x2 != -1) {
@@ -346,4 +361,9 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   /*+ draw rollover info
     mouse_location
   */
+}
+
+void EventsView::rebuildAndUpdate() {
+  rebuild_frame_buffer = true;
+  update();
 }

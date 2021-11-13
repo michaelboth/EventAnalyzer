@@ -48,6 +48,7 @@ public slots:
   void zoomIn();
   void zoomOut();
   void zoomToRegion();
+  void rebuildAndUpdate();
 
 private:
   QPixmap logo;
@@ -64,6 +65,8 @@ private:
   bool mouse_button_pressed = false;
   int selected_time_range_x1 = -1;
   int selected_time_range_x2 = -1;
+  bool rebuild_frame_buffer = true;
+  QImage frame_buffer;
 
   void drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *tree, int &line_index, int ancestor_open);
 };

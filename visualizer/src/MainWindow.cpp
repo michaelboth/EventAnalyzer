@@ -55,8 +55,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->profilingHeader->updateHeight();
   ui->hierarchyView->updateLineHeight();
   ui->eventsView->updateLineHeight();
-  ui->hierarchyHeader->setTitle("Hierarchy");
-  ui->profilingHeader->setTitle("Profiling");
+  ui->hierarchyHeader->setTitle("Event Files");
+  ui->profilingHeader->setTitle("Utilization");
 
   // Margins and spacing
   centralWidget()->layout()->setContentsMargins(0,0,0,0);
@@ -282,7 +282,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->hierarchyView, SLOT(updateVOffset(int)));
   this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->eventsView, SLOT(updateVOffset(int)));
   this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), this, SLOT(setWidgetUsability()));
-  this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), ui->eventsView, SLOT(update()));
+  this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), ui->eventsView, SLOT(rebuildAndUpdate()));
   this->connect(ui->eventsView, SIGNAL(timeRangeChanged()), this, SLOT(updateEventsScrollRange()));
   this->connect(ui->eventsView, SIGNAL(timeRangeSelectionChanged()), this, SLOT(setWidgetUsability()));
   this->connect(ui->zoomToAllButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomToAll()));
@@ -738,6 +738,6 @@ void MainWindow::updateEventsTimeOffset(int scroll_offset) {
 
 void MainWindow::updateViews() {
   ui->hierarchyView->update();
-  ui->eventsView->update();
+  ui->eventsView->rebuildAndUpdate();
   /*+ profiling */
 }
