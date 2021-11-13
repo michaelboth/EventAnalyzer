@@ -128,6 +128,10 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
         child->event_info_index = event_info_index;
         child->first_time = event->time;
         child->ID = event->event_id;
+        int red   = (int)(255 * (((event_info->rgb & 0xf00) >> 8) / (float)0xf));
+        int green = (int)(255 * (((event_info->rgb & 0xf0) >> 4) / (float)0xf));
+        int blue  = (int)(255 * ((event_info->rgb & 0xf) / (float)0xf));
+        child->color = QColor(red, green, blue);
         child->name = event_info->name;
         child->max_event_instances = MIN_EVENT_INSTANCE_LIST_ELEMENTS;
         child->num_event_instances = 0;

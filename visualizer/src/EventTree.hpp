@@ -17,6 +17,7 @@
 
 #include <QList>
 #include <QRect>
+#include <QColor>
 #include "events_loader.h"
 
 typedef enum {
@@ -39,12 +40,14 @@ public:
   uint16_t thread_index = 0;
   uint16_t event_info_index = 0;
   uint16_t ID = 0;
+  QColor color;
   uint64_t first_time = 0; // A convenince here for sorting
   QString name; // A convenince here for sorting
   uint32_t max_event_instances = 0;
   uint32_t num_event_instances = 0;
   uint32_t *event_indices = NULL; // Ordered list of indices into the events
-  QRect row_rect;
+  QRect events_row_rect;
+  QRect hierarchy_row_rect;
   QRect folder_rect;
   bool row_selected = false;
   QList<EventTreeNode*> children;

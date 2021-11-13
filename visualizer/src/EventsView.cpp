@@ -143,7 +143,16 @@ void EventsView::mouseMoveEvent(QMouseEvent *event) {
     selected_time_range_x2 = event->x();
     update(); // Avoids full redraw
   } else {
-    mouse_location = QPoint(event->x(), event->y());
+    //*+*/QPoint mouse_location = QPoint(event->x(), event->y());
+    //*+*/printf("new mouse_location=(%d,%d)\n", mouse_location.x(), mouse_location.y());
+    /*+
+    // If mouse is on row, then highlight it
+    if (row_rect.contains(mouse_location)) {
+      node_with_mouse = parent;
+      events_with_mouse = events;
+    }
+    */
+    update(); // Avoids full redraw, but needed to draw rollover
   }
 }
 
@@ -161,85 +170,96 @@ void EventsView::mouseReleaseEvent(QMouseEvent * /*event*/) {
 }
 
 void EventsView::leaveEvent(QEvent * /*event*/) {
-  mouse_location = QPoint(-1,-1);
+  //*+*/mouse_location = QPoint(-1,-1);
   update(); // Avoids full redraw
+}
+
+static uint32_t findEventIndexAtTime(Events *events, EventTreeNode *node, uint64_t time, int32_t index_offset) {
+  // Binary search
+  uint32_t first = 0;
+  uint32_t last = node->num_event_instances-1;
+  while ((last-first) > 1) {
+    uint32_t mid = first + (last-first)/2;
+    uint32_t event_index = node->event_indices[mid];
+    Event *event = &events->event_buffer[event_index];
+    if (event->time < time) {
+      first = mid;
+    } else {
+      last = mid;
+    }
+  }
+  if (first > 0 && index_offset < 0) {
+    first--;
+    index_offset++;
+  }
+  if (first < (node->num_event_instances-1) && index_offset > 0) {
+    first++;
+    index_offset--;
+  }
+  return first;
 }
 
 void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *parent, int &line_index, int ancestor_open) {
   int h = height();
   int w = width();
   int y = -v_offset + line_index * line_h;
-  if (y > h) return;
-
-  // Reset some visual info
-  //*+*/parent->row_rect = QRect();
-  //*+*/content_bottom_y = y + line_h;
+  parent->events_row_rect = QRect();
 
   // only draw if visible
-  if (y > -line_h) {
+  if (y > -line_h && y < h) {
     // Remember the row geometry
     QRect row_rect = QRect(0,y,w,line_h);
-    //*+*/parent->row_rect = row_rect;
-
-    // If mouse is on row, then highlight it
-    //*+*/if (row_rect.contains(mouse_location)) {
-      /*+ if these are only use to display rollover, then don't need class variables */
-      //*+*/node_with_mouse = parent;
-      //*+*/row_with_mouse_rect = row_rect;
-      //*+*/painter->fillRect(row_rect, ROW_HIGHLIGHT_COLOR);
-    //*+*/}
+    parent->events_row_rect = row_rect;
 
     // Highlight row if selected (selected in hierarchy view)
     if (parent->row_selected) {
       painter->fillRect(row_rect, ROW_SELECTED_COLOR);
     }
 
-    // Draw events
-    /*+ binary search for first visible event */
-    /*+ binary search for last visible event */
-    int prev_x = 0;
-    bool prev_is_start = false;
-    //*+*/uint64_t prev_start_time = 0; /*+ determine based on prev event */
-    //*+*/uint64_t prev_prev_start_time = 0; /*+ determine based on prev prev event */
-    /*+ pre calculate color and store in tree */
-    EventInfo *event_info = &events->event_info_list[parent->event_info_index];
-    int red   = (int)(255 * (((event_info->rgb & 0xf00) >> 8) / (float)0xf));
-    int green = (int)(255 * (((event_info->rgb & 0xf0) >> 4) / (float)0xf));
-    int blue  = (int)(255 * ((event_info->rgb & 0xf) / (float)0xf));
-    QColor color = QColor(red, green, blue);
-    painter->setPen(QPen(color, 1, Qt::SolidLine));
-    int y2 = y + (int)(line_h * 0.2f);
-    int y3 = y + (int)(line_h * 0.4f);
-    int y4 = y + (int)(line_h * 0.6f);
-    int y5 = y + (int)(line_h * 0.8f);
-    int range_h = y4 - y3 + 1;
-    for (uint32_t i=0; i<parent->num_event_instances; i++) {
-      uint32_t event_index = parent->event_indices[i];
-      Event *event = &events->event_buffer[event_index];
-      bool is_start = event->event_id == event_info->start_id;
-      // X location in visible region
-      double x_percent;
-      if (event->time < start_time) {
-	// To the left of the visible area
-	x_percent = (start_time - event->time) / -time_range;
-      } else {
-	// In the visible area or to the right
-	x_percent = (event->time - start_time) / time_range;
+    if (parent->num_event_instances > 0) {
+      // Determin the ragne of events to draw based on visible time region
+      uint32_t first_visible_event_index = findEventIndexAtTime(events, parent, start_time, -3);
+      uint32_t last_visible_event_index = findEventIndexAtTime(events, parent, end_time, 3);
+      //*+*/printf("  Draw event range: first=%u, last=%u\n", first_visible_event_index, last_visible_event_index);
+
+      // Draw events
+      int prev_x = 0;
+      bool prev_is_start = false;
+      EventInfo *event_info = &events->event_info_list[parent->event_info_index];
+      painter->setPen(QPen(parent->color, 1, Qt::SolidLine));
+      int y2 = y + (int)(line_h * 0.2f);
+      int y3 = y + (int)(line_h * 0.4f);
+      int y4 = y + (int)(line_h * 0.6f);
+      int y5 = y + (int)(line_h * 0.8f);
+      int range_h = y4 - y3 + 1;
+      for (uint32_t i=first_visible_event_index; i<=last_visible_event_index; i++) {
+        uint32_t event_index = parent->event_indices[i];
+        Event *event = &events->event_buffer[event_index];
+        bool is_start = event->event_id == event_info->start_id;
+        // X location in visible region
+        double x_percent;
+        if (event->time < start_time) {
+          // To the left of the visible area
+          x_percent = (start_time - event->time) / -time_range;
+        } else {
+          // In the visible area or to the right
+          x_percent = (event->time - start_time) / time_range;
+        }
+        int x = (int)(x_percent * (w-1));
+        int top_y = is_start ? y2 : y3;
+        int bottom_y = is_start ? y4 : y5;
+        painter->drawLine(x, top_y, x, bottom_y);
+        // Draw range
+        if (!is_start && prev_is_start && x > prev_x) {
+          int range_w = x - prev_x;
+          painter->fillRect(QRect(prev_x,y3,range_w,range_h), parent->color);
+        }
+        // Remember some stuff
+        prev_is_start = is_start;
+        prev_x = x;
       }
-      int x = (int)(x_percent * (w-1));
-      int top_y = is_start ? y2 : y3;
-      int bottom_y = is_start ? y4 : y5;
-      painter->drawLine(x, top_y, x, bottom_y);
-      // Draw range
-      if (!is_start && prev_is_start && x > prev_x) {
-        int range_w = x - prev_x;
-        painter->fillRect(QRect(prev_x,y3,range_w,range_h), color);
-      }
-      // Remember some stuff
-      prev_is_start = is_start;
-      prev_x = x;
+      /*+ record usage to tree, to later display in profiling view, and emit signal when done drawing */
     }
-    /*+ record usage to tree, to later display in profiling view, and emit signal when done drawing */
 
     // Draw separator line
     painter->setPen(QPen(LINE_SEPARATOR_COLOR, 1, Qt::SolidLine));
@@ -269,9 +289,10 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   painter.fillRect(QRect(0,0,w,h), QColor(255,255,255));
 
   // Update some high level geometry
-  //*+*/content_bottom_y = 0;
-  //*+*/row_with_mouse_rect = QRect();
-  //*+*/node_with_mouse = NULL;
+  /*+
+  node_with_mouse = NULL;
+  events_with_mouse = NULL;
+  */
 
   if (G_event_tree_map.count() == 0) {
     // Draw the logo
@@ -332,6 +353,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
 
   // Draw event tree
   if (rebuild_frame_buffer) {
+    //*+*/printf("Rebuild\n");
     rebuild_frame_buffer = false;
     QPainter painter2(&frame_buffer);
     painter2.fillRect(QRect(0,0,w,h), QColor(255,255,255));
@@ -362,10 +384,19 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     double time_range_factor = (x2 - x1)/(double)w;
     uint64_t selected_time_range = (uint64_t)(time_range_factor * time_range);
     emit selectionTimeRangeChanged(selected_time_range);
+  } else {
+    emit selectionTimeRangeChanged(0);
   }
 
-  /*+ draw rollover info
-    mouse_location
+  // Draw rollover info
+  /*+
+  if (node_with_mouse != NULL) {
+    int mouse_x = mouse_location.x();
+    double time_range_factor = mouse_x/(double)w;
+    uint64_t time_at_mouse = (uint64_t)(time_range_factor * time_range);
+    uint32_t closest_event_index_at_mouse = findEventIndexAtTime(events_with_mouse, node_with_mouse, time_at_mouse, 0);
+    printf("closest_event_index_at_mouse = %u\n", closest_event_index_at_mouse);
+  }
   */
 }
 

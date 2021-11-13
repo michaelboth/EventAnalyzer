@@ -56,9 +56,11 @@ private:
   QPixmap logo;
   int line_h = 0;
   int v_offset = 0;
+  /*+
   QPoint mouse_location = QPoint(-1,-1);
-  //*+*/QRect row_with_mouse_rect;
-  //*+*/EventTreeNode *node_with_mouse = NULL;
+  EventTreeNode *node_with_mouse = NULL;
+  Events *events_with_mouse = NULL;
+  */
   uint64_t start_time = 0;
   uint64_t end_time = 0;
   double time_range = 0;

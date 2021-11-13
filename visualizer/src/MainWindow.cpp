@@ -21,6 +21,7 @@
 #include "unikorn.h"
 
 /*+ use stable version of Qt on all platforms */
+/*+ reset events zoom when closing or loading a file */
 
 #define NORMAL_COLOR     QColor(50, 50, 50)
 #define DISABLED_COLOR   QColor(200, 200, 200)

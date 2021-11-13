@@ -134,25 +134,25 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
   }
 
   // Reset some visual info
-  parent->row_rect = QRect();
+  parent->hierarchy_row_rect = QRect();
   parent->folder_rect = QRect();
   content_bottom_y = y + line_h;
 
   // only draw if visible
   if (y > -line_h) {
     // Remember the row geometry
-    parent->row_rect = QRect(0,y,w,line_h);
+    parent->hierarchy_row_rect = QRect(0,y,w,line_h);
 
     // If mouse is on row, then highlight it
-    if (parent->row_rect.contains(mouse_location)) {
+    if (parent->hierarchy_row_rect.contains(mouse_location)) {
       node_with_mouse = parent;
-      row_with_mouse_rect = parent->row_rect;
-      painter->fillRect(parent->row_rect, ROW_HIGHLIGHT_COLOR);
+      row_with_mouse_rect = parent->hierarchy_row_rect;
+      painter->fillRect(parent->hierarchy_row_rect, ROW_HIGHLIGHT_COLOR);
     }
 
     // Highlight row if selected
     if (parent->row_selected) {
-      painter->fillRect(parent->row_rect, ROW_SELECTED_COLOR);
+      painter->fillRect(parent->hierarchy_row_rect, ROW_SELECTED_COLOR);
     }
 
     // Draw arrow
