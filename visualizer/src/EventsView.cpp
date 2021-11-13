@@ -22,6 +22,8 @@
 
 #define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
 #define MIN_SELECTION_PIXEL_DIFF 10
+#define ROLLOVER_BG_COLOR QColor(200, 200, 200)
+#define ROLLOVER_TEXT_COLOR QColor(50, 50, 50)
 
 EventsView::EventsView(QWidget *parent) : QWidget(parent) {
   // Track mouse when not pressed
@@ -138,20 +140,24 @@ void EventsView::mousePressEvent(QMouseEvent *event) {
   }
 }
 
+EventTreeNode *EventsView::mouseOnEventsLine(EventTreeNode *parent) {
+  if (parent->events_row_rect.contains(mouse_location)) {
+    return parent;
+  }
+  for (auto child: parent->children) {
+    EventTreeNode *node_with_mouse = mouseOnEventsLine(child);
+    if (node_with_mouse != NULL) return node_with_mouse;
+  }
+  return NULL;
+}
+
 void EventsView::mouseMoveEvent(QMouseEvent *event) {
   if (mouse_button_pressed) {
     selected_time_range_x2 = event->x();
     update(); // Avoids full redraw
   } else {
-    //*+*/QPoint mouse_location = QPoint(event->x(), event->y());
-    //*+*/printf("new mouse_location=(%d,%d)\n", mouse_location.x(), mouse_location.y());
-    /*+
-    // If mouse is on row, then highlight it
-    if (row_rect.contains(mouse_location)) {
-      node_with_mouse = parent;
-      events_with_mouse = events;
-    }
-    */
+    // See if mouse is on an event line
+    mouse_location = QPoint(event->x(), event->y());
     update(); // Avoids full redraw, but needed to draw rollover
   }
 }
@@ -170,7 +176,7 @@ void EventsView::mouseReleaseEvent(QMouseEvent * /*event*/) {
 }
 
 void EventsView::leaveEvent(QEvent * /*event*/) {
-  //*+*/mouse_location = QPoint(-1,-1);
+  mouse_location = QPoint(-1,-1);
   update(); // Avoids full redraw
 }
 
@@ -288,12 +294,6 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   // Fill in background
   painter.fillRect(QRect(0,0,w,h), QColor(255,255,255));
 
-  // Update some high level geometry
-  /*+
-  node_with_mouse = NULL;
-  events_with_mouse = NULL;
-  */
-
   if (G_event_tree_map.count() == 0) {
     // Draw the logo
     QRect inside_rect = getFittedRect(FitType::Inside, w/2, h, logo.width(), logo.height());
@@ -304,8 +304,11 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     // Clear some stuff just in case it's active
     selected_time_range_x1 = -1;
     selected_time_range_x2 = -1;
-    emit visibleTimeRangeChanged(0, 0);
-    emit selectionTimeRangeChanged(0);
+    percent_visible = 1.0;
+    percent_offset = 0.0;
+    emit visibleTimeRangeChanged(0, 0); // Signal to the header
+    emit selectionTimeRangeChanged(0);  // Signal to the header
+    emit timeRangeSelectionChanged();   // Signal to the toolbar widgets
     return;
   }
 
@@ -389,15 +392,58 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   }
 
   // Draw rollover info
-  /*+
-  if (node_with_mouse != NULL) {
-    int mouse_x = mouse_location.x();
-    double time_range_factor = mouse_x/(double)w;
-    uint64_t time_at_mouse = (uint64_t)(time_range_factor * time_range);
-    uint32_t closest_event_index_at_mouse = findEventIndexAtTime(events_with_mouse, node_with_mouse, time_at_mouse, 0);
-    printf("closest_event_index_at_mouse = %u\n", closest_event_index_at_mouse);
+  if (mouse_location.x() >= 0 && mouse_location.y() >= 0) {
+    EventTreeNode *node_with_mouse = NULL;
+    Events *events_with_mouse = NULL;
+    QMapIterator<QString, EventTree*> i(G_event_tree_map);
+    while (i.hasNext()) {
+      // Get old tree info
+      i.next();
+      EventTree *event_tree = i.value();
+      node_with_mouse = mouseOnEventsLine(event_tree->tree);
+      if (node_with_mouse != NULL) {
+        events_with_mouse = event_tree->events;
+        break;
+      }
+    }
+    if (node_with_mouse != NULL) {
+      //*+ check if any of the parent hierarchy is closed. if (HierarchyClose(parent))  If so, tell user that folder must be open to see events */
+      double time_range_factor = mouse_location.x()/(double)w;
+      uint64_t time_at_mouse = start_time + (uint64_t)(time_range_factor * time_range);
+      uint32_t closest_event_index_at_mouse = 0;
+      if (node_with_mouse->tree_node_type == TREE_NODE_IS_EVENT) {
+        findEventIndexAtTime(events_with_mouse, node_with_mouse, time_at_mouse, 0);
+      }
+      QFontMetrics fm = painter.fontMetrics();
+      int th = fm.height();
+      int dialog_w = fm.width("This is just a test");
+      int dialog_x = mouse_location.x() + 10;
+      int dialog_y = mouse_location.y() + 10;
+      int dialog_h = th*2;
+      if (dialog_x+dialog_w > w) dialog_x -= dialog_w + 20;
+      if (dialog_y+dialog_h > h) dialog_y -= dialog_h + 20;
+      QString line1_text = " " + node_with_mouse->name;
+      QString line2_text = " Event index: " + QString::number(closest_event_index_at_mouse);
+      /*+
+        Node icon & name: parent->tree_node_type == TREE_NODE_IS_EVENT
+        (on range)
+          Duration
+          Start/End Instance
+          Start/End Value
+          Start/End Location
+        (on gap)   
+          Duration
+          Prev/Next Instance
+          Prev/Next Value
+          Prev/Next Location
+      */
+      painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+      painter.setBrush(ROLLOVER_BG_COLOR);
+      painter.drawRect(dialog_x, dialog_y, dialog_w, dialog_h);
+      painter.drawText(dialog_x, dialog_y+th*0, dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, line1_text);
+      painter.drawText(dialog_x, dialog_y+th*1, dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, line2_text);
+    }
   }
-  */
 }
 
 void EventsView::rebuildAndUpdate() {

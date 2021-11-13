@@ -21,7 +21,6 @@
 #include "unikorn.h"
 
 /*+ use stable version of Qt on all platforms */
-/*+ reset events zoom when closing or loading a file */
 
 #define NORMAL_COLOR     QColor(50, 50, 50)
 #define DISABLED_COLOR   QColor(200, 200, 200)
@@ -425,6 +424,7 @@ void MainWindow::on_loadButton_clicked() {
   if (files.count() > 0) {
     setWidgetUsability();
     updateHierarchyScrollbars();
+    ui->eventsView->zoomToAll();
     updateViews();
   }
 }
@@ -433,6 +433,7 @@ void MainWindow::on_closeAllButton_clicked() {
   freeAllEventFiles();
   setWidgetUsability();
   updateHierarchyScrollbars();
+  ui->eventsView->zoomToAll();
   updateViews();
 }
 
@@ -453,6 +454,7 @@ void MainWindow::on_closeSelectedButton_clicked() {
   }
   setWidgetUsability();
   updateHierarchyScrollbars();
+  ui->eventsView->zoomToAll();
   updateViews();
 }
 

@@ -56,11 +56,7 @@ private:
   QPixmap logo;
   int line_h = 0;
   int v_offset = 0;
-  /*+
   QPoint mouse_location = QPoint(-1,-1);
-  EventTreeNode *node_with_mouse = NULL;
-  Events *events_with_mouse = NULL;
-  */
   uint64_t start_time = 0;
   uint64_t end_time = 0;
   double time_range = 0;
@@ -73,6 +69,7 @@ private:
   QImage frame_buffer;
 
   void drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *tree, int &line_index, int ancestor_open);
+  EventTreeNode *mouseOnEventsLine(EventTreeNode *parent);
 };
 
 #endif
