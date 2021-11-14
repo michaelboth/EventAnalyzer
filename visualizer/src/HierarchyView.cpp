@@ -18,10 +18,6 @@
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
 
-#define ARROW_ICON_COLOR QColor(0, 0, 0)
-#define FOLDER_ICON_COLOR QColor(100, 0, 255)
-#define THREAD_ICON_COLOR QColor(100, 0, 255)
-#define EVENTS_ICON_COLOR QColor(0, 100, 255)
 #define EXTRA_MARGIN_FACTOR 0.5f
 
 HierarchyView::HierarchyView(QWidget *parent) : QWidget(parent) {

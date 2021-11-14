@@ -54,6 +54,7 @@ public slots:
 
 private:
   QPixmap logo;
+  QMap<QString,QPixmap> icon_map;
   int line_h = 0;
   int v_offset = 0;
   QPoint mouse_location = QPoint(-1,-1);
@@ -68,8 +69,10 @@ private:
   bool rebuild_frame_buffer = true;
   QImage frame_buffer;
 
+  void prepareIcon(QString filename, bool recolor, QColor color);
   void drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *tree, int &line_index, int ancestor_open);
   EventTreeNode *mouseOnEventsLine(EventTreeNode *parent);
+  void drawEventInfo(QPainter &painter, EventTreeNode *node, Events *events);
 };
 
 #endif

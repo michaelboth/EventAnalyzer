@@ -19,11 +19,14 @@
 #include "main.hpp"
 
 /*+ allow right click menu in events area to zoom? Or maybe just use keyboard shortcuts */
+/*+ show vertical line where mouse is along with time in header? */
 
 #define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
 #define MIN_SELECTION_PIXEL_DIFF 10
 #define ROLLOVER_BG_COLOR QColor(200, 200, 200)
 #define ROLLOVER_TEXT_COLOR QColor(50, 50, 50)
+#define ROLLOVER_TITLE_COLOR QColor(125, 125, 125)
+#define ROLLOVER_SEPARATOR_COLOR QColor(175, 175, 175)
 
 EventsView::EventsView(QWidget *parent) : QWidget(parent) {
   // Track mouse when not pressed
@@ -44,6 +47,17 @@ EventsView::~EventsView() {
   // Nothing to do
 }
 
+void EventsView::prepareIcon(QString filename, bool recolor, QColor color) {
+  QImage image = QImage(":/"+filename);
+  if (recolor) {
+    recolorImage(image, color);
+  }
+  image = image.scaledToHeight((int)(line_h*G_pixels_per_point), Qt::SmoothTransformation);
+  QPixmap pixmap = QPixmap::fromImage(image);
+  //pixmap.setDevicePixelRatio(G_pixels_per_point); // Does not seems to be needed probably because main.cpp calls QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+  icon_map[filename] = pixmap;
+}
+
 void EventsView::updateLineHeight() {
   // Calculate geometry
   line_h = (int)(G_font_point_size * LINE_HEIGHT_FACTOR);
@@ -52,6 +66,13 @@ void EventsView::updateLineHeight() {
   QFont font = this->font();
   font.setPointSize(G_font_point_size);
   this->setFont(font);
+
+  // Rebuild icons to make sure there are correctly sized; if not, then edges will looked aliased
+  prepareIcon("hierarchy_closed_folder.png", true, FOLDER_ICON_COLOR);
+  prepareIcon("hierarchy_closed_thread.png", true, THREAD_ICON_COLOR);
+  prepareIcon("hierarchy_file.png", false, Qt::black);
+  prepareIcon("hierarchy_opened_folder.png", true, FOLDER_ICON_COLOR);
+  prepareIcon("hierarchy_opened_thread.png", true, THREAD_ICON_COLOR);
 }
 
 void EventsView::updateVOffset(int offset) {
@@ -407,42 +428,143 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       }
     }
     if (node_with_mouse != NULL) {
-      //*+ check if any of the parent hierarchy is closed. if (HierarchyClose(parent))  If so, tell user that folder must be open to see events */
-      double time_range_factor = mouse_location.x()/(double)w;
-      uint64_t time_at_mouse = start_time + (uint64_t)(time_range_factor * time_range);
-      uint32_t closest_event_index_at_mouse = 0;
-      if (node_with_mouse->tree_node_type == TREE_NODE_IS_EVENT) {
-        findEventIndexAtTime(events_with_mouse, node_with_mouse, time_at_mouse, 0);
-      }
-      QFontMetrics fm = painter.fontMetrics();
-      int th = fm.height();
-      int dialog_w = fm.horizontalAdvance("This is just a test");
-      int dialog_x = mouse_location.x() + 10;
-      int dialog_y = mouse_location.y() + 10;
-      int dialog_h = th*2;
-      if (dialog_x+dialog_w > w) dialog_x -= dialog_w + 20;
-      if (dialog_y+dialog_h > h) dialog_y -= dialog_h + 20;
-      QString line1_text = " " + node_with_mouse->name;
-      QString line2_text = " Event index: " + QString::number(closest_event_index_at_mouse);
-      /*+
-        Node icon & name: parent->tree_node_type == TREE_NODE_IS_EVENT
-        (on range)
-          Duration
-          Start/End Instance
-          Start/End Value
-          Start/End Location
-        (on gap)   
-          Duration
-          Prev/Next Instance
-          Prev/Next Value
-          Prev/Next Location
-      */
-      painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
-      painter.setBrush(ROLLOVER_BG_COLOR);
-      painter.drawRect(dialog_x, dialog_y, dialog_w, dialog_h);
-      painter.drawText(dialog_x, dialog_y+th*0, dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, line1_text);
-      painter.drawText(dialog_x, dialog_y+th*1, dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, line2_text);
+      drawEventInfo(painter, node_with_mouse, events_with_mouse);
     }
+  }
+}
+
+static QPixmap drawEventPixmap(int height, QColor color) {
+  int w = height*2;
+  QPixmap pixmap(w, height);
+  pixmap.fill(Qt::transparent);
+  QPainter painter(&pixmap);
+  int x1 = 1;
+  int x2 = w-3;
+  int y1 = (int)(height * 0.2f);
+  int y2 = (int)(height * 0.35f);
+  int y3 = (int)(height * 0.65f);
+  int y4 = (int)(height * 0.8f);
+  painter.fillRect(x1, y1, 2, y3-y1, color);
+  painter.fillRect(x2, y2, 2, y4-y2, color);
+  painter.fillRect(x1, y2, x2-x1, y3-y2, color);
+  return pixmap;
+}
+
+void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *events) {
+  int w = width();
+  int h = height();
+
+  bool ancestor_collapsed = node->isAncestorCollapsed();
+  double time_range_factor = mouse_location.x()/(double)w;
+  uint64_t time_at_mouse = start_time + (uint64_t)(time_range_factor * time_range);
+
+  // Determine dialog geometry
+  QFontMetrics fm = painter.fontMetrics();
+  int th = fm.height();
+  int m = th / 2;
+  int num_lines = 8;
+  int instance_w = fm.horizontalAdvance(" Instance ");
+  int dialog_w = fm.horizontalAdvance("filename::function_name::line_number");
+  int dialog_h = th*num_lines;
+  int dialog_x = mouse_location.x() + m;
+  int dialog_y = mouse_location.y() + m;
+  if (dialog_x+dialog_w > w) dialog_x -= dialog_w + 2*m;
+  if (dialog_y+dialog_h > h) dialog_y -= dialog_h + 2*m;
+
+  // Dialog background
+  painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+  painter.setBrush(ROLLOVER_BG_COLOR);
+  painter.drawRect(dialog_x, dialog_y, dialog_w, dialog_h);
+  painter.setPen(QPen(ROLLOVER_SEPARATOR_COLOR, 1, Qt::SolidLine));
+  // Horizontal lines
+  int num_lines_to_draw = ancestor_collapsed ? 3 : num_lines;
+  for (int i=1; i<num_lines_to_draw; i++) {
+    int line_y = i*th;
+    painter.drawLine(dialog_x+1, dialog_y+line_y, dialog_x+dialog_w-1, dialog_y+line_y);
+  }
+  int mid_x = dialog_w/2;
+  int col1_x = (dialog_w - instance_w)/2;
+  int col2_x = col1_x + instance_w;
+  // Veritical lines
+  if (!ancestor_collapsed) {
+    painter.drawLine(dialog_x+mid_x, dialog_y+th*1, dialog_x+mid_x, dialog_y+th*3);
+    painter.drawLine(dialog_x+col1_x, dialog_y+th*3, dialog_x+col1_x, dialog_y+th*6);
+    painter.drawLine(dialog_x+col2_x, dialog_y+th*3, dialog_x+col2_x, dialog_y+th*6);
+  }
+  // Titles
+  painter.setPen(QPen(ROLLOVER_TITLE_COLOR, 1, Qt::SolidLine));
+  painter.drawText(dialog_x, dialog_y+th*1, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Mouse Time ");
+  if (!ancestor_collapsed) {
+    painter.drawText(dialog_x, dialog_y+th*2, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Duration ");
+    painter.drawText(dialog_x+col1_x, dialog_y+th*3, col2_x-col1_x, th, Qt::AlignCenter, "Time");
+    painter.drawText(dialog_x+col1_x, dialog_y+th*4, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
+    painter.drawText(dialog_x+col1_x, dialog_y+th*5, col2_x-col1_x, th, Qt::AlignCenter, "Value");
+  }
+  painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+
+  // Draw icon
+  QPixmap image_icon;
+  if (node->tree_node_type == TREE_NODE_IS_FILE) {
+    image_icon = icon_map["hierarchy_file.png"];
+  } else if (node->tree_node_type == TREE_NODE_IS_FOLDER) {
+    image_icon = node->is_open ? icon_map["hierarchy_opened_folder.png"] : icon_map["hierarchy_closed_folder.png"];
+  } else if (node->tree_node_type == TREE_NODE_IS_THREAD) {
+    image_icon = node->is_open ? icon_map["hierarchy_opened_thread.png"] : icon_map["hierarchy_closed_thread.png"];
+  } else {
+    image_icon = drawEventPixmap(th, node->color);
+  }
+  int icon_offset = 0;
+  if (!image_icon.isNull()) {
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
+    icon_offset = m+image_icon.width();
+    painter.drawPixmap(dialog_x+m, dialog_y, image_icon.width(), image_icon.height(), image_icon);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+  }
+
+  // Draw name
+  QString name_text = " " + node->name;
+  painter.drawText(dialog_x+icon_offset, dialog_y, dialog_w-icon_offset, th, Qt::AlignLeft | Qt::AlignVCenter, name_text);
+  dialog_y += th;
+
+  // Draw mouse time
+  uint64_t mouse_time_units_factor;
+  QString mouse_time_units = getTimeUnitsAndFactor(time_at_mouse, 1, &mouse_time_units_factor);
+  double adjusted_mouse_time = time_at_mouse / (double)mouse_time_units_factor;
+  QString mouse_time_text = " " + QString::number(adjusted_mouse_time) + " " + mouse_time_units;
+  painter.drawText(dialog_x+mid_x, dialog_y, dialog_w-mid_x, th, Qt::AlignLeft | Qt::AlignVCenter, mouse_time_text);
+  dialog_y += th;
+
+  if (ancestor_collapsed) {
+    QString message = "Open this item in left\npanel to see event details";
+    painter.drawText(dialog_x, dialog_y, dialog_w, th*(num_lines-3), Qt::AlignCenter, message);
+  } else {
+    // Duration
+    //*+*/QString duration_text = "";
+    dialog_y += th;
+
+    // Prev/Next Times
+    /*+*/
+    dialog_y += th;
+
+    // Prev/Next Instances
+    /*+*/
+    dialog_y += th;
+
+    // Prev/Next Values
+    /*+*/
+    dialog_y += th;
+
+    // Prev/Next Locations
+    /*+*/
+    dialog_y += th;
+
+    /*+ temp */
+    uint32_t closest_event_index_at_mouse = 0;
+    if (node->tree_node_type == TREE_NODE_IS_EVENT) {
+      closest_event_index_at_mouse = findEventIndexAtTime(events, node, time_at_mouse, 0);
+    }
+    QString line2_text = " Event index: " + QString::number(closest_event_index_at_mouse);
+    painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, line2_text);
   }
 }
 

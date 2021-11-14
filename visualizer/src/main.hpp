@@ -37,4 +37,9 @@ extern QMap<QString,EventTree*> G_event_tree_map; // QMap is always sorted by ke
 #define ROW_SELECTED_COLOR QColor(0, 100, 255, 50)
 #define TIME_SELECTION_COLOR QColor(200, 0, 0)
 
+#define ARROW_ICON_COLOR QColor(0, 0, 0)
+#define FOLDER_ICON_COLOR QColor(100, 0, 255)
+#define THREAD_ICON_COLOR QColor(100, 0, 255)
+#define EVENTS_ICON_COLOR QColor(0, 100, 255)
+
 #endif

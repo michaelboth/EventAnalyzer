@@ -1,3 +1,12 @@
+Examples:
+  - Memory contention
+    - Do each test in a separate folder; e.g. "3 Threads, 1 MB"
+    - Use a thread barrier between tests
+    - 1..N threads
+    - Small to large memory sizes; 1KB, 10KB, 100KB, 1MB
+  - Context switching
+  - O(N) vs O(logN)
+
 Visualizer:
 - Allow sorting events by usilization
 - Utilization coloumn:

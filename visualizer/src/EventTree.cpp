@@ -23,6 +23,15 @@
 #define MIN_EVENT_INSTANCE_LIST_ELEMENTS 100
 //#define PRINT_HELPFUL_MESSAGES
 
+bool EventTreeNode::isAncestorCollapsed() {
+  EventTreeNode *ancestor = this;
+  while (ancestor != NULL) {
+    if (!ancestor->is_open) return true;
+    ancestor = ancestor->parent;
+  }
+  return false;
+}
+
 EventTree::EventTree(Events *_events, QString _name, QString _folder, bool show_folders, bool show_threads) {
   events = _events;
   name = _name;
@@ -71,6 +80,7 @@ EventTreeNode *EventTree::getThreadFolder(EventTreeNode *parent, uint16_t thread
   thread_folder->thread_index = thread_index;
   thread_folder->name = "Thread " + QString::number(events->thread_id_list[thread_index]);
   parent->children += thread_folder;
+  thread_folder->parent = parent;
 #ifdef PRINT_HELPFUL_MESSAGES
   printf("Creating thread folder for index %d, name=%s\n", thread_index, thread_folder->name.toLatin1().data());
 #endif
@@ -99,6 +109,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
         folder->ID = event->event_id;
         folder->name = events->folder_info_list[event->event_id].name;
         node->children += folder;
+        folder->parent = node;
 #ifdef PRINT_HELPFUL_MESSAGES
         printf("Creating folder for ID %d, name=%s\n", event->event_id, folder->name.toLatin1().data());
 #endif
@@ -137,6 +148,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
         child->num_event_instances = 0;
         child->event_indices = (uint32_t *)malloc(child->max_event_instances * sizeof(uint32_t));
 	parent->children += child;
+        child->parent = parent;
       }
       if (child->num_event_instances == child->max_event_instances) {
         // Instance list is full, double its size

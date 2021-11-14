@@ -71,3 +71,40 @@ void recolorImage(QImage &image, QColor color) {
     }
   }
 }
+
+QString getTimeUnitsAndFactor(uint64_t nsecs, uint64_t max_times_to_display, uint64_t *units_factor_ret) {
+  uint64_t usecs = nsecs / 1000;
+  uint64_t msecs = nsecs / 1000000;
+  uint64_t secs = nsecs / 1000000000;
+  uint64_t mins = nsecs / 1000000000 / 60;
+  uint64_t hours = nsecs / 1000000000 / 60 / 60;
+  uint64_t days = nsecs / 1000000000 / 60 / 60 / 24;
+
+  QString units;
+  uint64_t units_factor;
+  if (days > max_times_to_display) {
+    units = "days";
+    units_factor = 1000000000LLU * 60 * 60 * 24;
+  } else if (hours > max_times_to_display) {
+    units = "hours";
+    units_factor = 1000000000LLU * 60 * 60;
+  } else if (mins > max_times_to_display) {
+    units = "mins";
+    units_factor = 1000000000LLU * 60;
+  } else if (secs > max_times_to_display) {
+    units = "secs";
+    units_factor = 1000000000;
+  } else if (msecs > max_times_to_display) {
+    units = "msecs";
+    units_factor = 1000000;
+  } else if (usecs > max_times_to_display) {
+    units = "usecs";
+    units_factor = 1000;
+  } else {
+    units = "nsecs";
+    units_factor = 1;
+  }
+
+  *units_factor_ret = units_factor;
+  return units;
+}

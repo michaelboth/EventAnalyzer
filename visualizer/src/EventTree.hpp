@@ -51,6 +51,8 @@ public:
   QRect folder_rect;
   bool row_selected = false;
   QList<EventTreeNode*> children;
+  EventTreeNode *parent = NULL;
+  bool isAncestorCollapsed();
 };
 
 class EventTree {

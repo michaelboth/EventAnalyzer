@@ -25,5 +25,6 @@ enum class FitType {
 extern QRect getFittedRect(FitType fit, int window_w, int window_h, int image_w, int image_h);
 extern QRectF getFittedRectF(FitType fit, int window_w, int window_h, int image_w, int image_h);
 extern void recolorImage(QImage &image, QColor color);
+extern QString getTimeUnitsAndFactor(uint64_t nsecs, uint64_t max_times_to_display, uint64_t *units_factor_ret);
 
 #endif
