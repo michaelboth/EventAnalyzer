@@ -19,7 +19,7 @@
 #include "main.hpp"
 
 /*+ allow right click menu in events area to zoom? Or maybe just use keyboard shortcuts */
-/*+ show vertical line where mouse is along with time in header? */
+/*+ show vertical line where mouse is along with time in header, instead of in info dialog? */
 
 #define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
 #define MIN_SELECTION_PIXEL_DIFF 10
@@ -202,19 +202,31 @@ void EventsView::leaveEvent(QEvent * /*event*/) {
 }
 
 static uint32_t findEventIndexAtTime(Events *events, EventTreeNode *node, uint64_t time, int32_t index_offset) {
-  // Binary search
   uint32_t first = 0;
   uint32_t last = node->num_event_instances-1;
+
+  // See if before first event
+  uint32_t first_event_index = node->event_indices[first];
+  Event *first_event = &events->event_buffer[first_event_index];
+  if (time < first_event->time) return first;
+
+  // See if after last event
+  uint32_t last_event_index = node->event_indices[last];
+  Event *last_event = &events->event_buffer[last_event_index];
+  if (time > last_event->time) return last+1;
+
+  // Binary search
   while ((last-first) > 1) {
     uint32_t mid = first + (last-first)/2;
     uint32_t event_index = node->event_indices[mid];
     Event *event = &events->event_buffer[event_index];
-    if (event->time < time) {
+    if (event->time <= time) {
       first = mid;
     } else {
       last = mid;
     }
   }
+  first++; // NOTE: want the first event to the right of the mouse, not the left
   if (first > 0 && index_offset < 0) {
     first--;
     index_offset++;
@@ -247,6 +259,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
       // Determin the ragne of events to draw based on visible time region
       uint32_t first_visible_event_index = findEventIndexAtTime(events, parent, start_time, -3);
       uint32_t last_visible_event_index = findEventIndexAtTime(events, parent, end_time, 3);
+      if (last_visible_event_index >= parent->num_event_instances) last_visible_event_index = parent->num_event_instances - 1; // NOTE: just outside of range
       //*+*/printf("  Draw event range: first=%u, last=%u\n", first_visible_event_index, last_visible_event_index);
 
       // Draw events
@@ -412,6 +425,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     emit selectionTimeRangeChanged(0);
   }
 
+  /*+ histogram */
   // Draw rollover info
   if (mouse_location.x() >= 0 && mouse_location.y() >= 0) {
     EventTreeNode *node_with_mouse = NULL;
@@ -434,7 +448,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
 }
 
 static QPixmap drawEventPixmap(int height, QColor color) {
-  int w = height*2;
+  int w = (int)(height * 1.0f);
   QPixmap pixmap(w, height);
   pixmap.fill(Qt::transparent);
   QPainter painter(&pixmap);
@@ -464,7 +478,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   int m = th / 2;
   int num_lines = 8;
   int instance_w = fm.horizontalAdvance(" Instance ");
-  int dialog_w = fm.horizontalAdvance("filename::function_name::line_number");
+  int dialog_w = fm.horizontalAdvance(" filename::function_name::line_number ");
   int dialog_h = th*num_lines;
   int dialog_x = mouse_location.x() + m;
   int dialog_y = mouse_location.y() + m;
@@ -493,9 +507,9 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   }
   // Titles
   painter.setPen(QPen(ROLLOVER_TITLE_COLOR, 1, Qt::SolidLine));
-  painter.drawText(dialog_x, dialog_y+th*1, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Mouse Time ");
+  painter.drawText(dialog_x, dialog_y+th*1, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Mouse Over Time ");
   if (!ancestor_collapsed) {
-    painter.drawText(dialog_x, dialog_y+th*2, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Duration ");
+    painter.drawText(dialog_x, dialog_y+th*2, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Duration/Gap ");
     painter.drawText(dialog_x+col1_x, dialog_y+th*3, col2_x-col1_x, th, Qt::AlignCenter, "Time");
     painter.drawText(dialog_x+col1_x, dialog_y+th*4, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
     painter.drawText(dialog_x+col1_x, dialog_y+th*5, col2_x-col1_x, th, Qt::AlignCenter, "Value");
@@ -530,41 +544,98 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   uint64_t mouse_time_units_factor;
   QString mouse_time_units = getTimeUnitsAndFactor(time_at_mouse, 1, &mouse_time_units_factor);
   double adjusted_mouse_time = time_at_mouse / (double)mouse_time_units_factor;
-  QString mouse_time_text = " " + QString::number(adjusted_mouse_time) + " " + mouse_time_units;
+  char val_text[40];
+  sprintf(val_text, "%0.3f", adjusted_mouse_time);
+  QString mouse_time_text = " " + QString(val_text) + " " + mouse_time_units;
   painter.drawText(dialog_x+mid_x, dialog_y, dialog_w-mid_x, th, Qt::AlignLeft | Qt::AlignVCenter, mouse_time_text);
   dialog_y += th;
 
   if (ancestor_collapsed) {
+    // Nothing to show
     QString message = "Open this item in left\npanel to see event details";
     painter.drawText(dialog_x, dialog_y, dialog_w, th*(num_lines-3), Qt::AlignCenter, message);
-  } else {
+  } else if (node->tree_node_type == TREE_NODE_IS_EVENT) {
+    // Show event info
+    uint32_t event_index_to_right_of_mouse = findEventIndexAtTime(events, node, time_at_mouse, 0);
+    bool has_next_event = event_index_to_right_of_mouse < node->num_event_instances;
+    uint32_t event_index_to_left_of_mouse = (event_index_to_right_of_mouse > 0) ? event_index_to_right_of_mouse-1 : 0;
+    bool has_prev_event = event_index_to_left_of_mouse < event_index_to_right_of_mouse;
+    Event *prev_event = has_prev_event ? &events->event_buffer[node->event_indices[event_index_to_left_of_mouse]] : NULL;
+    Event *next_event = has_next_event ? &events->event_buffer[node->event_indices[event_index_to_right_of_mouse]] : NULL;
+
     // Duration
-    //*+*/QString duration_text = "";
+    if (has_prev_event && has_next_event) {
+      uint64_t duration = next_event->time - prev_event->time;
+      uint64_t units_factor;
+      QString time_units = getTimeUnitsAndFactor(duration, 1, &units_factor);
+      double adjusted_duration = duration / (double)units_factor;
+      sprintf(val_text, "%0.3f", adjusted_duration);
+      QString text = " " + QString(val_text) + " " + time_units;
+      painter.drawText(dialog_x+mid_x, dialog_y, dialog_w-mid_x, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+    }
     dialog_y += th;
 
     // Prev/Next Times
-    /*+*/
+    if (has_prev_event) {
+      uint64_t units_factor;
+      QString time_units = getTimeUnitsAndFactor(prev_event->time, 1, &units_factor);
+      double adjusted_time = prev_event->time / (double)units_factor;
+      sprintf(val_text, "%0.3f", adjusted_time);
+      QString text = QString(val_text) + " " + time_units + " ";
+      painter.drawText(dialog_x, dialog_y, col1_x, th, Qt::AlignRight | Qt::AlignVCenter, text);
+    }
+    if (has_next_event) {
+      uint64_t units_factor;
+      QString time_units = getTimeUnitsAndFactor(next_event->time, 1, &units_factor);
+      double adjusted_time = next_event->time / (double)units_factor;
+      sprintf(val_text, "%0.3f", adjusted_time);
+      QString text = " " + QString(val_text) + " " + time_units;
+      painter.drawText(dialog_x+col2_x, dialog_y, col1_x, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+    }
     dialog_y += th;
 
     // Prev/Next Instances
-    /*+*/
+    if (has_prev_event) {
+      QString text = events->includes_instance ? QString::number(prev_event->instance) + " " : "- ";
+      painter.drawText(dialog_x, dialog_y, col1_x, th, Qt::AlignRight | Qt::AlignVCenter, text);
+    }
+    if (has_next_event) {
+      QString text = events->includes_instance ? " " + QString::number(next_event->instance) : " -";
+      painter.drawText(dialog_x+col2_x, dialog_y, col1_x, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+    }
     dialog_y += th;
 
     // Prev/Next Values
-    /*+*/
+    if (has_prev_event) {
+      QString text = events->includes_value ? QString::number(prev_event->value) + " " : "- ";
+      painter.drawText(dialog_x, dialog_y, col1_x, th, Qt::AlignRight | Qt::AlignVCenter, text);
+    }
+    if (has_next_event) {
+      QString text = events->includes_value ? " " + QString::number(next_event->value) : " -";
+      painter.drawText(dialog_x+col2_x, dialog_y, col1_x, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+    }
     dialog_y += th;
 
     // Prev/Next Locations
-    /*+*/
-    dialog_y += th;
-
-    /*+ temp */
-    uint32_t closest_event_index_at_mouse = 0;
-    if (node->tree_node_type == TREE_NODE_IS_EVENT) {
-      closest_event_index_at_mouse = findEventIndexAtTime(events, node, time_at_mouse, 0);
+    if (has_prev_event) {
+      QString text = " -";
+      if (events->includes_file_location) {
+        text = " " + QString(events->file_name_list[prev_event->file_name_index]);
+        text += "," + QString(events->function_name_list[prev_event->function_name_index]);
+        text += "():" + QString::number(prev_event->line_number);
+      }
+      painter.drawText(dialog_x, dialog_y, dialog_w-m*2, th, Qt::AlignLeft | Qt::AlignVCenter, text);
     }
-    QString line2_text = " Event index: " + QString::number(closest_event_index_at_mouse);
-    painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, line2_text);
+    dialog_y += th;
+    if (has_next_event) {
+      QString text = " -";
+      if (events->includes_file_location) {
+        text = " " + QString(events->file_name_list[next_event->file_name_index]);
+        text += "," + QString(events->function_name_list[next_event->function_name_index]);
+        text += "():" + QString::number(next_event->line_number);
+      }
+      painter.drawText(dialog_x, dialog_y, dialog_w-m*2, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+    }
   }
 }
 
