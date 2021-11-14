@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <QFileDialog>
-#include <QPainter>
+#include <QMessageBox>
 #include "ui_MainWindow.h"
 #include "MainWindow.hpp"
 #include "HelpfulFunctions.hpp"
@@ -460,6 +460,7 @@ void MainWindow::on_closeSelectedButton_clicked() {
 
 void MainWindow::on_setFilterButton_clicked() {
   /*+*/
+  QMessageBox::information(this, "Filters", "Filtering is not implemented yet.");
 }
 
 void MainWindow::on_clearFilterButton_clicked() {

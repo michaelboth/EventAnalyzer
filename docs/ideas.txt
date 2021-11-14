@@ -1,0 +1,17 @@
+Visualizer:
+- Allow sorting events by usilization
+- Utilization coloumn:
+  - Show color bar and text percentage
+  - Maybe also show min/ave/mean/max times based on width of view
+- Filter dialog:
+  - Collapse filtered rows to a few pixels to make it obvious filtering is active
+- Event windows modes
+  - Rollover info
+  - Rollover histogram
+  - Time alignment (row highlights)
+    - Grab row and move left/right to align events file
+    - Shift rows to native start
+    - Align by event instances (ignore folders and threads?)
+      - Draw lines between alignments
+      - Allow clock drift correction between files via scaling first and last event instances
+    - Selected row can use prev/next buttons

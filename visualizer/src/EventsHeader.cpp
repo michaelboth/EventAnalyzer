@@ -118,15 +118,17 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
     font.setBold(true);
     painter.setFont(font);
     painter.setPen(QPen(TIME_SELECTION_COLOR, 1, Qt::SolidLine));
-    uint64_t adjusted_selection_time = selected_time_range / selection_units_factor;
-    QString text = QString::number(adjusted_selection_time) + " " + selection_units;
+    double adjusted_selection_time = selected_time_range / (double)selection_units_factor;
+    char val_text[40];
+    sprintf(val_text, "%0.1f", adjusted_selection_time);
+    QString text = QString(val_text) + " " + selection_units;
     painter.drawText(0, 0, w, h, Qt::AlignCenter, text);
     return;
   }
 
   // Determine how many times can be displayed in the header
   QFontMetrics fm = painter.fontMetrics();
-  int ref_w = 2 * fm.width("|999 years ");
+  int ref_w = 2 * fm.horizontalAdvance("|999 years ");
   uint64_t max_times_to_display = (uint64_t)ceilf(w / (float)ref_w);
 
   // Deetermine the time precision; starting with nanoseconds
@@ -138,12 +140,13 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
   for (uint64_t i=0; i<max_times_to_display; i++) {
     int x = (int)i*ref_w;
     double offset_factor = x / (double)w;
-    uint64_t time = start_time + (uint64_t)(offset_factor * nsecs);
-    time = time / units_factor;
+    double time = start_time / (double)units_factor + (offset_factor * nsecs) / units_factor;
     if (i == 0) {
       // Time
       painter.setPen(QPen(HEADER_TEXT_COLOR, 1, Qt::SolidLine));
-      QString text = QString::number(time) + " " + units;
+      char val_text[40];
+      sprintf(val_text, "%0.1f", time);
+      QString text = QString(val_text) + " " + units;
       painter.drawText(x+1, 0, w, h, Qt::AlignLeft | Qt::AlignBottom, text);
     } else {
       // Tick mark
@@ -151,8 +154,10 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
       painter.drawLine(x, 0, x, h);
       // Additional time
       painter.setPen(QPen(HEADER_TEXT_COLOR, 1, Qt::SolidLine));
-      uint64_t diff = time - start_time / units_factor;
-      QString text = "+" + QString::number(diff) + " " + units;
+      double diff = time - start_time / (double)units_factor;
+      char val_text[40];
+      sprintf(val_text, "%0.1f", diff);
+      QString text = "+" + QString(val_text) + " " + units;
       painter.drawText(x+1, 0, w, h, Qt::AlignLeft | Qt::AlignBottom, text);
     }
   }

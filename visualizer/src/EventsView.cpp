@@ -416,7 +416,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       }
       QFontMetrics fm = painter.fontMetrics();
       int th = fm.height();
-      int dialog_w = fm.width("This is just a test");
+      int dialog_w = fm.horizontalAdvance("This is just a test");
       int dialog_x = mouse_location.x() + 10;
       int dialog_y = mouse_location.y() + 10;
       int dialog_h = th*2;

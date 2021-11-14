@@ -35,6 +35,6 @@ extern QMap<QString,EventTree*> G_event_tree_map; // QMap is always sorted by ke
 #define LINE_HEIGHT_FACTOR 1.5f
 #define ROW_HIGHLIGHT_COLOR QColor(0, 0, 0, 50)
 #define ROW_SELECTED_COLOR QColor(0, 100, 255, 50)
-#define TIME_SELECTION_COLOR QColor(255, 155, 0)
+#define TIME_SELECTION_COLOR QColor(200, 0, 0)
 
 #endif
