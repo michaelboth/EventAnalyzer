@@ -23,7 +23,7 @@
 
 #define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
 #define MIN_SELECTION_PIXEL_DIFF 10
-#define ROLLOVER_BG_COLOR QColor(200, 200, 200)
+#define ROLLOVER_BG_COLOR QColor(200, 200, 200, 220)
 #define ROLLOVER_TEXT_COLOR QColor(50, 50, 50)
 #define ROLLOVER_TITLE_COLOR QColor(125, 125, 125)
 #define ROLLOVER_SEPARATOR_COLOR QColor(175, 175, 175)
@@ -173,12 +173,13 @@ EventTreeNode *EventsView::mouseOnEventsLine(EventTreeNode *parent) {
 }
 
 void EventsView::mouseMoveEvent(QMouseEvent *event) {
+  mouse_location = QPoint(event->x(), event->y());
   if (mouse_button_pressed) {
+    // Selecting time range
     selected_time_range_x2 = event->x();
     update(); // Avoids full redraw
   } else {
     // See if mouse is on an event line
-    mouse_location = QPoint(event->x(), event->y());
     update(); // Avoids full redraw, but needed to draw rollover
   }
 }
@@ -250,6 +251,8 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
     QRect row_rect = QRect(0,y,w,line_h);
     parent->events_row_rect = row_rect;
 
+    /*+ highlight row if mouse in histogram mode */
+
     // Highlight row if selected (selected in hierarchy view)
     if (parent->row_selected) {
       painter->fillRect(row_rect, ROW_SELECTED_COLOR);
@@ -260,7 +263,6 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
       uint32_t first_visible_event_index = findEventIndexAtTime(events, parent, start_time, -3);
       uint32_t last_visible_event_index = findEventIndexAtTime(events, parent, end_time, 3);
       if (last_visible_event_index >= parent->num_event_instances) last_visible_event_index = parent->num_event_instances - 1; // NOTE: just outside of range
-      //*+*/printf("  Draw event range: first=%u, last=%u\n", first_visible_event_index, last_visible_event_index);
 
       // Draw events
       int prev_x = 0;
@@ -317,137 +319,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
   }
 }
 
-void EventsView::paintEvent(QPaintEvent* /*event*/) {
-  int w = width();
-  int h = height();
-  if (w <= 0 || h <= 0) { return; }
-
-  // Define painter
-  QPainter painter(this);
-
-  // Fill in background
-  painter.fillRect(QRect(0,0,w,h), QColor(255,255,255));
-
-  if (G_event_tree_map.count() == 0) {
-    // Draw the logo
-    QRect inside_rect = getFittedRect(FitType::Inside, w/2, h, logo.width(), logo.height());
-    inside_rect.moveLeft(w/4);
-    painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
-    painter.drawPixmap(inside_rect, logo);
-    painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
-    // Clear some stuff just in case it's active
-    selected_time_range_x1 = -1;
-    selected_time_range_x2 = -1;
-    percent_visible = 1.0;
-    percent_offset = 0.0;
-    emit visibleTimeRangeChanged(0, 0); // Signal to the header
-    emit selectionTimeRangeChanged(0);  // Signal to the header
-    emit timeRangeSelectionChanged();   // Signal to the toolbar widgets
-    return;
-  }
-
-  // Determine time range
-  start_time = 0;
-  end_time = 0;
-  {
-    bool got_time_range = false;
-    QMapIterator<QString, EventTree*> i(G_event_tree_map);
-    while (i.hasNext()) {
-      // Get old tree info
-      i.next();
-      EventTree *event_tree = i.value();
-      Events *events = event_tree->events;
-      Event *first_event = &events->event_buffer[0];
-      Event *last_event = &events->event_buffer[events->event_count-1];
-      if (!got_time_range) {
-        // Record initial times
-        start_time = first_event->time;
-        end_time = last_event->time;
-      } else {
-        // Update time range
-        if (first_event->time < start_time) start_time = first_event->time;
-        if (last_event->time < end_time) end_time = last_event->time;
-      }
-    }
-  }
-  // Zoom in as needed
-  if (percent_visible < 1.0) {
-    uint64_t elapsed_nanoseconds = end_time - start_time;
-    uint64_t visible_nanoseconds = (uint64_t)(elapsed_nanoseconds * percent_visible);
-    start_time = (uint64_t)(elapsed_nanoseconds * percent_offset);
-    end_time = start_time + visible_nanoseconds;
-  }
-  time_range = (double)(end_time - start_time);
-
-  // Update units header
-  emit visibleTimeRangeChanged(start_time, end_time);
-
-  // Make sure the frame buffer is the correct size
-  if (frame_buffer.width() != w || frame_buffer.height() != h) {
-    frame_buffer = QImage(w, h, QImage::Format_ARGB32);
-    rebuild_frame_buffer = true;
-  }
-
-  // Draw event tree
-  if (rebuild_frame_buffer) {
-    //*+*/printf("Rebuild\n");
-    rebuild_frame_buffer = false;
-    QPainter painter2(&frame_buffer);
-    painter2.fillRect(QRect(0,0,w,h), QColor(255,255,255));
-    // Draw event tree
-    int line_index = 0;
-    QMapIterator<QString, EventTree*> i(G_event_tree_map);
-    while (i.hasNext()) {
-      // Get old tree info
-      i.next();
-      EventTree *event_tree = i.value();
-      drawHierarchyLine(&painter2, event_tree->events, event_tree->tree, line_index, true);
-    }
-  }
-  painter.drawImage(QRect(0,0,w,h), frame_buffer);
-
-  // Draw selection area
-  if (selected_time_range_x1 != -1 && selected_time_range_x2 != -1) {
-    int x1 = std::min(selected_time_range_x1, selected_time_range_x2);
-    int x2 = std::max(selected_time_range_x1, selected_time_range_x2);
-    x1 = std::max(x1, 0);
-    x2 = std::min(x2, w-1);
-    QColor time_selection_color = TIME_SELECTION_COLOR;
-    painter.setPen(QPen(time_selection_color, 1, Qt::SolidLine));
-    painter.drawLine(x1, 0, x1, h-1);
-    painter.drawLine(x2, 0, x2, h-1);
-    time_selection_color.setAlpha(20);
-    painter.fillRect(QRect(x1,0,x2-x1+1,h), time_selection_color);
-    double time_range_factor = (x2 - x1)/(double)w;
-    uint64_t selected_time_range = (uint64_t)(time_range_factor * time_range);
-    emit selectionTimeRangeChanged(selected_time_range);
-  } else {
-    emit selectionTimeRangeChanged(0);
-  }
-
-  /*+ histogram */
-  // Draw rollover info
-  if (mouse_location.x() >= 0 && mouse_location.y() >= 0) {
-    EventTreeNode *node_with_mouse = NULL;
-    Events *events_with_mouse = NULL;
-    QMapIterator<QString, EventTree*> i(G_event_tree_map);
-    while (i.hasNext()) {
-      // Get old tree info
-      i.next();
-      EventTree *event_tree = i.value();
-      node_with_mouse = mouseOnEventsLine(event_tree->tree);
-      if (node_with_mouse != NULL) {
-        events_with_mouse = event_tree->events;
-        break;
-      }
-    }
-    if (node_with_mouse != NULL) {
-      drawEventInfo(painter, node_with_mouse, events_with_mouse);
-    }
-  }
-}
-
-static QPixmap drawEventPixmap(int height, QColor color) {
+static QPixmap drawEventIcon(int height, QColor color) {
   int w = (int)(height * 1.0f);
   QPixmap pixmap(w, height);
   pixmap.fill(Qt::transparent);
@@ -462,6 +334,161 @@ static QPixmap drawEventPixmap(int height, QColor color) {
   painter.fillRect(x2, y2, 2, y4-y2, color);
   painter.fillRect(x1, y2, x2-x1, y3-y2, color);
   return pixmap;
+}
+
+uint32_t EventsView::calculateHistogram(int num_buckets, double *buckets, EventTreeNode *node, Events *events, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret) {
+  EventInfo *event_info = &events->event_info_list[node->event_info_index];
+
+  // Get the first visible event
+  uint32_t first_event_index = findEventIndexAtTime(events, node, start_time, 0); // NOTE: gets the first index to the right of the start time
+
+  // Determine the min and max durations to know how to divy out the buckets
+  Event *prev_event = NULL;
+  uint64_t min_duration = 0;
+  uint64_t max_duration = 0;
+  uint64_t total_duration = 0;
+  uint32_t num_durations = 0;
+  uint32_t event_index = first_event_index;
+  while (event_index < node->num_event_instances) {
+    Event *event = &events->event_buffer[node->event_indices[event_index]];
+    if (event->time > end_time) break; // Out of visible range
+    if (prev_event != NULL && prev_event->event_id == event_info->start_id && event->event_id == event_info->end_id) {
+      // Found a duration
+      uint64_t duration = event->time - prev_event->time;
+      total_duration += duration;
+      if (num_durations == 0 || duration < min_duration) min_duration = duration;
+      if (num_durations == 0 || duration > max_duration) max_duration = duration;
+      num_durations++;
+    }
+    prev_event = event;
+    event_index++;
+  }
+  if (num_durations == 0) return 0;
+
+  // Fill in the buckets
+  uint64_t duration_range = max_duration - min_duration;
+  event_index = first_event_index;
+  while (event_index < node->num_event_instances) {
+    Event *event = &events->event_buffer[node->event_indices[event_index]];
+    if (event->time > end_time) break; // Out of visible range
+    if (prev_event != NULL && prev_event->event_id == event_info->start_id && event->event_id == event_info->end_id) {
+      // Found a duration
+      uint64_t duration = event->time - prev_event->time;
+      double factor = (duration - min_duration) / (double)duration_range;
+      int bucket_index = factor * (num_buckets-1);
+      bucket_index = std::clamp(bucket_index, 0, num_buckets-1);
+      buckets[bucket_index]++;
+    }
+    prev_event = event;
+    event_index++;
+  }
+
+  // Return values
+  *min_ret = min_duration;
+  *ave_ret = total_duration / num_durations;
+  *max_ret = max_duration;
+  return num_durations;
+}
+
+void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Events *events) {
+  int w = width();
+  int h = height();
+
+  bool ancestor_collapsed = node->isAncestorCollapsed();
+
+  // Determine dialog geometry
+  QFontMetrics fm = painter.fontMetrics();
+  int th = fm.height();
+  int m = th / 2;
+  int num_lines = 8;
+  int dialog_w = fm.horizontalAdvance("999.999 usecs   999.999 usecs   999.999 usecs");
+  int dialog_h = th*num_lines;
+  int dialog_x = mouse_location.x() + m;
+  int dialog_y = mouse_location.y() + m;
+  if (dialog_x+dialog_w > w) dialog_x -= dialog_w + 2*m;
+  if (dialog_y+dialog_h > h) dialog_y -= dialog_h + 2*m;
+
+  // Dialog background
+  painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+  painter.setBrush(ROLLOVER_BG_COLOR);
+  painter.drawRect(dialog_x, dialog_y, dialog_w, dialog_h);
+  painter.setPen(QPen(ROLLOVER_SEPARATOR_COLOR, 1, Qt::SolidLine));
+  // Horizontal lines
+  painter.drawLine(dialog_x+1, dialog_y+th, dialog_x+dialog_w-1, dialog_y+th);
+  painter.drawLine(dialog_x+1, dialog_y+(th*num_lines-1), dialog_x+dialog_w-1, dialog_y+(th*num_lines-1));
+  painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+
+  // Draw icon
+  QPixmap image_icon;
+  if (node->tree_node_type == TREE_NODE_IS_FILE) {
+    image_icon = icon_map["hierarchy_file.png"];
+  } else if (node->tree_node_type == TREE_NODE_IS_FOLDER) {
+    image_icon = node->is_open ? icon_map["hierarchy_opened_folder.png"] : icon_map["hierarchy_closed_folder.png"];
+  } else if (node->tree_node_type == TREE_NODE_IS_THREAD) {
+    image_icon = node->is_open ? icon_map["hierarchy_opened_thread.png"] : icon_map["hierarchy_closed_thread.png"];
+  } else {
+    image_icon = drawEventIcon(th, node->color);
+  }
+  int icon_offset = 0;
+  if (!image_icon.isNull()) {
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
+    icon_offset = m+image_icon.width();
+    painter.drawPixmap(dialog_x+m, dialog_y, image_icon.width(), image_icon.height(), image_icon);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+  }
+
+  // Draw name
+  QString name_text = " " + node->name;
+  painter.drawText(dialog_x+icon_offset, dialog_y, dialog_w-icon_offset, th, Qt::AlignLeft | Qt::AlignVCenter, name_text);
+
+  if (ancestor_collapsed) {
+    // Nothing to show
+    QString message = "Open this item in left\npanel to see event histograms";
+    painter.drawText(dialog_x, dialog_y+th, dialog_w, th*(num_lines-1), Qt::AlignCenter, message);
+  }
+  if (node->tree_node_type != TREE_NODE_IS_EVENT) {
+    return;
+  }
+
+  // Calculate histogram
+  int num_buckets = (w-2) / th;
+  double buckets[num_buckets] = {0};
+  uint64_t min, ave, max;
+  uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, &min, &ave, &max);
+
+  // Draw number of events
+  painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, QString::number(num_durations) + " events ");
+
+  /*+ Draw histogram */
+
+  // Draw min ave and max
+  { // Min
+    uint64_t units_factor;
+    QString time_units = getTimeUnitsAndFactor(min, 1, &units_factor); /*+ not getting first event */
+    double adjusted_time = min / (double)units_factor;
+    char val_text[40];
+    sprintf(val_text, "%0.3f", adjusted_time);
+    QString text = " " + QString(val_text) + " " + time_units;
+    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+  }
+  { // Ave
+    uint64_t units_factor;
+    QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
+    double adjusted_time = ave / (double)units_factor;
+    char val_text[40];
+    sprintf(val_text, "%0.3f", adjusted_time);
+    QString text = QString(val_text) + " " + time_units;
+    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignCenter, text);
+  }
+  { // Max
+    uint64_t units_factor;
+    QString time_units = getTimeUnitsAndFactor(max, 1, &units_factor);
+    double adjusted_time = max / (double)units_factor;
+    char val_text[40];
+    sprintf(val_text, "%0.3f", adjusted_time);
+    QString text = QString(val_text) + " " + time_units + " ";
+    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, text);
+  }
 }
 
 void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *events) {
@@ -525,7 +552,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   } else if (node->tree_node_type == TREE_NODE_IS_THREAD) {
     image_icon = node->is_open ? icon_map["hierarchy_opened_thread.png"] : icon_map["hierarchy_closed_thread.png"];
   } else {
-    image_icon = drawEventPixmap(th, node->color);
+    image_icon = drawEventIcon(th, node->color);
   }
   int icon_offset = 0;
   if (!image_icon.isNull()) {
@@ -635,6 +662,137 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
         text += "():" + QString::number(next_event->line_number);
       }
       painter.drawText(dialog_x, dialog_y, dialog_w-m*2, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+    }
+  }
+}
+
+void EventsView::paintEvent(QPaintEvent* /*event*/) {
+  int w = width();
+  int h = height();
+  if (w <= 0 || h <= 0) { return; }
+
+  // Define painter
+  QPainter painter(this);
+
+  // Fill in background
+  painter.fillRect(QRect(0,0,w,h), QColor(255,255,255));
+
+  if (G_event_tree_map.count() == 0) {
+    // Draw the logo
+    QRect inside_rect = getFittedRect(FitType::Inside, w/2, h, logo.width(), logo.height());
+    inside_rect.moveLeft(w/4);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
+    painter.drawPixmap(inside_rect, logo);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+    // Clear some stuff just in case it's active
+    selected_time_range_x1 = -1;
+    selected_time_range_x2 = -1;
+    percent_visible = 1.0;
+    percent_offset = 0.0;
+    emit visibleTimeRangeChanged(0, 0); // Signal to the header
+    emit selectionTimeRangeChanged(0);  // Signal to the header
+    emit timeRangeSelectionChanged();   // Signal to the toolbar widgets
+    return;
+  }
+
+  // Determine time range
+  start_time = 0;
+  end_time = 0;
+  {
+    bool got_time_range = false;
+    QMapIterator<QString, EventTree*> i(G_event_tree_map);
+    while (i.hasNext()) {
+      // Get old tree info
+      i.next();
+      EventTree *event_tree = i.value();
+      Events *events = event_tree->events;
+      Event *first_event = &events->event_buffer[0];
+      Event *last_event = &events->event_buffer[events->event_count-1];
+      if (!got_time_range) {
+        // Record initial times
+        start_time = first_event->time;
+        end_time = last_event->time;
+      } else {
+        // Update time range
+        if (first_event->time < start_time) start_time = first_event->time;
+        if (last_event->time < end_time) end_time = last_event->time;
+      }
+    }
+  }
+  // Zoom in as needed
+  if (percent_visible < 1.0) {
+    uint64_t elapsed_nanoseconds = end_time - start_time;
+    uint64_t visible_nanoseconds = (uint64_t)(elapsed_nanoseconds * percent_visible);
+    start_time = (uint64_t)(elapsed_nanoseconds * percent_offset);
+    end_time = start_time + visible_nanoseconds;
+  }
+  time_range = (double)(end_time - start_time);
+
+  // Update units header
+  emit visibleTimeRangeChanged(start_time, end_time);
+
+  // Make sure the frame buffer is the correct size
+  if (frame_buffer.width() != w || frame_buffer.height() != h) {
+    frame_buffer = QImage(w, h, QImage::Format_ARGB32);
+    rebuild_frame_buffer = true;
+  }
+
+  // Draw event tree
+  if (rebuild_frame_buffer) {
+    rebuild_frame_buffer = false;
+    QPainter painter2(&frame_buffer);
+    painter2.fillRect(QRect(0,0,w,h), QColor(255,255,255));
+    // Draw event tree
+    int line_index = 0;
+    QMapIterator<QString, EventTree*> i(G_event_tree_map);
+    while (i.hasNext()) {
+      // Get old tree info
+      i.next();
+      EventTree *event_tree = i.value();
+      drawHierarchyLine(&painter2, event_tree->events, event_tree->tree, line_index, true);
+    }
+  }
+  painter.drawImage(QRect(0,0,w,h), frame_buffer);
+
+  // Draw selection area
+  if (selected_time_range_x1 != -1 && selected_time_range_x2 != -1) {
+    int x1 = std::min(selected_time_range_x1, selected_time_range_x2);
+    int x2 = std::max(selected_time_range_x1, selected_time_range_x2);
+    x1 = std::max(x1, 0);
+    x2 = std::min(x2, w-1);
+    QColor time_selection_color = TIME_SELECTION_COLOR;
+    painter.setPen(QPen(time_selection_color, 1, Qt::SolidLine));
+    painter.drawLine(x1, 0, x1, h-1);
+    painter.drawLine(x2, 0, x2, h-1);
+    time_selection_color.setAlpha(20);
+    painter.fillRect(QRect(x1,0,x2-x1+1,h), time_selection_color);
+    double time_range_factor = (x2 - x1)/(double)w;
+    uint64_t selected_time_range = (uint64_t)(time_range_factor * time_range);
+    emit selectionTimeRangeChanged(selected_time_range);
+  } else {
+    emit selectionTimeRangeChanged(0);
+  }
+
+  if (mouse_button_pressed) return;
+
+  // Draw rollover info or histogram
+  if (mouse_location.x() >= 0 && mouse_location.y() >= 0) {
+    EventTreeNode *node_with_mouse = NULL;
+    Events *events_with_mouse = NULL;
+    QMapIterator<QString, EventTree*> i(G_event_tree_map);
+    while (i.hasNext()) {
+      // Get old tree info
+      i.next();
+      EventTree *event_tree = i.value();
+      node_with_mouse = mouseOnEventsLine(event_tree->tree);
+      if (node_with_mouse != NULL) {
+        events_with_mouse = event_tree->events;
+        break;
+      }
+    }
+    if (node_with_mouse != NULL) {
+      /*+*/drawEventInfo(painter, node_with_mouse, events_with_mouse);
+      //*+*/drawEventHistogram(painter, node_with_mouse, events_with_mouse);
     }
   }
 }
