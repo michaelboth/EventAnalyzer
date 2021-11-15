@@ -208,6 +208,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->increaseFontSizeButton,
     ui->decreaseFontSizeButton,
     // Events toolbar
+    ui->mouseModeInfoButton,
+    ui->mouseModeHistogramButton,
+    ui->mouseModeTimeShiftButton,
     ui->zoomToAllButton,
     ui->zoomInButton,
     ui->zoomOutButton,
@@ -247,9 +250,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->decreaseFontSizeButton->setIcon(buildIcon(":/decrease_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
 
   // Set events toolbar button icons
-  ui->zoomToAllButton->setIcon(buildIcon(":/zoom_to_all.png",      false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->zoomInButton->setIcon(buildIcon(":/zoom_in.png",         false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->zoomOutButton->setIcon(buildIcon(":/zoom_out.png",        false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->mouseModeInfoButton->setIcon(buildIcon(":/mouse_mode_info.png",            true, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->mouseModeHistogramButton->setIcon(buildIcon(":/mouse_mode_histogram.png",  true, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->mouseModeTimeShiftButton->setIcon(buildIcon(":/mouse_mode_time_shift.png", true, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomToAllButton->setIcon(buildIcon(":/zoom_to_all.png",           false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomInButton->setIcon(buildIcon(":/zoom_in.png",                  false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomOutButton->setIcon(buildIcon(":/zoom_out.png",                false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->zoomToSelectedButton->setIcon(buildIcon(":/zoom_to_selected.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
 
   // Make sure events window stretches
@@ -379,10 +385,18 @@ void MainWindow::setWidgetUsability() {
   ui->decreaseFontSizeButton->setEnabled(event_files_loaded && font_size_can_shrink);
 
   // Events toolbar
+  ui->mouseModeInfoButton->setEnabled(event_files_loaded);
+  ui->mouseModeHistogramButton->setEnabled(event_files_loaded);
+  ui->mouseModeTimeShiftButton->setEnabled(event_files_loaded);
   ui->zoomToAllButton->setEnabled(event_files_loaded && !zoomed_to_all);
   ui->zoomInButton->setEnabled(event_files_loaded);
   ui->zoomOutButton->setEnabled(event_files_loaded && !zoomed_to_all);
   ui->zoomToSelectedButton->setEnabled(event_files_loaded && ui->eventsView->timeRangeSelected());
+
+  /*+ hide until implemented */
+  ui->setFilterButton->setHidden(true);
+  ui->clearFilterButton->setHidden(true);
+  ui->mouseModeTimeShiftButton->setHidden(true);
 
   // Update status bar
   QString message = "Event files loaded: " + QString::number(G_event_tree_map.count()) + "          Filters Set: none          Total Events: " + QString::number(totalEventInstances()); /*+ filters set */
@@ -626,6 +640,42 @@ void MainWindow::on_sortByTimeButton_clicked() {
   ui->sortByNameButton->setChecked(false);
   if (is_checked) {
     updateEventTreeSort();
+  }
+}
+
+void MainWindow::on_mouseModeInfoButton_clicked() {
+  bool is_checked = ui->mouseModeInfoButton->isChecked();
+  if (!is_checked) {
+    ui->mouseModeInfoButton->setChecked(true);
+  }
+  ui->mouseModeHistogramButton->setChecked(false);
+  ui->mouseModeTimeShiftButton->setChecked(false);
+  if (is_checked) {
+    ui->eventsView->setMouseMode(EventsView::MOUSE_MODE_EVENT_INFO);
+  }
+}
+
+void MainWindow::on_mouseModeHistogramButton_clicked() {
+  bool is_checked = ui->mouseModeHistogramButton->isChecked();
+  if (!is_checked) {
+    ui->mouseModeHistogramButton->setChecked(true);
+  }
+  ui->mouseModeInfoButton->setChecked(false);
+  ui->mouseModeTimeShiftButton->setChecked(false);
+  if (is_checked) {
+    ui->eventsView->setMouseMode(EventsView::MOUSE_MODE_EVENT_HISTOGRAM);
+  }
+}
+
+void MainWindow::on_mouseModeTimeShiftButton_clicked() {
+  bool is_checked = ui->mouseModeTimeShiftButton->isChecked();
+  if (!is_checked) {
+    ui->mouseModeTimeShiftButton->setChecked(true);
+  }
+  ui->mouseModeInfoButton->setChecked(false);
+  ui->mouseModeHistogramButton->setChecked(false);
+  if (is_checked) {
+    ui->eventsView->setMouseMode(EventsView::MOUSE_MODE_TIME_SHIFT);
   }
 }
 

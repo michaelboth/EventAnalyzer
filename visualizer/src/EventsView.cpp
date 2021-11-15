@@ -28,6 +28,7 @@
 #define ROLLOVER_TITLE_COLOR QColor(125, 125, 125)
 #define ROLLOVER_SEPARATOR_COLOR QColor(175, 175, 175)
 #define ROW_HIGHLIGHT_COLOR2 QColor(0, 0, 0, 15)
+#define HISTOGRAM_BAR_BG_COLOR QColor(230,230,230)
 
 EventsView::EventsView(QWidget *parent) : QWidget(parent) {
   // Track mouse when not pressed
@@ -46,6 +47,10 @@ EventsView::EventsView(QWidget *parent) : QWidget(parent) {
 
 EventsView::~EventsView() {
   // Nothing to do
+}
+
+void EventsView::setMouseMode(MouseMode _mouse_mode) {
+  mouse_mode = _mouse_mode;
 }
 
 void EventsView::prepareIcon(QString filename, bool recolor, QColor color) {
@@ -399,7 +404,7 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
   QFontMetrics fm = painter.fontMetrics();
   int th = fm.height();
   int m = th / 2;
-  int num_lines = 12;
+  int num_lines = 13;
   int dialog_w = fm.horizontalAdvance("9999.999 usecs   9999.999 usecs   9999.999 usecs");
   int dialog_h = th*num_lines;
   int dialog_x = mouse_location.x() + m;
@@ -414,7 +419,8 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
   painter.setPen(QPen(ROLLOVER_SEPARATOR_COLOR, 1, Qt::SolidLine));
   // Horizontal lines
   painter.drawLine(dialog_x+1, dialog_y+th, dialog_x+dialog_w-1, dialog_y+th);
-  painter.drawLine(dialog_x+1, dialog_y+(th*num_lines-1), dialog_x+dialog_w-1, dialog_y+(th*num_lines-1));
+  painter.drawLine(dialog_x+1, dialog_y+th*(num_lines-2), dialog_x+dialog_w-1, dialog_y+th*(num_lines-2));
+  painter.drawLine(dialog_x+1, dialog_y+th*(num_lines-1), dialog_x+dialog_w-1, dialog_y+th*(num_lines-1));
   painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
 
   // Draw icon
@@ -444,37 +450,37 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
   if (ancestor_collapsed) {
     // Nothing to show
     QString message = "Open this item in left\npanel to see event histograms";
-    painter.drawText(dialog_x, dialog_y+th, dialog_w, th*(num_lines-1), Qt::AlignCenter, message);
+    painter.drawText(dialog_x, dialog_y+th, dialog_w, th*(num_lines-2), Qt::AlignCenter, message);
   }
   if (node->tree_node_type != TREE_NODE_IS_EVENT) {
     return;
   }
 
   // Calculate histogram
-  int bucket_w = th / 3;
+  int bucket_w = th / 2;
   if (bucket_w <= 1) bucket_w = 2;
-  int num_buckets = (w-2) / bucket_w;
+  int num_buckets = (dialog_w-2) / bucket_w;
   uint32_t buckets[num_buckets];
   for (int i=0; i<num_buckets; i++) buckets[i] = 0;
   uint64_t min, ave, max;
   uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, &min, &ave, &max);
 
-  // Draw number of events
-  painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, QString::number(num_durations) + " events ");
+  // Draw number of durations
+  QString suffix = (num_durations == 1) ? " duration " : " durations ";
+  painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, QString::number(num_durations) + suffix);
 
   // Draw histogram
   int hist_x = dialog_x + (dialog_w - bucket_w*num_buckets)/2;
-  //*+*/printf("dialog_w=%d, bucket_w*num_buckets=%d, dialog_x=%d, hist_x=%d\n", dialog_w, bucket_w*num_buckets, dialog_x, hist_x);
-  int hist_y = dialog_y + dialog_h - th;
-  int hist_h = dialog_h - th*2;
+  int hist_y = dialog_y + dialog_h - th*2 - 1;
+  int hist_h = dialog_h - th*3 - 2;
   for (int i=0; i<num_buckets; i++) {
+    int bar_x = hist_x + i*bucket_w;
+    painter.fillRect(QRect(bar_x, hist_y-hist_h, bucket_w-1, hist_h), HISTOGRAM_BAR_BG_COLOR);
     if (buckets[i] > 0) {
-      int bar_x = hist_x + i*bucket_w;
       int bar_h = hist_h * (buckets[i] / (float)num_durations);
       int bar_y = hist_y - bar_h;
-      painter.fillRect(QRect(bar_x, bar_y, bucket_w-1, bar_h), QColor(255,0,0)/*+*/);
+      painter.fillRect(QRect(bar_x, bar_y, bucket_w-1, bar_h), node->color);
     }
-    /*+*/
   }
 
   // Draw min ave and max
@@ -485,7 +491,8 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
     char val_text[40];
     sprintf(val_text, "%0.3f", adjusted_time);
     QString text = " " + QString(val_text) + " " + time_units;
-    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+    painter.drawText(dialog_x, dialog_y+th*(num_lines-2), dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, " min");
   }
   { // Ave
     uint64_t units_factor;
@@ -494,7 +501,8 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
     char val_text[40];
     sprintf(val_text, "%0.3f", adjusted_time);
     QString text = QString(val_text) + " " + time_units;
-    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignCenter, text);
+    painter.drawText(dialog_x, dialog_y+th*(num_lines-2), dialog_w, th, Qt::AlignCenter, text);
+    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignCenter, "average");
   }
   { // Max
     uint64_t units_factor;
@@ -503,7 +511,8 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
     char val_text[40];
     sprintf(val_text, "%0.3f", adjusted_time);
     QString text = QString(val_text) + " " + time_units + " ";
-    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, text);
+    painter.drawText(dialog_x, dialog_y+th*(num_lines-2), dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, text);
+    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, "max ");
   }
 }
 

@@ -25,12 +25,19 @@ class EventsView : public QWidget
   Q_OBJECT
 
 public:
+  enum MouseMode {
+    MOUSE_MODE_EVENT_INFO,
+    MOUSE_MODE_EVENT_HISTOGRAM,
+    MOUSE_MODE_TIME_SHIFT,
+  };
+
   EventsView(QWidget *parent=0);
   ~EventsView();
   void updateLineHeight();
   void getTimeRange(double *percent_visible_ret, double *percent_offset_ret);
   void updateTimeOffset(double percent_offset);
   bool timeRangeSelected();
+  void setMouseMode(MouseMode mouse_mode);
 
 protected:
   void paintEvent(QPaintEvent *event);
@@ -54,12 +61,6 @@ public slots:
   void rebuildAndUpdate();
 
 private:
-  enum MouseMode {
-    MOUSE_MODE_EVENT_INFO,
-    MOUSE_MODE_EVENT_HISTOGRAM,
-    MOUSE_MODE_TIME_ADJUST,
-  };
-
   QPixmap logo;
   QMap<QString,QPixmap> icon_map;
   int line_h = 0;
