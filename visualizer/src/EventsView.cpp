@@ -27,6 +27,7 @@
 #define ROLLOVER_TEXT_COLOR QColor(50, 50, 50)
 #define ROLLOVER_TITLE_COLOR QColor(125, 125, 125)
 #define ROLLOVER_SEPARATOR_COLOR QColor(175, 175, 175)
+#define ROW_HIGHLIGHT_COLOR2 QColor(0, 0, 0, 15)
 
 EventsView::EventsView(QWidget *parent) : QWidget(parent) {
   // Track mouse when not pressed
@@ -209,7 +210,7 @@ static uint32_t findEventIndexAtTime(Events *events, EventTreeNode *node, uint64
   // See if before first event
   uint32_t first_event_index = node->event_indices[first];
   Event *first_event = &events->event_buffer[first_event_index];
-  if (time < first_event->time) return first;
+  if (time <= first_event->time) return first;
 
   // See if after last event
   uint32_t last_event_index = node->event_indices[last];
@@ -250,8 +251,6 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
     // Remember the row geometry
     QRect row_rect = QRect(0,y,w,line_h);
     parent->events_row_rect = row_rect;
-
-    /*+ highlight row if mouse in histogram mode */
 
     // Highlight row if selected (selected in hierarchy view)
     if (parent->row_selected) {
@@ -336,7 +335,7 @@ static QPixmap drawEventIcon(int height, QColor color) {
   return pixmap;
 }
 
-uint32_t EventsView::calculateHistogram(int num_buckets, double *buckets, EventTreeNode *node, Events *events, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret) {
+uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, Events *events, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret) {
   EventInfo *event_info = &events->event_info_list[node->event_info_index];
 
   // Get the first visible event
@@ -400,8 +399,8 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
   QFontMetrics fm = painter.fontMetrics();
   int th = fm.height();
   int m = th / 2;
-  int num_lines = 8;
-  int dialog_w = fm.horizontalAdvance("999.999 usecs   999.999 usecs   999.999 usecs");
+  int num_lines = 12;
+  int dialog_w = fm.horizontalAdvance("9999.999 usecs   9999.999 usecs   9999.999 usecs");
   int dialog_h = th*num_lines;
   int dialog_x = mouse_location.x() + m;
   int dialog_y = mouse_location.y() + m;
@@ -433,7 +432,8 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
   if (!image_icon.isNull()) {
     painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
     icon_offset = m+image_icon.width();
-    painter.drawPixmap(dialog_x+m, dialog_y, image_icon.width(), image_icon.height(), image_icon);
+    int image_w = th * image_icon.width() / (float)image_icon.height();
+    painter.drawPixmap(dialog_x+m, dialog_y, image_w, th, image_icon);
     painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
   }
 
@@ -451,20 +451,36 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
   }
 
   // Calculate histogram
-  int num_buckets = (w-2) / th;
-  double buckets[num_buckets] = {0};
+  int bucket_w = th / 3;
+  if (bucket_w <= 1) bucket_w = 2;
+  int num_buckets = (w-2) / bucket_w;
+  uint32_t buckets[num_buckets];
+  for (int i=0; i<num_buckets; i++) buckets[i] = 0;
   uint64_t min, ave, max;
   uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, &min, &ave, &max);
 
   // Draw number of events
   painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, QString::number(num_durations) + " events ");
 
-  /*+ Draw histogram */
+  // Draw histogram
+  int hist_x = dialog_x + (dialog_w - bucket_w*num_buckets)/2;
+  //*+*/printf("dialog_w=%d, bucket_w*num_buckets=%d, dialog_x=%d, hist_x=%d\n", dialog_w, bucket_w*num_buckets, dialog_x, hist_x);
+  int hist_y = dialog_y + dialog_h - th;
+  int hist_h = dialog_h - th*2;
+  for (int i=0; i<num_buckets; i++) {
+    if (buckets[i] > 0) {
+      int bar_x = hist_x + i*bucket_w;
+      int bar_h = hist_h * (buckets[i] / (float)num_durations);
+      int bar_y = hist_y - bar_h;
+      painter.fillRect(QRect(bar_x, bar_y, bucket_w-1, bar_h), QColor(255,0,0)/*+*/);
+    }
+    /*+*/
+  }
 
   // Draw min ave and max
   { // Min
     uint64_t units_factor;
-    QString time_units = getTimeUnitsAndFactor(min, 1, &units_factor); /*+ not getting first event */
+    QString time_units = getTimeUnitsAndFactor(min, 1, &units_factor);
     double adjusted_time = min / (double)units_factor;
     char val_text[40];
     sprintf(val_text, "%0.3f", adjusted_time);
@@ -558,7 +574,8 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   if (!image_icon.isNull()) {
     painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
     icon_offset = m+image_icon.width();
-    painter.drawPixmap(dialog_x+m, dialog_y, image_icon.width(), image_icon.height(), image_icon);
+    int image_w = th * image_icon.width() / (float)image_icon.height();
+    painter.drawPixmap(dialog_x+m, dialog_y, image_w, th, image_icon);
     painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
   }
 
@@ -791,8 +808,13 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       }
     }
     if (node_with_mouse != NULL) {
-      /*+*/drawEventInfo(painter, node_with_mouse, events_with_mouse);
-      //*+*/drawEventHistogram(painter, node_with_mouse, events_with_mouse);
+      if (mouse_mode == MOUSE_MODE_EVENT_HISTOGRAM) {
+	painter.fillRect(node_with_mouse->events_row_rect, ROW_HIGHLIGHT_COLOR2);
+	drawEventHistogram(painter, node_with_mouse, events_with_mouse);
+      } else if (mouse_mode == MOUSE_MODE_EVENT_INFO) {
+	painter.fillRect(node_with_mouse->events_row_rect, ROW_HIGHLIGHT_COLOR2);
+	drawEventInfo(painter, node_with_mouse, events_with_mouse);
+      }
     }
   }
 }

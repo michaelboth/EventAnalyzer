@@ -17,6 +17,7 @@
  
 #include <QWidget>
 #include <QPixmap>
+#include <QMap>
 #include "EventTree.hpp"
 
 class EventsView : public QWidget
@@ -53,6 +54,12 @@ public slots:
   void rebuildAndUpdate();
 
 private:
+  enum MouseMode {
+    MOUSE_MODE_EVENT_INFO,
+    MOUSE_MODE_EVENT_HISTOGRAM,
+    MOUSE_MODE_TIME_ADJUST,
+  };
+
   QPixmap logo;
   QMap<QString,QPixmap> icon_map;
   int line_h = 0;
@@ -68,13 +75,14 @@ private:
   int selected_time_range_x2 = -1;
   bool rebuild_frame_buffer = true;
   QImage frame_buffer;
+  MouseMode mouse_mode = MOUSE_MODE_EVENT_INFO;
 
   void prepareIcon(QString filename, bool recolor, QColor color);
   void drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *tree, int &line_index, int ancestor_open);
   EventTreeNode *mouseOnEventsLine(EventTreeNode *parent);
   void drawEventInfo(QPainter &painter, EventTreeNode *node, Events *events);
   void drawEventHistogram(QPainter &painter, EventTreeNode *node, Events *events);
-  uint32_t calculateHistogram(int num_buckets, double *buckets, EventTreeNode *node, Events *events, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret);
+  uint32_t calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, Events *events, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret);
 };
 
 #endif
