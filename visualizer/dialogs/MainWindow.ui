@@ -482,7 +482,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="profilingView" native="true">
+             <widget class="UtilizationView" name="profilingView" native="true">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -725,6 +725,12 @@
    <class>EventsHeader</class>
    <extends>QWidget</extends>
    <header>EventsHeader.hpp</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>UtilizationView</class>
+   <extends>QWidget</extends>
+   <header>UtilizationView.hpp</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

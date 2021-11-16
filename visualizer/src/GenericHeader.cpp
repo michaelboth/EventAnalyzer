@@ -16,6 +16,8 @@
 #include "GenericHeader.hpp"
 #include "main.hpp"
 
+/*+ USE nice colors? Maybe a gradiant? */
+
 GenericHeader::GenericHeader(QWidget *parent) : QWidget(parent) {
   // Nothing to do
 }

@@ -250,6 +250,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
   int w = width();
   int y = -v_offset + line_index * line_h;
   parent->events_row_rect = QRect();
+  parent->utilization = 0.0;
 
   // only draw if visible
   if (y > -line_h && y < h) {
@@ -270,6 +271,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
 
       // Draw events
       int prev_x = 0;
+      uint64_t prev_time = 0;
       bool prev_is_start = false;
       EventInfo *event_info = &events->event_info_list[parent->event_info_index];
       painter->setPen(QPen(parent->color, 1, Qt::SolidLine));
@@ -278,6 +280,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
       int y4 = y + (int)(line_h * 0.6f);
       int y5 = y + (int)(line_h * 0.8f);
       int range_h = y4 - y3 + 1;
+      uint64_t total_time_usage = 0;
       for (uint32_t i=first_visible_event_index; i<=last_visible_event_index; i++) {
         uint32_t event_index = parent->event_indices[i];
         Event *event = &events->event_buffer[event_index];
@@ -299,12 +302,19 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
         if (!is_start && prev_is_start && x > prev_x) {
           int range_w = x - prev_x;
           painter->fillRect(QRect(prev_x,y3,range_w,range_h), parent->color);
+	  // Accumulate time usage, to be displayed in the utilization column
+	  {
+	    uint64_t t1 = std::min(std::max(prev_time, start_time), end_time);
+	    uint64_t t2 = std::min(std::max(event->time, start_time), end_time);
+	    total_time_usage += t2-t1;
+	  }
         }
         // Remember some stuff
+        prev_time = event->time;
         prev_is_start = is_start;
         prev_x = x;
       }
-      /*+ record usage to tree, to later display in profiling view, and emit signal when done drawing */
+      parent->utilization = total_time_usage / (double)(end_time - start_time);
     }
 
     // Draw separator line
@@ -577,12 +587,12 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   } else if (node->tree_node_type == TREE_NODE_IS_THREAD) {
     image_icon = node->is_open ? icon_map["hierarchy_opened_thread.png"] : icon_map["hierarchy_closed_thread.png"];
   } else {
-    image_icon = drawEventIcon(th, node->color);
+    image_icon = drawEventIcon(th, node->color); /*+ G_pixels_per_point */
   }
   int icon_offset = 0;
   if (!image_icon.isNull()) {
     painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
-    icon_offset = m+image_icon.width();
+    icon_offset = m+image_icon.width(); /*+ G_pixels_per_point */
     int image_w = th * image_icon.width() / (float)image_icon.height();
     painter.drawPixmap(dialog_x+m, dialog_y, image_w, th, image_icon);
     painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
@@ -677,7 +687,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
         text += "," + QString(events->function_name_list[prev_event->function_name_index]);
         text += "():" + QString::number(prev_event->line_number);
       }
-      painter.drawText(dialog_x, dialog_y, dialog_w-m*2, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+      painter.drawText(dialog_x, dialog_y, dialog_w-m*2, th, Qt::AlignLeft | Qt::AlignVCenter, text); /*+ ... at begining */
     }
     dialog_y += th;
     if (has_next_event) {
@@ -718,6 +728,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     emit visibleTimeRangeChanged(0, 0); // Signal to the header
     emit selectionTimeRangeChanged(0);  // Signal to the header
     emit timeRangeSelectionChanged();   // Signal to the toolbar widgets
+    emit utilizationRecalculated();     // Signal to utilization column
     return;
   }
 
@@ -759,6 +770,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
 
   // Make sure the frame buffer is the correct size
   if (frame_buffer.width() != w || frame_buffer.height() != h) {
+    /*+ G_pixels_per_point */
     frame_buffer = QImage(w, h, QImage::Format_ARGB32);
     rebuild_frame_buffer = true;
   }
@@ -777,6 +789,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       EventTree *event_tree = i.value();
       drawHierarchyLine(&painter2, event_tree->events, event_tree->tree, line_index, true);
     }
+    emit utilizationRecalculated();
   }
   painter.drawImage(QRect(0,0,w,h), frame_buffer);
 

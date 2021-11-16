@@ -51,6 +51,7 @@ signals:
   void timeRangeSelectionChanged();
   void visibleTimeRangeChanged(uint64_t start_time, uint64_t end_time); // Used to update the time units
   void selectionTimeRangeChanged(uint64_t elapsed_time); // Used to update the header's selection range
+  void utilizationRecalculated();
 
 public slots:
   void updateVOffset(int offset);

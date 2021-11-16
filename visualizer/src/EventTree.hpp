@@ -50,6 +50,7 @@ public:
   QRect hierarchy_row_rect;
   QRect folder_rect;
   bool row_selected = false;
+  double utilization = 0.0;
   QList<EventTreeNode*> children;
   EventTreeNode *parent = NULL;
   bool isAncestorCollapsed();

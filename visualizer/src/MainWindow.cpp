@@ -55,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->profilingHeader->updateHeight();
   ui->hierarchyView->updateLineHeight();
   ui->eventsView->updateLineHeight();
+  ui->profilingView->updateLineHeight();
   ui->hierarchyHeader->setTitle("Event Files");
   ui->profilingHeader->setTitle("Utilization");
 
@@ -190,6 +191,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->eventsHScroll->setStyleSheet(hscroll_advanced_attrs);
   ui->profilingHScroll->setStyleSheet(hscroll_simple_attrs);
 
+  // Hide the profiling scroll but maintain the geometry
+  ui->profilingHScroll->setRange(0, 0);
+  ui->profilingHScroll->setEnabled(false);
+
   // Create the list of tool buttons
   QList<QToolButton *> tool_buttons = {
     // Hierarcy toolbar
@@ -287,12 +292,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   this->connect(ui->hierarchyHScroll, SIGNAL(valueChanged(int)), ui->hierarchyView, SLOT(updateHOffset(int)));
   this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->hierarchyView, SLOT(updateVOffset(int)));
   this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->eventsView, SLOT(updateVOffset(int)));
+  this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->profilingView, SLOT(updateVOffset(int)));
   this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), this, SLOT(setWidgetUsability()));
   this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), ui->eventsView, SLOT(rebuildAndUpdate()));
   this->connect(ui->eventsView, SIGNAL(timeRangeChanged()), this, SLOT(updateEventsScrollRange()));
   this->connect(ui->eventsView, SIGNAL(timeRangeSelectionChanged()), this, SLOT(setWidgetUsability()));
   this->connect(ui->eventsView, SIGNAL(visibleTimeRangeChanged(uint64_t,uint64_t)), ui->eventsHeader, SLOT(updateUnits(uint64_t,uint64_t)));
   this->connect(ui->eventsView, SIGNAL(selectionTimeRangeChanged(uint64_t)), ui->eventsHeader, SLOT(updateSelectionRange(uint64_t)));
+  this->connect(ui->eventsView, SIGNAL(utilizationRecalculated()), ui->profilingView, SLOT(update()));
   this->connect(ui->zoomToAllButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomToAll()));
   this->connect(ui->zoomInButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomIn()));
   this->connect(ui->zoomOutButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomOut()));
@@ -687,6 +694,7 @@ void MainWindow::on_increaseFontSizeButton_clicked() {
     ui->profilingHeader->updateHeight();
     ui->hierarchyView->updateLineHeight();
     ui->eventsView->updateLineHeight();
+    ui->profilingView->updateLineHeight();
     setWidgetUsability();
     updateHierarchyScrollbars();
     updateViews();
@@ -701,6 +709,7 @@ void MainWindow::on_decreaseFontSizeButton_clicked() {
     ui->profilingHeader->updateHeight();
     ui->hierarchyView->updateLineHeight();
     ui->eventsView->updateLineHeight();
+    ui->profilingView->updateLineHeight();
     setWidgetUsability();
     updateHierarchyScrollbars();
     updateViews();
@@ -776,10 +785,6 @@ void MainWindow::updateEventsScrollRange() {
     ui->eventsHScroll->setEnabled(max > 0);
   }
 
-  /*+ profiling scroll */
-  ui->profilingHScroll->setRange(0, 0);
-  ui->profilingHScroll->setEnabled(false);
-
   setWidgetUsability();
 }
 
@@ -794,6 +799,5 @@ void MainWindow::updateEventsTimeOffset(int scroll_offset) {
 
 void MainWindow::updateViews() {
   ui->hierarchyView->update();
-  ui->eventsView->rebuildAndUpdate();
-  /*+ profiling */
+  ui->eventsView->rebuildAndUpdate(); // This will send a signal to update the utilization column
 }
