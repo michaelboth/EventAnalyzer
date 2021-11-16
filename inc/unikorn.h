@@ -63,9 +63,11 @@ typedef struct {
 
 /* Flush format (stored as binary since millions of events might be stored):
   -------------------------------------------------
-  - HEADER: does not change from flush to flush
+  | HEADER: does not change from flush to flush   |
   -------------------------------------------------
   (bool)           is_big_endian
+  (uint16_t)       version_major
+  (uint16_t)       version_minor
   (bool)           is_threaded
   (bool)           includes_instance
   (bool)           includes_value
@@ -81,7 +83,7 @@ typedef struct {
     (uint16_t)       num_name_chars
     (char[])         chars
   -------------------------------------------------
-  - DATA: may be different with each flush
+  | DATA: may be different with each flush        |
   -------------------------------------------------
   (uint16_t)       file_name_count            (0 if record_file_location==false)
     (uint16_t)       num_chars
@@ -91,7 +93,7 @@ typedef struct {
     (char[])         chars
   (uint16_t)       thread_id_count            (0 if is_threaded==false)
     (uint64_t)       thread_id
-  (uint16_t)       num_open_folders           (stack of folders that were already open before the first event to be saved)
+  (uint16_t)       num_open_folders           (stack of folders that were already open before the first event in the record buffer)
     (uint16_t)       folder id
   (uint32_t)       event_count
     (uint64_t)       elapsed time since clocks base time

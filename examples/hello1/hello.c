@@ -182,7 +182,7 @@ int main() {
   free(number_list);
   free(quick_sort_list);
   free(bubble_sort_list);
-  printf("Events were recorded to the file '%s'. Use the Unikorn GUI to view the results.\n", flush_info.filename);
+  printf("Events were recorded to the file '%s'. Use the Unikorn Viewer to view the results.\n", flush_info.filename);
 
   return 0;
 }

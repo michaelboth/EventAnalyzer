@@ -53,7 +53,7 @@
 #define MAGIC_VALUE2 987654321   // Use to partically validate the data structure
 #define CLOSE_FOLDER_ID 0        // Reserved ID
 #define INITIAL_LIST_SIZE 10
-//*+*/#define ENABLE_ASSERTS only use with recording functions
+#define ENABLE_ASSERTS  /*+ only use with recording functions to help optimize call speed */
 
 //#define PRINT_INIT_INFO
 //#define PRINT_FLUSH_INFO
@@ -457,10 +457,14 @@ static void flushEvents(EventObject *object) {
 #endif
   assert(object->flush(object->flush_user_data, &is_big_endian, sizeof(is_big_endian)));
 
-  /*+ version
-    #define UK_API_VERSION_MAJOR 1
-    #define UK_API_VERSION_MINOR 0
-  */
+  // Version
+  uint16_t major = UK_API_VERSION_MAJOR;
+  uint16_t minor = UK_API_VERSION_MINOR;
+#ifdef PRINT_FLUSH_INFO
+  printf("  version: %d.%d\n", major, minor);
+#endif
+  assert(object->flush(object->flush_user_data, &major, sizeof(major)));
+  assert(object->flush(object->flush_user_data, &minor, sizeof(minor)));
 
   // Miscellanyous info
 #ifdef PRINT_FLUSH_INFO
@@ -714,6 +718,7 @@ void ukDestroy(void *object_ref) {
   free(object);
 }
 
+// IMPORTANT: Use this to test the performance of recording events
 //#define TEST_OVERHEAD
 /*+ optimize recording */
 #ifdef TEST_OVERHEAD
@@ -862,7 +867,6 @@ void ukRecordEvent(void *object_ref, uint16_t event_id, double value, const char
 void ukRecordFolder(void *object_ref, uint16_t folder_id) {
   EventObject *object = (EventObject *)object_ref;
   /*+ separate functions for threaded */
-  /*+ hide asserts */
   assert(object->magic_value1 == MAGIC_VALUE1);
   assert(object->magic_value2 == MAGIC_VALUE2);
 #ifdef PRINT_RECORD_INFO
@@ -877,7 +881,7 @@ void ukRecordFolder(void *object_ref, uint16_t folder_id) {
   if (object->is_threaded) pthread_mutex_lock(&object->mutex);
 #endif
   pushCurrentFolderStack(object, folder_id);
-  /*+ just record time, id , and instance */
+  /*+ just record time, id, and instance */
   recordEvent(object, folder_id, 0, instance, L_unused_name, L_unused_name, 0);
 #ifdef ALLOW_THREADING
   if (object->is_threaded) pthread_mutex_unlock(&object->mutex);

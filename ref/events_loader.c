@@ -97,13 +97,18 @@ Events *loadEventsFile(const char *filename) {
   Events *object = calloc(1, sizeof(Events));
   assert(object != NULL);
 
-  // Get the event parameters
+  // Get endian
   bool is_big_endian = readBool(file);
   bool swap_endian = (is_big_endian != isBigEndian());
-  /*+ get version
-    MAJOR
-    MINOR
-  */
+
+  // Get and verify version
+  uint16_t version_major = readUint16(swap_endian, file);
+  uint16_t version_minor = readUint16(swap_endian, file);
+  // Currently only supporting version 1.0
+  assert(version_major == 1);
+  assert(version_minor == 0);
+
+  // Get the event parameters
   object->is_threaded = readBool(file);
   object->includes_instance = readBool(file);
   object->includes_value = readBool(file);

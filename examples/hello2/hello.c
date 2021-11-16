@@ -92,7 +92,7 @@ int main() {
   free(quick_sort_list);
   free(bubble_sort_list);
 #ifdef INSTRUMENT_APP
-  printf("Events were recorded to the file '%s'. Use the Unikorn GUI to view the results.\n", filename);
+  printf("Events were recorded to the file '%s'. Use the Unikorn Viewer to view the results.\n", filename);
 #else
   printf("Event recording is not enabled.\n");
 #endif

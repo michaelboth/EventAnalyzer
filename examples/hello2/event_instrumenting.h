@@ -28,6 +28,7 @@ static UkEventInfo L_events[] = {
 #endif
 
 // Overall
+/*+ move into C++ wrapper */
 #define EVENTS_GLOBAL_INSTANCE extern void *G_instance     // Use this in every file that need to record events
 #ifdef DEFINE_FOLDERS_AND_EVENTS
   #define EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location) initEventIntrumenting(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, 0, NULL, sizeof(L_events) / sizeof(UkEventInfo), L_events)
