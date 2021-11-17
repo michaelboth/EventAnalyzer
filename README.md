@@ -6,7 +6,7 @@ With the increased complexity of modern hardware and software, optimizing an app
 Unikorn is a C API and graphical visualizer (Windows, Mac, and Linux). These are the simple steps to discovering the behaviour of your application:
 1. Instrument your application with custom events (names and colors), a clock, and output stream to flush the events
 2. Run your application; make sure the events get flushed
-3. View the events in the visualizer
+3. View the events in the Unikorn Viewer
 <img src="docs/UnikornViewer.png" alt="Logo" style="width:900px;"/>
 
 ## Building Unikorn's C Library
@@ -204,5 +204,18 @@ ref/events_loader.c       # Code for load a .events file
 ref/events_loader.h       # Header file for events_loader.c
 ```
 
-## Visualizing Events with the GUI
-To be completed, please stand by...
+## Visualizing Events with the Unikorn Viewer
+The Unikorn Viewer is written in C++ using the Qt framework (www.qt.io).
+### Linux (gcc), Mac (xCode command line)
+```
+> cd unikorn/visualizer
+> qmake
+> make
+> ./UnikornViewer
+```
+### Windows (Visual Studio Qt console window)
+```
+> cd unikorn\visualizer
+> qmake
+> nmake
+```
