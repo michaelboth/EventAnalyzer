@@ -4,9 +4,10 @@
 With the increased complexity of modern hardware and software, optimizing an application for performance is sometimes like trying to find a **unicorn**. Going green is more important than ever. Stop accepting poor performing software or using more hardware to fix bad performance. Unikorn is easy to use, and should be part of daily development from the application's inception to distribution.
 <br><br>
 Unikorn is a C API and graphical visualizer (Windows, Mac, and Linux). These are the simple steps to discovering the behaviour of your application:
-1. Instrument your application with custom events (names and colors)
-2. Run your application; make sure the events get flushed to a file
+1. Instrument your application with custom events (names and colors), a clock, and output stream to flush the events
+2. Run your application; make sure the events get flushed
 3. View the events in the visualizer
+<img src="docs/UnikornViewer.png" alt="Logo" style="width:900px;"/>
 
 ## Building Unikorn's C Library
 ### Linux (gcc), Mac (xCode command line)
@@ -15,7 +16,7 @@ Unikorn is a C API and graphical visualizer (Windows, Mac, and Linux). These are
 > make RELEASE=Yes THREAD_SAFE=Yes
 ```
 ### Windows (Visual Studio console window)
-Unikorn's API can optionally be thread safe, and if so require Posix threads. Visual Studio does not have support for Posix tthreads, so you'll need to download and build it:
+Unikorn's API can optionally be thread safe, and if so requires Posix threads. Visual Studio does not have native support for Posix threads, so you'll need to download and build it:
 1. Get the source code from: https://sourceforge.net/projects/pthreads4w/
 2. Unzip, rename to 'pthreads4w' and put in the C:\ folder
 3. Start a Visual Studio x64 native shell
@@ -25,18 +26,18 @@ Unikorn's API can optionally be thread safe, and if so require Posix threads. Vi
 ```
 4. Build the Unikorn API
 ```
-> cd unikorn/lib
+> cd unikorn\lib
 > nmake -f windows.Makefile RELEASE=Yes THREAD_SAFE=Yes
 ```
 ## Instrumenting Your Application with Events
 I'll step through the ```examples/hello1/``` example to get you familiar with event instrumentation.
-First, include the Unikorn header file plus some standard header files:
+First, include the Unikorn header file plus some helpful standard header files:
 ```C
 #include "unikorn.h"
 #include <stdio.h>
 #include <stdlib.h>
 ```
-Unikorn can record folders and events. Folders are just containers for holding groups of events, but are not required. Folders (if any) must be defined first. Each folder is assigned one ID and events are assigned a start ID and an end ID. IDs must start with 1 and each subsequent ID must be +1. Using a C `enum` makes this easy.  For this example, no folders will be defined, and we'll create events for two different sort routines:
+Unikorn can record folders and events. Folders are just containers for holding groups of events, but are not required. Folders (if any) must be defined first. Each folder is assigned an ID and events are assigned a start ID and an end ID. IDs must start with 1 and each subsequent ID must be +1. Using a C `enum` makes this easy.  For this example, no folders will be defined, and we'll create events for two different sort routines:
 ```C
 enum {
   // Folders
@@ -47,7 +48,7 @@ enum {
   BUBBLE_SORT_END_ID
 };
 ```
-Next, define the folders (none for this example) and events. Folders only need a name, and evends need a name and color:
+Next, define the events. Evends need a name and color:
 ```C
 UkEventInfo events[] = {
   { "Quick Sort",  QUICK_SORT_START_ID,  QUICK_SORT_END_ID,  UK_BLUE},
@@ -60,9 +61,9 @@ UkAttrs attrs = {
   .max_event_count = 10000,     // Max number of events that can be stored in the circular buffer
   .flush_when_full = false,     // Only record when the app explicitly calls ukFlush();
   .is_threaded = true,          // Record the thread ID; each thread will be displayed as a folder in the GUI
-  .record_instance = true,      // Record the couter indicating how many times this event was recorded
-  .record_value = true,         // Record a 64 bit double value with the event
-  .record_file_location = true, // Record file name, function name, and line number where the event was recorded
+  .record_instance = true,      // Record the counter indicating how many times this event was recorded
+  .record_value = true,         // Record a helpful 64 bit double value with the event
+  .record_file_location = true, // Record the file name, function name, and line number where the event was recorded
   .folder_info_count = 0,
   .folder_info_list = NULL,
   .event_info_count = sizeof(events) / sizeof(UkEventInfo),
@@ -101,7 +102,7 @@ uint64_t getEventTime() {
   return (total_nanoseconds - base_time); // Return a time starting from 0 indicating when the app started
 }
 ```
-Next, need to create the output stream method. Typical this would be a file or a socket. For this example, we'll use a file:
+Next, need to create the output stream method. Typically this would be a file or a socket. For this example, we'll use a file:
 ```C
 typedef struct {
   const char *filename;
@@ -150,11 +151,11 @@ FileFlushInfo flush_info = {
   .append_subsequent_saves = false
 };
 ```
-All the components needed for creating the event session are now defined. Now, create the event recording session:
+All the components needed for creating the event recording session are now defined, so let's create it:
 ```C
 void *session = ukCreate(&attrs, getEventTime, &flush_info, prepareFileFlush, fileFlush, finishFileFlush);
 ```
-Now that the event session is created, you can start using the events throughout your application. To record a section of source code, just record the start and stop events. This can be done around a single line of source code, or around a large block of source code:
+Now that the event session is created, you can start using the events throughout your application. To record a interesting section of source code, just record the start and stop events. This can be done around a single line of source code, or around a large block of source code:
 ```C
 // Quick sort
 ukRecordEvent(session, QUICK_SORT_START_ID, 0.0, __FILE__, __FUNCTION__, __LINE__);
@@ -166,11 +167,11 @@ ukRecordEvent(session, BUBBLE_SORT_START_ID, 0.0, __FILE__, __FUNCTION__, __LINE
 myBubbleSort(bubble_sort_list, num_elements);
 ukRecordEvent(session, BUBBLE_SORT_END_ID, 0.0, __FILE__, __FUNCTION__, __LINE__);
 ```
-This is an overly simple example, you might have dozzens of different types of events, and you might record millions of events over a short period of time. When you're ready to flush the events to file, all you need to do is:
+This is an overly simple example, you might have dozzens of different types of events, and you might record millions of events over a short period of time. When you're ready to flush the events to file (this may be time consuming), all you need to do is:
 ```C
 ukFlush(session);
 ```
-When you're done recording events, then you just need to free the event session:
+When you're done recording events, then free the event session:
 ```C
 ukDestroy(session);
 ```
@@ -181,12 +182,14 @@ Example | Description
 --------|------------
 hello1 | The most basic example where everything is in a single C file
 hello2 | A more realistic example where the event instrumentation comes from separate files, from the ```ref/``` folder, that can easily be excluded if event profiling is not needed
-test_clock | Determine the overhead and precision of a clock that is used with event recording. Helpfull if you need to use your own custom clock.
-record_and_load | Not really a customer example. It's used to validate the unikorn API and event loading file ref/events_loader.c
+test_clock | Determine the overhead and precision of a clock that is used with event recording. Helpful if you need to characterize the behaviour of the clock.
+record_and_load | A simple example used to validate the unikorn API and event loading file ```ref/events_loader.c```
 
+## Developing Your Application
+Event analysis should be used at all stages of development. Event instrumentation should be implementated in a way that is easy to compile out when not needed.
 Some of the examples use reference files, from the ```ref/``` folder, in order to make it easy to remove event profiling when compiling. The files used with instrumenting are:
 ```
-ref/event_clocks.c           # Some useful clock for various OSes
+ref/event_clocks.c           # Some useful clocks for various OSes
 ref/event_clocks.h           # Header file for event_clocks.c
 ref/event_file_flush.c       # Functions to flush events to a file
 ref/event_file_flush.h       # Header file for event_file_flush.c
@@ -194,12 +197,12 @@ ref/event_instrumenting.c    # Reusable code for defining an event session
 ```
 The examples that use the reference files also use a header file ```event_instrumenting.h``` to define the custom folders and events.
 
-The files used with event loading are:
+## Developing a Visualizer or Post-Processing Application
+If you are creating you own graphical visualizer, or just need to load events into some post-processing application, you can use the supplied source code to load the events:
 ```
-ref/events_loader.c       # Reusable code for loaded an .events file
+ref/events_loader.c       # Code for load a .events file
 ref/events_loader.h       # Header file for events_loader.c
 ```
-This can be used by a GUI visualizer
 
 ## Visualizing Events with the GUI
 To be completed, please stand by...
