@@ -21,8 +21,8 @@
 /*+ allow right click menu in events area to zoom? Or maybe just use keyboard shortcuts */
 /*+ show vertical line where mouse is along with time in header, instead of in info dialog? */
 
+#define MIN_SELECTION_PIXEL_DIFF 5
 #define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
-#define MIN_SELECTION_PIXEL_DIFF 10
 #define ROLLOVER_BG_COLOR QColor(200, 200, 200, 220)
 #define ROLLOVER_TEXT_COLOR QColor(50, 50, 50)
 #define ROLLOVER_TITLE_COLOR QColor(125, 125, 125)
@@ -298,9 +298,10 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
         int top_y = is_start ? y2 : y3;
         int bottom_y = is_start ? y4 : y5;
         painter->drawLine(x, top_y, x, bottom_y);
-        // Draw range
-        if (!is_start && prev_is_start && x > prev_x) {
+        // Draw duration between start and end
+        if (!is_start && prev_is_start) {
           int range_w = x - prev_x;
+          /*+ if overlapped with other events, then draw very tall */
           painter->fillRect(QRect(prev_x,y3,range_w,range_h), parent->color);
 	  // Accumulate time usage, to be displayed in the utilization column
 	  {
@@ -414,8 +415,8 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
   QFontMetrics fm = painter.fontMetrics();
   int th = fm.height();
   int m = th / 2;
-  int num_lines = 13;
-  int dialog_w = fm.horizontalAdvance("9999.999 usecs   9999.999 usecs   9999.999 usecs");
+  int num_lines = 14;
+  int dialog_w = fm.horizontalAdvance("9999.999 usecs      9999.999 usecs      9999.999 usecs");
   int dialog_h = th*num_lines;
   int dialog_x = mouse_location.x() + m;
   int dialog_y = mouse_location.y() + m;
@@ -488,6 +489,7 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
     painter.fillRect(QRect(bar_x, hist_y-hist_h, bucket_w-1, hist_h), HISTOGRAM_BAR_BG_COLOR);
     if (buckets[i] > 0) {
       int bar_h = hist_h * (buckets[i] / (float)num_durations);
+      if (bar_h == 0) bar_h = 1;
       int bar_y = hist_y - bar_h;
       painter.fillRect(QRect(bar_x, bar_y, bucket_w-1, bar_h), node->color);
     }
@@ -539,8 +541,8 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   int th = fm.height();
   int m = th / 2;
   int num_lines = 8;
-  int instance_w = fm.horizontalAdvance(" Instance ");
-  int dialog_w = fm.horizontalAdvance(" filename::function_name::line_number ");
+  int instance_w = fm.horizontalAdvance("  Instance  ");
+  int dialog_w = fm.horizontalAdvance(" xxxfilename::function_name::line_numberxxx ");
   int dialog_h = th*num_lines;
   int dialog_x = mouse_location.x() + m;
   int dialog_y = mouse_location.y() + m;

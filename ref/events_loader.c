@@ -116,6 +116,7 @@ Events *loadEventsFile(const char *filename) {
 #ifdef PRINT_LOAD_INFO
   printf("%s():\n", __FUNCTION__);
   printf("  is_big_endian = %s (need endian swapping = %s)\n", is_big_endian ? "yes" : "no", swap_endian ? "yes" : "no");
+  printf("  version = %d.%d\n", version_major, version_minor);
   printf("  is_threaded = %s\n", object->is_threaded ? "yes" : "no");
   printf("  includes_instance = %s\n", object->includes_instance ? "yes" : "no");
   printf("  includes_value = %s\n", object->includes_value ? "yes" : "no");
@@ -228,17 +229,36 @@ Events *loadEventsFile(const char *filename) {
 #endif
   }
 
-  // Events
+  // Allocate events buffer
   object->event_count = readUint32(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
   printf("  event_count = %d\n", object->event_count);
 #endif
-  object->event_buffer = malloc(object->event_count*sizeof(Event));
+  object->event_buffer = malloc((object->num_open_folders+object->event_count)*sizeof(Event));
   assert(object->event_buffer != NULL);
-  for (uint16_t i=0; i<object->event_count; i++) {
-    Event *event = &object->event_buffer[i];
+
+  // Create folder events for open folders
+  uint32_t event_index = 0;
+  for (uint16_t i=0; i<object->num_open_folders; i++) {
+    Event *event = &object->event_buffer[event_index];
+    event->time = 0;
+    event->event_id = object->folder_id_list[i];
+#ifdef PRINT_LOAD_INFO
+    printf("  Adding open folder event: ID = %d\n", event->event_id);
+#endif
+    event_index++;
+  }
+
+  // Load events
+  for (uint32_t i=0; i<object->event_count; i++) {
+    Event *event = &object->event_buffer[event_index];
     event->time = readUint64(swap_endian, file);
-    /*+ verify time is increasing or else state clock is not monotonic. Maybe adjust remaining times? */
+    // Verify time is increasing
+    if (i>0) {
+      /*+ verify time is increasing or else state clock is not monotonic. Maybe adjust remaining times? */
+      Event *prev_event = &object->event_buffer[event_index-1];
+      assert(event->time > prev_event->time);
+    }
     event->event_id = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
     printf("    time = %"UINT64_FORMAT", ID = %d\n", event->time, event->event_id);
@@ -269,7 +289,9 @@ Events *loadEventsFile(const char *filename) {
       printf("    file = '%s', function = '%s', line = %d\n", object->file_name_list[event->file_name_index], object->function_name_list[event->function_name_index], event->line_number);
 #endif
     }
+    event_index++;
   }
+  object->event_count += object->num_open_folders;
 
   int rc = fclose(file);
   assert(rc == 0);

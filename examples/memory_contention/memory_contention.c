@@ -15,29 +15,29 @@
 
 // Globals only visibile in this file, and shared by all threads
 static int num_elements = 0;
-static bool do_processing = false;
+static volatile bool do_processing = false; // Using volatile to avoid compiler optimizations
 static uint16_t sqrt_start_id = 0;
 static uint16_t sqrt_end_id = 0;
 static uint16_t sleep_start_id = 0;
 static uint16_t sleep_end_id = 0;
-static double *A = NULL;
+static double **A_list = NULL;
 static double **B_list = NULL;
 
 static void *thread(void *user_data) {
-  uint16_t B_index = (uint16_t)((uint64_t)user_data);
-  /*+*/printf("Thread: B_index=%d\n", B_index);
-  double *B = B_list[B_index];
+  uint16_t index = (uint16_t)((uint64_t)user_data);
+  double *A = A_list[index];
+  double *B = B_list[index];
 
   // CPU expensive but simple and responsive way to do a barrier
   while (!do_processing);
 
   // Do the processing
   while (do_processing) {
-    //*+*/ukRecordEvent(G_instance, sqrt_start_id, 0.0, __FILE__, __FUNCTION__, __LINE__);
+    ukRecordEvent(G_instance, sqrt_start_id, 0.0, __FILE__, __FUNCTION__, __LINE__);
     for (int i=0; i<num_elements; i++) {
       B[i] = sqrt(A[i]);
     }
-    //*+*/ukRecordEvent(G_instance, sqrt_end_id, 0.0, __FILE__, __FUNCTION__, __LINE__);
+    ukRecordEvent(G_instance, sqrt_end_id, 0.0, __FILE__, __FUNCTION__, __LINE__);
   }
 
   return NULL;
@@ -76,18 +76,21 @@ int main(int argc, char **argv) {
   event_types[1].rgb = UK_RED;
   // Create event session
   const char *filename = "./memory_contention.events";
-  uint32_t max_events = 10000;
-  bool flush_when_full = false; /*+ test open folders */
+  uint32_t max_events = 1000000;
+  bool flush_when_full = false;
   bool is_threaded = true;
-  bool record_instance = false;
+  bool record_instance = true;
   bool record_value = false;
   bool record_location = false;
   initEventIntrumenting(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, num_folders, folders, num_event_types, event_types);
 
   // Allocate vectors
-  A = malloc(num_elements*sizeof(double));
-  for (int i=0; i<num_elements; i++) {
-    A[i] = fabs((double)rand());
+  A_list = malloc(max_threads*sizeof(double*));
+  for (int i=0; i<max_threads; i++) {
+    A_list[i] = malloc(num_elements*sizeof(double));
+    for (int j=0; j<num_elements; j++) {
+      A_list[i][j] = fabs((double)rand());
+    }
   }
   B_list = malloc(max_threads*sizeof(double*));
   for (int i=0; i<max_threads; i++) {
@@ -102,7 +105,6 @@ int main(int argc, char **argv) {
     // Start threads
     pthread_t thread_ids[num_concurrent_threads];
     for (uint16_t i=0; i<num_concurrent_threads; i++) {
-      /*+*/printf("Start thread: %d\n", i);
       pthread_create(&thread_ids[i], NULL, thread, (void *)((uint64_t)i));
     }
 
@@ -115,7 +117,9 @@ int main(int argc, char **argv) {
 #ifdef _WIN32
     Sleep(1000);
 #else
+    printf("Sleep\n");
     sleep(1);
+    printf("Done sleeping\n");
 #endif
     ukRecordEvent(G_instance, sleep_end_id, 0.0, __FILE__, __FUNCTION__, __LINE__);
 
@@ -133,16 +137,15 @@ int main(int argc, char **argv) {
   // Clean up
   ukFlush(G_instance);
   finalizeEventIntrumenting();
-  free(A);
   for (int i=0; i<max_threads; i++) {
+    free(A_list[i]);
     free(B_list[i]);
   }
+  free(A_list);
   free(B_list);
-  /*+
   for (int i=0; i<max_threads; i++) {
-    free(folders[i].name);
+    free((void *)folders[i].name);
   }
-  */
   printf("Events were recorded to the file '%s'. Use the Unikorn Viewer to view the results.\n", filename);
 
   return 0;

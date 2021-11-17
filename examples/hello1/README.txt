@@ -3,13 +3,21 @@ Refer to the 'hello2' example to see a better design.
 
 BUILD & RUN
 Linux & Mac:
-  > make
-  > ./hello
-  View 'hello.events' With Unikorn GUI
-  > make clean
+  Build:
+    > make
+  Run:
+    > ./hello
+  View Results:
+    View 'hello.events' With Unikorn Viewer
+  Clean:
+    > make clean
 
 Windows:
-  > nmake -f windows.Makefile [THREAD_SAFE=Yes]
-  > hello
-  View 'hello.events' With Unikorn GUI
-  > nmake -f windows.Makefile clean
+  Build:
+    > nmake -f windows.Makefile [THREAD_SAFE=Yes]
+  Run:
+    > hello
+  View Results:
+    View 'hello.events' With Unikorn Viewer
+  Clean:
+    > nmake -f windows.Makefile clean

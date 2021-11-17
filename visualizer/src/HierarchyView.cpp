@@ -18,6 +18,8 @@
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
 
+/*+ when folder collapsed, scrollbar not adjusted */
+
 #define EXTRA_MARGIN_FACTOR 0.5f
 
 HierarchyView::HierarchyView(QWidget *parent) : QWidget(parent) {

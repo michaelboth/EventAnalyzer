@@ -24,3 +24,4 @@ Visualizer:
       - Draw lines between alignments
       - Allow clock drift correction between files via scaling first and last event instances
     - Selected row can use prev/next buttons
+  - Search for largest duration/gap

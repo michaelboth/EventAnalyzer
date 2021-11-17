@@ -9,9 +9,12 @@ Linux & Mac:
   With instrumentation (one of):
     > make INSTRUMENT_APP=Yes CLOCK=gettimeofday
     > make INSTRUMENT_APP=Yes CLOCK=clock_gettime
-  > ./record_and_load record_and_load.events 100 auto_flush=no threaded=yes instance=yes value=yes location=yes
-  View the record_and_load.events file With Unikorn GUI
-  > make clean
+  Run:
+    > ./record_and_load record_and_load.events 100 auto_flush=no threaded=yes instance=yes value=yes location=yes
+  View Results:
+    View the record_and_load.events file With Unikorn Viewer
+  Clean:
+    > make clean
 
 Windows:
   Without instrumentation:
@@ -19,6 +22,9 @@ Windows:
   With instrumentation (one of):
     > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=QueryPerformanceCounter
     > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=ftime
-  > record_and_load record_and_load.events 100 auto_flush=no threaded=yes instance=yes value=yes location=yes
-  View 'record_and_load.events' With Unikorn GUI
-  > nmake -f windows.Makefile clean
+  Run:
+    > record_and_load record_and_load.events 100 auto_flush=no threaded=yes instance=yes value=yes location=yes
+  View Results:
+    View 'record_and_load.events' With Unikorn Viewer
+  Clean:
+    > nmake -f windows.Makefile clean

@@ -564,7 +564,7 @@ static void flushEvents(EventObject *object) {
     for (uint16_t i=0; i<thread_id_count; i++) {
       uint64_t thread_id = thread_id_list[i];
 #ifdef PRINT_FLUSH_INFO
-      printf("    %llu\n", thread_id);
+      printf("    %" UINT64_FORMAT "\n", thread_id);
 #endif
       assert(object->flush(object->flush_user_data, &thread_id, sizeof(thread_id)));
     }
@@ -810,20 +810,23 @@ static void recordEvent(EventObject *object, uint16_t event_id, double value, ui
   uint64_t t8 = getTime();
 #endif
 
-  // Do the book keeping
+  // Set the index of the next future event
   object->curr_event_index = (object->curr_event_index + 1) % object->max_event_count;
+
+  // See if time to flush or wrap
   bool buffer_is_full = object->num_stored_events == object->max_event_count;
-  if (buffer_is_full) {
+  if (buffer_is_full) { // This can only happen if auto flush is off
     // Buffer was already full, must not have auto save enabled
-    if (event_id < object->folder_info_count) {
+    object->first_unsaved_event_index = (object->first_unsaved_event_index + 1) % object->max_event_count;
+    // If the event is a folder, need to remember it was opened/closed
+    if (replaced_event_id < object->folder_info_count) {
       // This is a folder event
       if (replaced_event_id == CLOSE_FOLDER_ID) {
-	popStartingFolderStack(object);
+        popStartingFolderStack(object);
       } else {
-	pushStartingFolderStack(object, event_id);
+        pushStartingFolderStack(object, replaced_event_id);
       }
     }
-    object->first_unsaved_event_index = (object->first_unsaved_event_index + 1) % object->max_event_count;
   } else {
     // Buffer not yet full
     object->num_stored_events++;
@@ -831,6 +834,7 @@ static void recordEvent(EventObject *object, uint16_t event_id, double value, ui
       flushEvents(object);
     }
   }
+
 #ifdef TEST_OVERHEAD
   uint64_t t9 = getTime();
   printf("time diff 1: %zd ns\n", t2-t1);

@@ -2,17 +2,20 @@ CFLAGS       := -std=gnu99 -Wall -Werror -pthread -I. -I../../inc -I../../ref
 CFLAGS       += -O2
 #CFLAGS       += -g -O0
 C_OBJS       := memory_contention.o event_clocks.o event_file_flush.o event_instrumenting.o
+
 HEADER_FILES := unikorn.h event_clocks.h event_file_flush.h
-LIBS         := -L ../../lib -lunikorn -pthread
+LIBS         := -L ../../lib -lunikorn -pthread -lm
 TARGET       := memory_contention
 
-# Define a clock
-ifeq ($(CLOCK),clock_gettime)
-    CFLAGS += -DUSE_clock_gettime_MONOTONIC_CLOCK
-else ifeq ($(CLOCK),gettimeofday)
-    CFLAGS += -DUSE_gettimeofday_CLOCK
-else
-    $(error 'ERROR: need to specify one of: CLOCK=clock_gettime, CLOCK=gettimeofday')
+ifneq ($(MAKECMDGOALS),clean)
+    # Define a clock
+    ifeq ($(CLOCK),clock_gettime)
+        CFLAGS += -DUSE_clock_gettime_MONOTONIC_CLOCK
+    else ifeq ($(CLOCK),gettimeofday)
+        CFLAGS += -DUSE_gettimeofday_CLOCK
+    else
+        $(error 'ERROR: need to specify one of: CLOCK=clock_gettime, CLOCK=gettimeofday')
+    endif
 endif
 
 vpath %.c ../../ref

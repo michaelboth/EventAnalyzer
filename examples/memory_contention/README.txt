@@ -1,29 +1,41 @@
-This is a more realistic example compared to 'examples/hello1'
+This example is used to show how see memory contention via visualizing events
 
-It's better to encapsulate the setup of event instrumentation in separate files in order to
-allow multiple applications to share the same setup code. Only the 'event_instrumenting.h'
-header file needs to be customized per application.
-
-Also, instrumentation can easily be compiled out once it's no longer needed.
+Memory contention can come from different angles:
+  Cache levels
+  Main memory
 
 
 BUILD & RUN
 Linux & Mac:
-  Without instrumentation:
-    > make
-  With instrumentation (one of):
-    > make INSTRUMENT_APP=Yes CLOCK=gettimeofday
-    > make INSTRUMENT_APP=Yes CLOCK=clock_gettime
-  > ./hello
-  View 'hello.events' With Unikorn GUI
-  > make clean
+  Build with one of:
+    > make CLOCK=gettimeofday
+    > make CLOCK=clock_gettime
+  Run
+    > ./memory_contention <num_threads> <num_elements>
+    > ./memory_contention 1 1000
+    > ./memory_contention 1 10000
+    > ./memory_contention 1 100000
+    > ./memory_contention 8 1000
+    > ./memory_contention 8 10000
+    > ./memory_contention 8 100000
+  View Results:
+    View 'memory_contention.events' With Unikorn Viewer
+  Clean:
+    > make clean
 
 Windows:
-  Without instrumentation:
-    > nmake -f windows.Makefile [THREAD_SAFE=Yes]
-  With instrumentation (one of):
-    > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=QueryPerformanceCounter
-    > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=ftime
-  > hello
-  View 'hello.events' With Unikorn GUI
-  > nmake -f windows.Makefile clean
+  Build with one of:
+    > nmake -f windows.Makefile THREAD_SAFE=Yes CLOCK=QueryPerformanceCounter
+    > nmake -f windows.Makefile THREAD_SAFE=Yes CLOCK=ftime
+  Run
+    > memory_contention <num_threads> <num_elements>
+    > memory_contention 1 1000
+    > memory_contention 1 10000
+    > memory_contention 1 100000
+    > memory_contention 8 1000
+    > memory_contention 8 10000
+    > memory_contention 8 100000
+  View Results:
+    View 'memory_contention.events' With Unikorn Viewer
+  Clean:
+    > nmake -f windows.Makefile clean

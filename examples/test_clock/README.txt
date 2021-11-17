@@ -10,13 +10,17 @@ Linux & Mac:
     > make CLOCK=gettimeofday
     > make CLOCK=clock_gettime
     > make CLOCK=<your-own-clock>
-  > ./test_clock
-  > make clean
+  Run:
+    > ./test_clock
+  Clean:
+    > make clean
 
 Windows:
   Choose one of:
     > nmake -f windows.Makefile CLOCK=ftime
     > nmake -f windows.Makefile CLOCK=QueryPerformanceCounter
     > nmake -f windows.Makefile CLOCK=<your-own-clock>
-  > test_clock
-  > nmake -f windows.Makefile clean
+  Run:
+    > test_clock
+  Clean:
+    > nmake -f windows.Makefile clean
