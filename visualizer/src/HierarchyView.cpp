@@ -162,6 +162,8 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
       painter->setRenderHint(QPainter::SmoothPixmapTransform,false);
     }
     x += arrow_w;
+    /*+ if events line then line up icon with parent */
+    /*+ move text closer to icon */
 
     // Draw image
     if (!image_icon.isNull()) {

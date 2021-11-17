@@ -42,16 +42,18 @@ static bool isBigEndian() {
 
 static bool readBool(FILE *file) {
   bool value;
-  if (1 == fread(&value, sizeof(value), 1, file)) {
+  if (1 != fread(&value, sizeof(value), 1, file)) {
     printf("End of event file reached before all expected data processed\n");
+    exit(0);
   }
   return value;
 }
 
 static uint16_t readUint16(bool swap_endian, FILE *file) {
   uint16_t value;
-  if (1 == fread(&value, sizeof(value), 1, file)) {
+  if (1 != fread(&value, sizeof(value), 1, file)) {
     printf("End of event file reached before all expected data processed\n");
+    exit(0);
   }
   if (swap_endian) value = bswap_16(value);
   return value;
@@ -59,8 +61,9 @@ static uint16_t readUint16(bool swap_endian, FILE *file) {
 
 static uint32_t readUint32(bool swap_endian, FILE *file) {
   uint32_t value;
-  if (1 == fread(&value, sizeof(value), 1, file)) {
+  if (1 != fread(&value, sizeof(value), 1, file)) {
     printf("End of event file reached before all expected data processed\n");
+    exit(0);
   }
   if (swap_endian) value = bswap_32(value);
   return value;
@@ -68,8 +71,9 @@ static uint32_t readUint32(bool swap_endian, FILE *file) {
 
 static uint64_t readUint64(bool swap_endian, FILE *file) {
   uint64_t value;
-  if (1 == fread(&value, sizeof(value), 1, file)) {
+  if (1 != fread(&value, sizeof(value), 1, file)) {
     printf("End of event file reached before all expected data processed\n");
+    exit(0);
   }
   if (swap_endian) value = bswap_64(value);
   return value;
@@ -77,8 +81,9 @@ static uint64_t readUint64(bool swap_endian, FILE *file) {
 
 static double readDouble(bool swap_endian, FILE *file) {
   double value;
-  if (1 == fread(&value, sizeof(value), 1, file)) {
+  if (1 != fread(&value, sizeof(value), 1, file)) {
     printf("End of event file reached before all expected data processed\n");
+    exit(0);
   }
   if (swap_endian) {
     uint64_t *uint64_ptr = (uint64_t *)&value;
@@ -88,8 +93,9 @@ static double readDouble(bool swap_endian, FILE *file) {
 }
 
 static void readChars(char *name, int num_name_chars, FILE *file) {
-  if (1 == fread(name, num_name_chars, 1, file)) {
+  if (1 != fread(name, num_name_chars, 1, file)) {
     printf("End of event file reached before all expected data processed\n");
+    exit(0);
   }
 }
 

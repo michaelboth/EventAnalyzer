@@ -569,11 +569,13 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     painter.drawLine(dialog_x+col1_x, dialog_y+th*3, dialog_x+col1_x, dialog_y+th*6);
     painter.drawLine(dialog_x+col2_x, dialog_y+th*3, dialog_x+col2_x, dialog_y+th*6);
   }
+  /*+ change background colors slightly for static info */
   // Titles
   painter.setPen(QPen(ROLLOVER_TITLE_COLOR, 1, Qt::SolidLine));
   painter.drawText(dialog_x, dialog_y+th*1, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Mouse Over Time ");
   if (!ancestor_collapsed) {
     painter.drawText(dialog_x, dialog_y+th*2, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Duration/Gap ");
+    /*+ maybe dont bother showing event time or mouse time */
     painter.drawText(dialog_x+col1_x, dialog_y+th*3, col2_x-col1_x, th, Qt::AlignCenter, "Time");
     painter.drawText(dialog_x+col1_x, dialog_y+th*4, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
     painter.drawText(dialog_x+col1_x, dialog_y+th*5, col2_x-col1_x, th, Qt::AlignCenter, "Value");
