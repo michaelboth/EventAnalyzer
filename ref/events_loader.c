@@ -42,34 +42,44 @@ static bool isBigEndian() {
 
 static bool readBool(FILE *file) {
   bool value;
-  assert(1 == fread(&value, sizeof(value), 1, file));
+  if (1 == fread(&value, sizeof(value), 1, file)) {
+    printf("End of event file reached before all expected data processed\n");
+  }
   return value;
 }
 
 static uint16_t readUint16(bool swap_endian, FILE *file) {
   uint16_t value;
-  assert(1 == fread(&value, sizeof(value), 1, file));
+  if (1 == fread(&value, sizeof(value), 1, file)) {
+    printf("End of event file reached before all expected data processed\n");
+  }
   if (swap_endian) value = bswap_16(value);
   return value;
 }
 
 static uint32_t readUint32(bool swap_endian, FILE *file) {
   uint32_t value;
-  assert(1 == fread(&value, sizeof(value), 1, file));
+  if (1 == fread(&value, sizeof(value), 1, file)) {
+    printf("End of event file reached before all expected data processed\n");
+  }
   if (swap_endian) value = bswap_32(value);
   return value;
 }
 
 static uint64_t readUint64(bool swap_endian, FILE *file) {
   uint64_t value;
-  assert(1 == fread(&value, sizeof(value), 1, file));
+  if (1 == fread(&value, sizeof(value), 1, file)) {
+    printf("End of event file reached before all expected data processed\n");
+  }
   if (swap_endian) value = bswap_64(value);
   return value;
 }
 
 static double readDouble(bool swap_endian, FILE *file) {
   double value;
-  assert(1 == fread(&value, sizeof(value), 1, file));
+  if (1 == fread(&value, sizeof(value), 1, file)) {
+    printf("End of event file reached before all expected data processed\n");
+  }
   if (swap_endian) {
     uint64_t *uint64_ptr = (uint64_t *)&value;
     *uint64_ptr = bswap_64(*uint64_ptr);
@@ -78,7 +88,9 @@ static double readDouble(bool swap_endian, FILE *file) {
 }
 
 static void readChars(char *name, int num_name_chars, FILE *file) {
-  assert(1 == fread(name, num_name_chars, 1, file));
+  if (1 == fread(name, num_name_chars, 1, file)) {
+    printf("End of event file reached before all expected data processed\n");
+  }
 }
 
 Events *loadEventsFile(const char *filename) {
@@ -91,7 +103,6 @@ Events *loadEventsFile(const char *filename) {
   if (file == NULL) return NULL;
 #endif
 
-  /*+ get total bytes of file to know if the full events fill was recorded or accidentally truncated */
   /*+ allow loading multiple flushes */
 
   Events *object = calloc(1, sizeof(Events));
@@ -250,14 +261,17 @@ Events *loadEventsFile(const char *filename) {
   }
 
   // Load events
+  uint64_t time_adjustment = 0;
   for (uint32_t i=0; i<object->event_count; i++) {
     Event *event = &object->event_buffer[event_index];
-    event->time = readUint64(swap_endian, file);
+    event->time = readUint64(swap_endian, file) + time_adjustment;
     // Verify time is increasing
     if (i>0) {
-      /*+ verify time is increasing or else state clock is not monotonic. Maybe adjust remaining times? */
       Event *prev_event = &object->event_buffer[event_index-1];
-      assert(event->time > prev_event->time);
+      if (event->time < prev_event->time) {
+	printf("The event file contains an event that go backwards in time. Following event times will be adjusted to be forward in time. To avoid this, use a monotonically increasing clock when recording.\n");
+	time_adjustment += (prev_event->time - event->time);
+      }
     }
     event->event_id = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
