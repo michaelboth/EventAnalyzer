@@ -16,8 +16,6 @@
 #include "GenericHeader.hpp"
 #include "main.hpp"
 
-/*+ USE nice colors? Maybe a gradiant? */
-
 GenericHeader::GenericHeader(QWidget *parent) : QWidget(parent) {
   // Nothing to do
 }
@@ -50,14 +48,17 @@ void GenericHeader::paintEvent(QPaintEvent* /*event*/) {
   // Define painter
   QPainter painter(this);
 
+  // Create a nice gradient
+  QLinearGradient linearGrad(QPointF(0, 0), QPointF(0, h));
+  linearGrad.setColorAt(0,   QColor(50, 50, 50));
+  linearGrad.setColorAt(1,   QColor(125, 125, 125));
+
   // Fill in background
-  painter.fillRect(QRect(0,0,w,h), HIERARCHY_PROFILING_BG_COLOR);
+  painter.setPen(Qt::NoPen);
+  painter.setBrush(linearGrad);
+  painter.drawRect(QRect(0,0,w,h));
 
   // Title
-  painter.setPen(QPen(HEADER_TEXT_COLOR, 1, Qt::SolidLine));
+  painter.setPen(QPen(QColor(200, 200, 200), 1, Qt::SolidLine));
   painter.drawText(0, 0, w, h, Qt::AlignCenter, title);
-
-  // Separator at bottom
-  painter.setPen(QPen(HEADER_SEPARATOR_COLOR, 1, Qt::SolidLine));
-  painter.drawLine(0, h-1, w-1, h-1);
 }

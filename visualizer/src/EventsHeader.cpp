@@ -59,7 +59,7 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
   QPainter painter(this);
 
   // Fill in background
-  painter.fillRect(QRect(0,0,w,h), EVENTS_BG_COLOR);
+  painter.fillRect(QRect(0,0,w,h), HIERARCHY_PROFILING_BG_COLOR);
 
   // Separator at bottom
   painter.setPen(QPen(HEADER_SEPARATOR_COLOR, 1, Qt::SolidLine));
@@ -67,28 +67,6 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
 
   // Check if any units to draw
   if (start_time == end_time) return;
-
-  // Draw selected range (only report elasped time)
-  if (selected_time_range > 0) {
-    int selection_times_to_display = 1;
-    uint64_t selection_units_factor;
-    QString selection_units = getTimeUnitsAndFactor(selected_time_range, selection_times_to_display, &selection_units_factor);
-    // Highlight the background
-    QColor time_selection_color = TIME_SELECTION_COLOR;
-    time_selection_color.setAlpha(20);
-    painter.fillRect(QRect(0,0,w,h), time_selection_color);
-    // Draw the time
-    QFont font = painter.font();
-    font.setBold(true);
-    painter.setFont(font);
-    painter.setPen(QPen(TIME_SELECTION_COLOR, 1, Qt::SolidLine));
-    double adjusted_selection_time = selected_time_range / (double)selection_units_factor;
-    char val_text[40];
-    sprintf(val_text, "%0.1f", adjusted_selection_time);
-    QString text = QString(val_text) + " " + selection_units;
-    painter.drawText(0, 0, w, h, Qt::AlignCenter, text);
-    return;
-  }
 
   // Determine how many times can be displayed in the header
   QFontMetrics fm = painter.fontMetrics();
@@ -114,7 +92,7 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
       painter.drawText(x+1, 0, w, h, Qt::AlignLeft | Qt::AlignBottom, text);
     } else {
       // Tick mark
-      painter.setPen(QPen(HEADER_SEPARATOR_COLOR, 1, Qt::SolidLine));
+      painter.setPen(QPen(HEADER_TEXT_COLOR, 1, Qt::SolidLine));
       painter.drawLine(x, 0, x, h);
       // Additional time
       painter.setPen(QPen(HEADER_TEXT_COLOR, 1, Qt::SolidLine));
@@ -124,5 +102,27 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
       QString text = "+" + QString(val_text) + " " + units;
       painter.drawText(x+1, 0, w, h, Qt::AlignLeft | Qt::AlignBottom, text);
     }
+  }
+
+  // Draw selected range (only report elasped time)
+  if (selected_time_range > 0) {
+    int selection_times_to_display = 1;
+    uint64_t selection_units_factor;
+    QString selection_units = getTimeUnitsAndFactor(selected_time_range, selection_times_to_display, &selection_units_factor);
+    // Highlight the background
+    QColor time_selection_color = TIME_SELECTION_COLOR;
+    time_selection_color.setAlpha(175);
+    painter.fillRect(QRect(0,0,w,h), time_selection_color);
+    // Draw the time
+    QFont font = painter.font();
+    font.setBold(true);
+    painter.setFont(font);
+    painter.setPen(QPen(Qt::white, 1, Qt::SolidLine));
+    double adjusted_selection_time = selected_time_range / (double)selection_units_factor;
+    char val_text[40];
+    sprintf(val_text, "%0.1f", adjusted_selection_time);
+    QString text = QString(val_text) + " " + selection_units;
+    painter.drawText(0, 0, w, h, Qt::AlignCenter, text);
+    return;
   }
 }

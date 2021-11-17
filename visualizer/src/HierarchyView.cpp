@@ -18,9 +18,7 @@
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
 
-/*+ when folder collapsed, scrollbar not adjusted */
-
-#define EXTRA_MARGIN_FACTOR 0.5f
+#define EXTRA_MARGIN_FACTOR 0.25f
 
 HierarchyView::HierarchyView(QWidget *parent) : QWidget(parent) {
   // Track mouse when not pressed
@@ -160,10 +158,8 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
       painter->setRenderHint(QPainter::SmoothPixmapTransform,true);
       painter->drawPixmap(x, y, arrow_w, line_h, arrow_icon);
       painter->setRenderHint(QPainter::SmoothPixmapTransform,false);
+      x += arrow_w;
     }
-    x += arrow_w;
-    /*+ if events line then line up icon with parent */
-    /*+ move text closer to icon */
 
     // Draw image
     if (!image_icon.isNull()) {
@@ -194,9 +190,10 @@ void HierarchyView::mousePressEvent(QMouseEvent *event) {
     // Check if on folder to open/close
     if (node_with_mouse->folder_rect.contains(event->x(), event->y())) {
       node_with_mouse->is_open = !node_with_mouse->is_open;
+      emit hierarchyHeightChanged();
     }
   }
-  emit hierarchyChanged(); // Tool button, to close selected files, may need to be enabled
+  emit hierarchySelectionChanged(); // The tool button, to close selected files, may need to be enabled
   update();
 }
 

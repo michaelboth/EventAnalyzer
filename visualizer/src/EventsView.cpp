@@ -271,6 +271,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
 
       // Draw events
       int prev_x = 0;
+      int prev_prev_x = 0;
       uint64_t prev_time = 0;
       bool prev_is_start = false;
       EventInfo *event_info = &events->event_info_list[parent->event_info_index];
@@ -295,13 +296,17 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
           x_percent = (event->time - start_time) / time_range;
         }
         int x = (int)(x_percent * (w-1));
-        int top_y = is_start ? y2 : y3;
-        int bottom_y = is_start ? y4 : y5;
-        painter->drawLine(x, top_y, x, bottom_y);
+        if (x == prev_prev_x) {
+          // Overlapped with other events, so draw tall event
+          painter->drawLine(x, y+1, x, y+line_h-2);
+        } else {
+          int top_y = is_start ? y2 : y3;
+          int bottom_y = is_start ? y4 : y5;
+          painter->drawLine(x, top_y, x, bottom_y);
+        }
         // Draw duration between start and end
         if (!is_start && prev_is_start) {
           int range_w = x - prev_x;
-          /*+ if overlapped with other events, then draw very tall */
           painter->fillRect(QRect(prev_x,y3,range_w,range_h), parent->color);
 	  // Accumulate time usage, to be displayed in the utilization column
 	  {
@@ -313,6 +318,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
         // Remember some stuff
         prev_time = event->time;
         prev_is_start = is_start;
+        prev_prev_x = prev_x;
         prev_x = x;
       }
       parent->utilization = total_time_usage / (double)(end_time - start_time);
@@ -569,13 +575,11 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     painter.drawLine(dialog_x+col1_x, dialog_y+th*3, dialog_x+col1_x, dialog_y+th*6);
     painter.drawLine(dialog_x+col2_x, dialog_y+th*3, dialog_x+col2_x, dialog_y+th*6);
   }
-  /*+ change background colors slightly for static info */
   // Titles
   painter.setPen(QPen(ROLLOVER_TITLE_COLOR, 1, Qt::SolidLine));
   painter.drawText(dialog_x, dialog_y+th*1, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Mouse Over Time ");
   if (!ancestor_collapsed) {
     painter.drawText(dialog_x, dialog_y+th*2, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Duration/Gap ");
-    /*+ maybe dont bother showing event time or mouse time */
     painter.drawText(dialog_x+col1_x, dialog_y+th*3, col2_x-col1_x, th, Qt::AlignCenter, "Time");
     painter.drawText(dialog_x+col1_x, dialog_y+th*4, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
     painter.drawText(dialog_x+col1_x, dialog_y+th*5, col2_x-col1_x, th, Qt::AlignCenter, "Value");

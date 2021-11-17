@@ -56,6 +56,7 @@ private slots:
   void setWidgetUsability();
   void updateEventsScrollRange();
   void updateEventsTimeOffset(int scroll_offset);
+  void updateHierarchyScrollbars();
 
 private:
   Ui::MainWindow *ui;
@@ -69,7 +70,6 @@ private:
   uint32_t totalEventInstances();
   void freeAllEventFiles();
   void updateViews();
-  void updateHierarchyScrollbars();
 };
 
 #endif

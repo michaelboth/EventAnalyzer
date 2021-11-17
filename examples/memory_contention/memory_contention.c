@@ -129,9 +129,7 @@ int main(int argc, char **argv) {
 #ifdef _WIN32
     Sleep(1000);
 #else
-    printf("Sleep\n");
-    sleep(1);
-    printf("Done sleeping\n");
+    usleep(100000);
 #endif
     ukRecordEvent(G_instance, sleep_end_id, 0.0, __FILE__, __FUNCTION__, __LINE__);
 

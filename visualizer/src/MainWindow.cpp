@@ -293,8 +293,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->hierarchyView, SLOT(updateVOffset(int)));
   this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->eventsView, SLOT(updateVOffset(int)));
   this->connect(ui->hierarchyVScroll, SIGNAL(valueChanged(int)), ui->profilingView, SLOT(updateVOffset(int)));
-  this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), this, SLOT(setWidgetUsability()));
-  this->connect(ui->hierarchyView, SIGNAL(hierarchyChanged()), ui->eventsView, SLOT(rebuildAndUpdate()));
+  this->connect(ui->hierarchyView, SIGNAL(hierarchySelectionChanged()), this, SLOT(setWidgetUsability()));
+  this->connect(ui->hierarchyView, SIGNAL(hierarchySelectionChanged()), ui->eventsView, SLOT(rebuildAndUpdate()));
+  this->connect(ui->hierarchyView, SIGNAL(hierarchyHeightChanged()), this, SLOT(updateHierarchyScrollbars()));
   this->connect(ui->eventsView, SIGNAL(timeRangeChanged()), this, SLOT(updateEventsScrollRange()));
   this->connect(ui->eventsView, SIGNAL(timeRangeSelectionChanged()), this, SLOT(setWidgetUsability()));
   this->connect(ui->eventsView, SIGNAL(visibleTimeRangeChanged(uint64_t,uint64_t)), ui->eventsHeader, SLOT(updateUnits(uint64_t,uint64_t)));
@@ -720,7 +721,7 @@ void MainWindow::updateHierarchyScrollbars() {
   int hierarchy_visible_w, hierarchy_actual_w, hierarchy_visible_h, hierarchy_actual_h;
   ui->hierarchyView->calculateGeometry(&hierarchy_visible_w, &hierarchy_actual_w, &hierarchy_visible_h, &hierarchy_actual_h);
 
-  // Set scroll bar ranges
+  // Vertical scrollbar
   {
     int min = 0;
     int max = 0;
@@ -739,6 +740,7 @@ void MainWindow::updateHierarchyScrollbars() {
     ui->hierarchyVScroll->setEnabled(max > 0);
   }
 
+  // Horizontal scrollbar
   {
     int min = 0;
     int max = 0;

@@ -38,7 +38,8 @@ protected:
   void leaveEvent(QEvent *event);
 
 signals:
-  void hierarchyChanged();
+  void hierarchySelectionChanged();
+  void hierarchyHeightChanged();
 
 public slots:
   void updateHOffset(int offset);
