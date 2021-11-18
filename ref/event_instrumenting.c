@@ -45,7 +45,7 @@ void initEventIntrumenting(const char *filename, uint32_t max_events, bool flush
   L_flush_info.filename = filename;
   L_flush_info.file = NULL;
   L_flush_info.events_saved = false;
-  L_flush_info.append_subsequent_saves = false;
+  L_flush_info.append_subsequent_saves = true;
 
   // Create event session
   G_instance = ukCreate(&attrs, getEventTime, &L_flush_info, prepareFileFlush, fileFlush, finishFileFlush);

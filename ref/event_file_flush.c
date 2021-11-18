@@ -32,6 +32,7 @@ bool prepareFileFlush(void *user_data) {
     return false;
   }
 #endif
+  flush_info->events_saved = true;
   return true;
 }
 

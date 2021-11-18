@@ -764,6 +764,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       }
     }
   }
+
   // Zoom in as needed
   if (percent_visible < 1.0) {
     uint64_t elapsed_nanoseconds = end_time - start_time;

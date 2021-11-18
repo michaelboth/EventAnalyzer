@@ -15,6 +15,7 @@
 #include "events_loader.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 #ifdef __APPLE__
   // Mac OS X / Darwin features
   #include <libkern/OSByteOrder.h>
@@ -99,40 +100,52 @@ static void readChars(char *name, int num_name_chars, FILE *file) {
   }
 }
 
-Events *loadEventsFile(const char *filename) {
-#ifdef _WIN32
-  FILE *file;
-  errno_t status = fopen_s(&file, filename, "rb");
-  if (status != 0) return NULL;
-#else
-  FILE *file = fopen(filename, "rb");
-  if (file == NULL) return NULL;
-#endif
-
-  /*+ allow loading multiple flushes */
-
-  Events *object = calloc(1, sizeof(Events));
-  assert(object != NULL);
-
-  // Get endian
-  bool is_big_endian = readBool(file);
-  bool swap_endian = (is_big_endian != isBigEndian());
-
+static void loadEventsHeader(FILE *file, bool first_time_loaded, bool swap_endian, Events *object) {
   // Get and verify version
   uint16_t version_major = readUint16(swap_endian, file);
   uint16_t version_minor = readUint16(swap_endian, file);
   // Currently only supporting version 1.0
   assert(version_major == 1);
   assert(version_minor == 0);
+  if (first_time_loaded) {
+    object->version_major = version_major;
+    object->version_minor = version_minor;
+  } else {
+    assert(object->version_major == version_major);
+    assert(object->version_minor == version_minor);
+  }
 
   // Get the event parameters
-  object->is_threaded = readBool(file);
-  object->includes_instance = readBool(file);
-  object->includes_value = readBool(file);
-  object->includes_file_location = readBool(file);
+  bool is_threaded = readBool(file);
+  if (first_time_loaded) {
+    object->is_threaded = is_threaded;
+  } else {
+    assert(object->is_threaded == is_threaded);
+  }
+  bool includes_instance = readBool(file);
+  if (first_time_loaded) {
+    object->includes_instance = includes_instance;
+  } else {
+    assert(object->includes_instance == includes_instance);
+  }
+  bool includes_value = readBool(file);
+  if (first_time_loaded) {
+    object->includes_value = includes_value;
+  } else {
+    assert(object->includes_value == includes_value);
+  }
+  bool includes_file_location = readBool(file);
+  if (first_time_loaded) {
+    object->includes_file_location = includes_file_location;
+  } else {
+    assert(object->includes_file_location = includes_file_location);
+  }
 #ifdef PRINT_LOAD_INFO
-  printf("%s():\n", __FUNCTION__);
-  printf("  is_big_endian = %s (need endian swapping = %s)\n", is_big_endian ? "yes" : "no", swap_endian ? "yes" : "no");
+  printf("\n");
+  printf("Event File Header: -------------------------------\n");
+  if (!first_time_loaded) printf("  VALIDATING SUBSEQUENT HEADER MATCHES FIRST HEADER\n");
+  bool is_big_endian = swap_endian ? !isBigEndian() : isBigEndian();
+  printf("  file is big endian = %s (need endian swapping = %s)\n", is_big_endian ? "yes" : "no", swap_endian ? "yes" : "no");
   printf("  version = %d.%d\n", version_major, version_minor);
   printf("  is_threaded = %s\n", object->is_threaded ? "yes" : "no");
   printf("  includes_instance = %s\n", object->includes_instance ? "yes" : "no");
@@ -141,47 +154,106 @@ Events *loadEventsFile(const char *filename) {
 #endif
 
   // Folder info
-  object->folder_info_count = readUint16(swap_endian, file);
+  uint16_t folder_info_count = readUint16(swap_endian, file);
+  if (first_time_loaded) {
+    object->folder_info_count = folder_info_count;
+  } else {
+    assert(object->folder_info_count == folder_info_count);
+  }
 #ifdef PRINT_LOAD_INFO
   printf("  folder_info_count = %d\n", object->folder_info_count);
 #endif
-  object->folder_info_list = malloc(object->folder_info_count*sizeof(FolderInfo));
-  assert(object->folder_info_list != NULL);
+  if (first_time_loaded) {
+    object->folder_info_list = malloc(object->folder_info_count*sizeof(FolderInfo));
+    assert(object->folder_info_list != NULL);
+  }
   for (uint16_t i=0; i<object->folder_info_count; i++) {
     FolderInfo *folder = &object->folder_info_list[i];
-    folder->id = readUint16(swap_endian, file);
+    uint16_t id = readUint16(swap_endian, file);
+    if (first_time_loaded) {
+      folder->id = id;
+    } else {
+      assert(folder->id == id);
+    }
     uint16_t num_name_chars = readUint16(swap_endian, file);
-    folder->name = malloc(num_name_chars);
-    assert(folder->name != NULL);
-    readChars(folder->name, num_name_chars, file);
+    if (first_time_loaded) {
+      folder->name = malloc(num_name_chars);
+      assert(folder->name != NULL);
+      readChars(folder->name, num_name_chars, file);
+    } else {
+      assert((uint16_t)strlen(folder->name)+1 == num_name_chars);
+      char ch;
+      for (uint16_t j=0; j<num_name_chars; j++) {
+	readChars(&ch, 1, file);
+	assert(folder->name[j] == ch);
+      }
+    }
 #ifdef PRINT_LOAD_INFO
     printf("    ID=%d, name='%s'\n", folder->id, folder->name);
 #endif
   }
 
   // Event info
-  object->event_info_count = readUint16(swap_endian, file);
+  uint16_t event_info_count = readUint16(swap_endian, file);
+  if (first_time_loaded) {
+    object->event_info_count = event_info_count;
+  } else {
+    assert(object->event_info_count == event_info_count);
+  }
 #ifdef PRINT_LOAD_INFO
   printf("  event_info_count = %d\n", object->event_info_count);
 #endif
-  object->event_info_list = malloc(object->event_info_count*sizeof(EventInfo));
-  assert(object->event_info_list != NULL);
+  if (first_time_loaded) {
+    object->event_info_list = malloc(object->event_info_count*sizeof(EventInfo));
+    assert(object->event_info_list != NULL);
+  }
   for (uint16_t i=0; i<object->event_info_count; i++) {
     EventInfo *event = &object->event_info_list[i];
-    event->start_id = readUint16(swap_endian, file);
-    event->end_id = readUint16(swap_endian, file);
-    event->rgb = readUint16(swap_endian, file);
+    uint16_t start_id = readUint16(swap_endian, file);
+    if (first_time_loaded) {
+      event->start_id = start_id;
+    } else {
+      assert(event->start_id == start_id);
+    }
+    uint16_t end_id = readUint16(swap_endian, file);
+    if (first_time_loaded) {
+      event->end_id = end_id;
+    } else {
+      assert(event->end_id == end_id);
+    }
+    uint16_t rgb = readUint16(swap_endian, file);
+    if (first_time_loaded) {
+      event->rgb = rgb;
+    } else {
+      assert(event->rgb == rgb);
+    }
     uint16_t num_name_chars = readUint16(swap_endian, file);
-    event->name = malloc(num_name_chars);
-    assert(event->name != NULL);
-    readChars(event->name, num_name_chars, file);
+    if (first_time_loaded) {
+      event->name = malloc(num_name_chars);
+      assert(event->name != NULL);
+      readChars(event->name, num_name_chars, file);
+    } else {
+      assert((uint16_t)strlen(event->name)+1 == num_name_chars);
+      char ch;
+      for (uint16_t j=0; j<num_name_chars; j++) {
+	readChars(&ch, 1, file);
+	assert(event->name[j] == ch);
+      }
+    }
 #ifdef PRINT_LOAD_INFO
     printf("    startID=%d, endID=%d, RGB=0x%04x, name='%s'\n", event->start_id, event->end_id, event->rgb, event->name);
 #endif
   }
+}
 
+static void loadEventsData(FILE *file, bool first_time_loaded, bool swap_endian, Events *object) {
+#ifdef PRINT_LOAD_INFO
+  printf("\n");
+  printf("Event File Data: ---------------------------------\n");
+#endif
   if (object->includes_file_location) {
     // File names
+    //*+*/first_time_loaded
     object->file_name_count = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
     printf("  file_name_count = %d\n", object->file_name_count);
@@ -258,7 +330,7 @@ Events *loadEventsFile(const char *filename) {
   uint32_t event_index = 0;
   for (uint16_t i=0; i<object->num_open_folders; i++) {
     Event *event = &object->event_buffer[event_index];
-    event->time = 0;
+    event->time = 0; // IMPORTANT: need to set this value to the first loaded event time... do this after loading events
     event->event_id = object->folder_id_list[i];
 #ifdef PRINT_LOAD_INFO
     printf("  Adding open folder event: ID = %d\n", event->event_id);
@@ -311,7 +383,56 @@ Events *loadEventsFile(const char *filename) {
     }
     event_index++;
   }
+
+  // Set the event times of the inserted open folders
+  Event *first_loaded_event = &object->event_buffer[object->num_open_folders];
+  for (uint16_t i=0; i<object->num_open_folders; i++) {
+    Event *event = &object->event_buffer[i];
+    event->time = first_loaded_event->time;
+  }
   object->event_count += object->num_open_folders;
+}
+
+Events *loadEventsFile(const char *filename) {
+#ifdef _WIN32
+  FILE *file;
+  errno_t status = fopen_s(&file, filename, "rb");
+  if (status != 0) return NULL;
+#else
+  FILE *file = fopen(filename, "rb");
+  if (file == NULL) return NULL;
+#endif
+
+  Events *object = calloc(1, sizeof(Events));
+  assert(object != NULL);
+
+  // Get endian
+  bool first_time_loaded = true;
+  bool swap_endian = false;
+  bool is_big_endian = false;
+  while (true) {
+    // Get the endian
+    if (first_time_loaded) {
+      // Must load something
+      if (1 != fread(&is_big_endian, sizeof(is_big_endian), 1, file)) {
+	printf("End of event file reached before all expected data processed\n");
+	exit(0);
+      }
+      swap_endian = (is_big_endian != isBigEndian());
+    } else {
+      // Trying loading a subsequent flush, which is not required
+      bool subsequent_is_big_endian;
+      if (1 != fread(&subsequent_is_big_endian, sizeof(subsequent_is_big_endian), 1, file)) {
+	// At end of file, so OK to break out of while loop
+	break;
+      }
+      // Was able to load a byte indicating there was a subsequent flush, so load the event info
+      assert(subsequent_is_big_endian == is_big_endian);
+    }
+    loadEventsHeader(file, first_time_loaded, swap_endian, object);
+    loadEventsData(file, first_time_loaded, swap_endian, object);
+    first_time_loaded = false;
+  }
 
   int rc = fclose(file);
   assert(rc == 0);

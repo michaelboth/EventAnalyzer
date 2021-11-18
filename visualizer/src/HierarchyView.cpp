@@ -159,6 +159,9 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
       painter->drawPixmap(x, y, arrow_w, line_h, arrow_icon);
       painter->setRenderHint(QPainter::SmoothPixmapTransform,false);
       x += arrow_w;
+    } else {
+      // Provide a little margin for an event row
+      x += (int)(line_h * EXTRA_MARGIN_FACTOR);
     }
 
     // Draw image

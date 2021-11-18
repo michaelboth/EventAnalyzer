@@ -45,6 +45,8 @@ typedef struct {
 typedef struct {
   // Header
   bool is_threaded;
+  uint16_t version_major;
+  uint16_t version_minor;
   bool includes_instance;
   bool includes_value;
   bool includes_file_location;
