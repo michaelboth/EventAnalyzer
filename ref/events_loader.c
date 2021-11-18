@@ -395,7 +395,6 @@ static void loadEventsData(FILE *file, bool swap_endian, Events *object) {
       num_open_folders = 0;
       num_final_open_folders = 0;
       free(folder_id_list);
-      free(final_folder_id_list);
 #ifdef PRINT_LOAD_INFO
       printf("  Existing folders and expected folders are the same, no need to insert extra folder events\n");
 #endif
@@ -406,7 +405,7 @@ static void loadEventsData(FILE *file, bool swap_endian, Events *object) {
   uint32_t prev_event_count = object->event_count;
   uint32_t event_count = readUint32(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-  printf("  event_count = %d\n", object->event_count);
+  printf("  event_count = %d\n", event_count);
 #endif
   uint32_t event_index = object->event_count;
   object->event_count += event_count;

@@ -11,8 +11,8 @@ Linux & Mac:
     > make INSTRUMENT_APP=Yes CLOCK=clock_gettime
   Run:
     > ./record_and_load record_and_load.events 100 auto_flush=no threaded=yes instance=yes value=yes location=yes
-    > ./record_and_load record_and_load.events 20 auto_flush=no threaded=yes instance=yes value=yes location=yes
-    > ./record_and_load record_and_load.events 20 auto_flush=yes threaded=yes instance=yes value=yes location=yes
+    > ./record_and_load record_and_load.events 17 auto_flush=no threaded=yes instance=yes value=yes location=yes
+    > ./record_and_load record_and_load.events 12 auto_flush=yes threaded=yes instance=yes value=yes location=yes
   View Results:
     View the record_and_load.events file With Unikorn Viewer
   Clean:
@@ -26,8 +26,8 @@ Windows:
     > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=ftime
   Run:
     > record_and_load record_and_load.events 100 auto_flush=no threaded=yes instance=yes value=yes location=yes
-    > record_and_load record_and_load.events 20 auto_flush=no threaded=yes instance=yes value=yes location=yes
-    > record_and_load record_and_load.events 20 auto_flush=yes threaded=yes instance=yes value=yes location=yes
+    > record_and_load record_and_load.events 17 auto_flush=no threaded=yes instance=yes value=yes location=yes
+    > record_and_load record_and_load.events 12 auto_flush=yes threaded=yes instance=yes value=yes location=yes
   View Results:
     View 'record_and_load.events' With Unikorn Viewer
   Clean:
