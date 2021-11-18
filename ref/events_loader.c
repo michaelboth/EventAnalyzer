@@ -246,92 +246,194 @@ static void loadEventsHeader(FILE *file, bool first_time_loaded, bool swap_endia
   }
 }
 
-static void loadEventsData(FILE *file, bool first_time_loaded, bool swap_endian, Events *object) {
+static void loadEventsData(FILE *file, bool swap_endian, Events *object) {
 #ifdef PRINT_LOAD_INFO
   printf("\n");
   printf("Event File Data: ---------------------------------\n");
 #endif
   if (object->includes_file_location) {
     // File names
-    //*+*/first_time_loaded
-    object->file_name_count = readUint16(swap_endian, file);
+    uint16_t file_name_count = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-    printf("  file_name_count = %d\n", object->file_name_count);
+    printf("  file_name_count = %d\n", file_name_count);
 #endif
-    object->file_name_list = malloc(object->file_name_count*sizeof(char *));
-    assert(object->file_name_list != NULL);
-    for (uint16_t i=0; i<object->file_name_count; i++) {
+    for (uint16_t i=0; i<file_name_count; i++) {
       uint16_t num_name_chars = readUint16(swap_endian, file);
-      object->file_name_list[i] = malloc(num_name_chars);
-      assert(object->file_name_list[i] != NULL);
-      readChars(object->file_name_list[i], num_name_chars, file);
+      char *name = malloc(num_name_chars);
+      assert(name != NULL);
+      readChars(name, num_name_chars, file);
 #ifdef PRINT_LOAD_INFO
-      printf("    name='%s'\n", object->file_name_list[i]);
+      printf("    name='%s'\n", name);
 #endif
+      bool found = false;
+      for (uint16_t j=0; j<object->file_name_count; j++) {
+        if (strcmp(object->file_name_list[j], name) == 0) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        object->file_name_count++;
+        object->file_name_list = realloc(object->file_name_list, object->file_name_count*sizeof(char *));
+        assert(object->file_name_list != NULL);
+        object->file_name_list[object->file_name_count-1] = name;
+      } else {
+        free(name);
+      }
     }
 
     // Function names
-    object->function_name_count = readUint16(swap_endian, file);
+    uint16_t function_name_count = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-    printf("  function_name_count = %d\n", object->function_name_count);
+    printf("  function_name_count = %d\n", function_name_count);
 #endif
-    object->function_name_list = malloc(object->function_name_count*sizeof(char *));
-    assert(object->function_name_list != NULL);
-    for (uint16_t i=0; i<object->function_name_count; i++) {
+    for (uint16_t i=0; i<function_name_count; i++) {
       uint16_t num_name_chars = readUint16(swap_endian, file);
-      object->function_name_list[i] = malloc(num_name_chars);
-      assert(object->function_name_list[i] != NULL);
-      readChars(object->function_name_list[i], num_name_chars, file);
+      char *name = malloc(num_name_chars);
+      assert(name != NULL);
+      readChars(name, num_name_chars, file);
 #ifdef PRINT_LOAD_INFO
-      printf("    name='%s'\n", object->function_name_list[i]);
+      printf("    name='%s'\n", name);
 #endif
+      bool found = false;
+      for (uint16_t j=0; j<object->function_name_count; j++) {
+        if (strcmp(object->function_name_list[j], name) == 0) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        object->function_name_count++;
+        object->function_name_list = realloc(object->function_name_list, object->function_name_count*sizeof(char *));
+        assert(object->function_name_list != NULL);
+        object->function_name_list[object->function_name_count-1] = name;
+      } else {
+        free(name);
+      }
     }
   }
 
   // Thread IDs
   if (object->is_threaded) {
-    object->thread_id_count = readUint16(swap_endian, file);
+    uint16_t thread_id_count = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-    printf("  thread_id_count = %d\n", object->thread_id_count);
+    printf("  thread_id_count = %d\n", thread_id_count);
 #endif
-    object->thread_id_list = malloc(object->thread_id_count*sizeof(uint64_t));
-    assert(object->thread_id_list != NULL);
-    for (uint16_t i=0; i<object->thread_id_count; i++) {
-      object->thread_id_list[i] = readUint64(swap_endian, file);
+    for (uint16_t i=0; i<thread_id_count; i++) {
+      uint64_t thread_id = readUint64(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-      printf("    index %d: ID=%"UINT64_FORMAT"\n", i, object->thread_id_list[i]);
+      printf("    index %d: ID=%"UINT64_FORMAT"\n", i, thread_id);
+#endif
+      if (i < object->thread_id_count) {
+        // Verify the thread ID has not changed since the last flush
+        assert(object->thread_id_list[i] == thread_id);
+      } else {
+        // Add the thread ID to the list
+        assert(i == object->thread_id_count);
+        object->thread_id_count++;
+        object->thread_id_list = realloc(object->thread_id_list, object->thread_id_count*sizeof(uint64_t));
+        assert(object->thread_id_list != NULL);
+        object->thread_id_list[i] = thread_id;
+      }
+    }
+  }
+
+  // Open Folders: Stack of folders that were already open before the first event that was saved
+  /*+*/
+  uint16_t num_open_folders = readUint16(swap_endian, file);
+#ifdef PRINT_LOAD_INFO
+  printf("  num_open_folders = %d\n", num_open_folders);
+#endif
+  uint16_t *folder_id_list = NULL;
+  if (num_open_folders > 0) {
+    folder_id_list = malloc(num_open_folders*sizeof(uint16_t));
+    assert(folder_id_list != NULL);
+    for (uint16_t i=0; i<num_open_folders; i++) {
+      folder_id_list[i] = readUint16(swap_endian, file);
+#ifdef PRINT_LOAD_INFO
+      printf("    index = %d: '%s'\n", folder_id_list[i], object->folder_info_list[folder_id_list[i]].name);
 #endif
     }
   }
 
-  // Open Folders
-  object->num_open_folders = readUint16(swap_endian, file);
+  // From the existing events, determine the list of folders that were open after the last event
+  uint16_t num_final_open_folders = 0;
+  uint16_t *final_folder_id_list = NULL;
+  if (object->folder_info_count > 0) {
+    final_folder_id_list = malloc(object->folder_info_count*sizeof(uint16_t));
+    assert(final_folder_id_list != NULL);
+    uint16_t first_event_id = (object->folder_info_count == 0) ? 1 : object->folder_info_count;
+    for (uint32_t i=0; i<object->event_count; i++) {
+      Event *event = &object->event_buffer[i];
+      if (event->event_id < first_event_id) {
+        // This is a folder event
+        if (event->event_id == 0) {
+          // Close folder
+          assert(num_final_open_folders > 0);
+          num_final_open_folders--;
+        } else {
+          // Push folder on stack
+          assert(num_final_open_folders < object->folder_info_count);
+          final_folder_id_list[num_final_open_folders] = event->event_id;
+          num_final_open_folders++;
+        }
+      }
+    }
+  }
+
+  // Compare the final open folders with the expected open folders
+  // NOTE: if the two sets of folders are the same, then no need to create folder events to compensate
+  if (num_open_folders > 0 && num_open_folders == num_final_open_folders) {
+    bool are_equal = true;
+    for (uint16_t i=0; i<num_open_folders; i++) {
+      if (folder_id_list[i] != final_folder_id_list[i]) {
+        are_equal = false;
+        break;
+      }
+    }
+    if (are_equal) {
+      // Can drop the folders since the existing open folder in the previous events are already what is expected
+      num_open_folders = 0;
+      num_final_open_folders = 0;
+      free(folder_id_list);
+      free(final_folder_id_list);
 #ifdef PRINT_LOAD_INFO
-  printf("  num_open_folders = %d\n", object->num_open_folders);
+      printf("  Existing folders and expected folders are the same, no need to insert extra folder events\n");
 #endif
-  object->folder_id_list = malloc(object->num_open_folders*sizeof(uint16_t));
-  assert(object->folder_id_list != NULL);
-  for (uint16_t i=0; i<object->num_open_folders; i++) {
-    object->folder_id_list[i] = readUint16(swap_endian, file);
-#ifdef PRINT_LOAD_INFO
-    printf("    index = %d: '%s'\n", object->folder_id_list[i], object->folder_info_list[object->folder_id_list[i]].name);
-#endif
+    }
   }
 
   // Allocate events buffer
-  object->event_count = readUint32(swap_endian, file);
+  uint32_t event_count = readUint32(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
   printf("  event_count = %d\n", object->event_count);
 #endif
-  object->event_buffer = malloc((object->num_open_folders+object->event_count)*sizeof(Event));
+  Event *prev_event = NULL; // Keep track of the latest event to do time comparisons later
+  if (object->event_count > 0) {
+    prev_event = &object->event_buffer[object->event_count-1];
+  }
+  uint32_t event_index = object->event_count;
+  object->event_count += event_count;
+  object->event_buffer = realloc(object->event_buffer, (num_final_open_folders+num_open_folders+object->event_count)*sizeof(Event));
   assert(object->event_buffer != NULL);
 
-  // Create folder events for open folders
-  uint32_t event_index = 0;
-  for (uint16_t i=0; i<object->num_open_folders; i++) {
+  // Create folder events for closing old folder and opening expected open folders
+  uint32_t first_inserted_folder_event_index = event_index;
+  // Close old folders
+  for (uint16_t i=0; i<num_final_open_folders; i++) {
     Event *event = &object->event_buffer[event_index];
     event->time = 0; // IMPORTANT: need to set this value to the first loaded event time... do this after loading events
-    event->event_id = object->folder_id_list[i];
+    event->event_id = 0; // Reserved ID for close folder
+#ifdef PRINT_LOAD_INFO
+    printf("  Adding close folder event\n");
+#endif
+    event_index++;
+  }
+  // Open new folders
+  for (uint16_t i=0; i<num_open_folders; i++) {
+    Event *event = &object->event_buffer[event_index];
+    event->time = 0; // IMPORTANT: need to set this value to the first loaded event time... do this after loading events
+    event->event_id = folder_id_list[i];
 #ifdef PRINT_LOAD_INFO
     printf("  Adding open folder event: ID = %d\n", event->event_id);
 #endif
@@ -340,16 +442,20 @@ static void loadEventsData(FILE *file, bool first_time_loaded, bool swap_endian,
 
   // Load events
   uint64_t time_adjustment = 0;
-  for (uint32_t i=0; i<object->event_count; i++) {
+  Event *first_loaded_event = NULL;
+  for (uint32_t i=0; i<event_count; i++) {
     Event *event = &object->event_buffer[event_index];
+    if (first_loaded_event == NULL) {
+      first_loaded_event = event;
+    }
     event->time = readUint64(swap_endian, file) + time_adjustment;
     // Verify time is increasing
-    if (i>0) {
-      Event *prev_event = &object->event_buffer[event_index-1];
+    if (prev_event != NULL) {
       if (event->time < prev_event->time) {
 	printf("The event file contains an event that go backwards in time. Following event times will be adjusted to be forward in time. To avoid this, use a monotonically increasing clock when recording.\n");
 	time_adjustment += (prev_event->time - event->time);
       }
+      prev_event = event;
     }
     event->event_id = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
@@ -384,13 +490,20 @@ static void loadEventsData(FILE *file, bool first_time_loaded, bool swap_endian,
     event_index++;
   }
 
-  // Set the event times of the inserted open folders
-  Event *first_loaded_event = &object->event_buffer[object->num_open_folders];
-  for (uint16_t i=0; i<object->num_open_folders; i++) {
-    Event *event = &object->event_buffer[i];
+  // Set the event times of the inserted close and open folders
+  for (uint16_t i=0; i<num_final_open_folders+num_open_folders; i++) {
+    Event *event = &object->event_buffer[first_inserted_folder_event_index+i];
     event->time = first_loaded_event->time;
   }
-  object->event_count += object->num_open_folders;
+  object->event_count += num_open_folders;
+
+  // Clean up
+  if (num_open_folders > 0) {
+    free(folder_id_list);
+  }
+  if (num_final_open_folders > 0) {
+    free(final_folder_id_list);
+  }
 }
 
 Events *loadEventsFile(const char *filename) {
@@ -430,7 +543,7 @@ Events *loadEventsFile(const char *filename) {
       assert(subsequent_is_big_endian == is_big_endian);
     }
     loadEventsHeader(file, first_time_loaded, swap_endian, object);
-    loadEventsData(file, first_time_loaded, swap_endian, object);
+    loadEventsData(file, swap_endian, object);
     first_time_loaded = false;
   }
 
@@ -458,7 +571,6 @@ void freeEvents(Events *object) {
   }
   free(object->function_name_list);
   free(object->thread_id_list);
-  free(object->folder_id_list);
   free(object->event_buffer);
   free(object);
 }

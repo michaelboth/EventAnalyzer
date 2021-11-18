@@ -43,7 +43,7 @@ typedef struct {
 } Event;
 
 typedef struct {
-  // Header
+  // Header (should be same for each flush)
   bool is_threaded;
   uint16_t version_major;
   uint16_t version_minor;
@@ -54,15 +54,18 @@ typedef struct {
   FolderInfo *folder_info_list;
   uint16_t event_info_count;
   EventInfo *event_info_list;
-  // Recorded Events
+
+  // Recorded Events (different for each flush)
   uint16_t file_name_count;
   char **file_name_list;
   uint16_t function_name_count;
   char **function_name_list;
   uint16_t thread_id_count;
   uint64_t *thread_id_list;
+  /*+
   uint16_t num_open_folders; // Stack of folders that were already open before the first event to be saved
   uint16_t *folder_id_list;
+  */
   uint32_t event_count;
   Event *event_buffer;
 } Events;
