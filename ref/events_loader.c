@@ -138,7 +138,7 @@ static void loadEventsHeader(FILE *file, bool first_time_loaded, bool swap_endia
   if (first_time_loaded) {
     object->includes_file_location = includes_file_location;
   } else {
-    assert(object->includes_file_location = includes_file_location);
+    assert(object->includes_file_location == includes_file_location);
   }
 #ifdef PRINT_LOAD_INFO
   printf("\n");
