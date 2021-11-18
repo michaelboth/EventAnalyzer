@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #define DEFINE_FOLDERS_AND_EVENTS
-#include "event_instrumenting.h"
+#include "custom_folders_and_events.h"
 #include <stdio.h>
 #include <stdlib.h>
 

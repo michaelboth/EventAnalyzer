@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "event_instrumenting.h" /*+ put in this folder, and use different header file for app defined folders and events */
+#include "event_instrumenting.h"
 #include "event_clocks.h"
 #include "event_file_flush.h"
 

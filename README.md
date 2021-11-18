@@ -183,6 +183,7 @@ Example | Description
 hello1 | The most basic example where everything is in a single C file
 hello2 | A more realistic example where the event instrumentation comes from separate files, from the ```ref/``` folder, that can easily be excluded if event profiling is not needed
 test_clock | Determine the overhead and precision of a clock that is used with event recording. Helpful if you need to characterize the behaviour of the clock.
+memory_contention | A multi-threaded example to show how too many threads can slow access to memory.
 record_and_load | A simple example used to validate the unikorn API and event loading file ```ref/events_loader.c```
 
 ## Developing Your Application
@@ -194,8 +195,9 @@ ref/event_clocks.h           # Header file for event_clocks.c
 ref/event_file_flush.c       # Functions to flush events to a file
 ref/event_file_flush.h       # Header file for event_file_flush.c
 ref/event_instrumenting.c    # Reusable code for defining an event session
+ref/event_instrumenting.h    # Header file for event_instrumenting.c
 ```
-The examples that use the reference files also use a header file ```event_instrumenting.h``` to define the custom folders and events.
+All of the examples except ```hello1``` make used of one or more of the reference files. ```hello1``` is meant to be completely self contained.
 
 ## Developing a Visualizer or Post-Processing Application
 If you are creating you own graphical visualizer, or just need to load events into some post-processing application, you can use the supplied source code to load the events:

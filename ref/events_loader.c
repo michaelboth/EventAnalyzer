@@ -339,7 +339,6 @@ static void loadEventsData(FILE *file, bool swap_endian, Events *object) {
   }
 
   // Open Folders: Stack of folders that were already open before the first event that was saved
-  /*+*/
   uint16_t num_open_folders = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
   printf("  num_open_folders = %d\n", num_open_folders);
@@ -404,18 +403,21 @@ static void loadEventsData(FILE *file, bool swap_endian, Events *object) {
   }
 
   // Allocate events buffer
+  uint32_t prev_event_count = object->event_count;
   uint32_t event_count = readUint32(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
   printf("  event_count = %d\n", object->event_count);
 #endif
-  Event *prev_event = NULL; // Keep track of the latest event to do time comparisons later
-  if (object->event_count > 0) {
-    prev_event = &object->event_buffer[object->event_count-1];
-  }
   uint32_t event_index = object->event_count;
   object->event_count += event_count;
   object->event_buffer = realloc(object->event_buffer, (num_final_open_folders+num_open_folders+object->event_count)*sizeof(Event));
   assert(object->event_buffer != NULL);
+
+  // Keep track of the latest event to do time comparisons later
+  Event *prev_event = NULL;
+  if (prev_event_count > 0) {
+    prev_event = &object->event_buffer[prev_event_count-1];
+  }
 
   // Create folder events for closing old folder and opening expected open folders
   uint32_t first_inserted_folder_event_index = event_index;
@@ -455,8 +457,8 @@ static void loadEventsData(FILE *file, bool swap_endian, Events *object) {
 	printf("The event file contains an event that go backwards in time. Following event times will be adjusted to be forward in time. To avoid this, use a monotonically increasing clock when recording.\n");
 	time_adjustment += (prev_event->time - event->time);
       }
-      prev_event = event;
     }
+    prev_event = event;
     event->event_id = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
     printf("    time = %"UINT64_FORMAT", ID = %d\n", event->time, event->event_id);
@@ -501,7 +503,7 @@ static void loadEventsData(FILE *file, bool swap_endian, Events *object) {
   if (num_open_folders > 0) {
     free(folder_id_list);
   }
-  if (num_final_open_folders > 0) {
+  if (object->folder_info_count > 0) {
     free(final_folder_id_list);
   }
 }

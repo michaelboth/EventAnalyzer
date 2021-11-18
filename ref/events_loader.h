@@ -62,10 +62,6 @@ typedef struct {
   char **function_name_list;
   uint16_t thread_id_count;
   uint64_t *thread_id_list;
-  /*+
-  uint16_t num_open_folders; // Stack of folders that were already open before the first event to be saved
-  uint16_t *folder_id_list;
-  */
   uint32_t event_count;
   Event *event_buffer;
 } Events;
