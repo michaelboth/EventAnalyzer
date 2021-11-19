@@ -85,8 +85,8 @@ typedef struct {
   uint64_t instance;
   double value;
   uint64_t thread_id;
-  /*+ const */ const char *file_name;
-  /*+ const */ const char *function_name;
+  char *file_name;
+  char *function_name;
   uint16_t line_number;
 } Event;
 
@@ -150,22 +150,22 @@ static uint64_t myThreadId() {
 }
 #endif
 
-static bool containsName(/*+*/const char **name_list, uint16_t name_count, /*+*/const char *name) {
+static bool containsName(char **name_list, uint16_t name_count, char *name) {
   for (uint16_t i=0; i<name_count; i++) {
     if (name == name_list[i]) return true;
   }
   return false;
 }
 
-static /*+*/const char **getFileNameList(EventObject *object, uint16_t *count_ret) {
+static char **getFileNameList(EventObject *object, uint16_t *count_ret) {
   uint16_t name_count = 0;
   uint16_t max_name_count = INITIAL_LIST_SIZE;
-  /*+*/const char **file_name_list = malloc(max_name_count*sizeof(char *));
+  char **file_name_list = malloc(max_name_count*sizeof(char *));
   assert(file_name_list);
 
   uint32_t index = object->first_unsaved_event_index;
   for (uint32_t i=0; i<object->num_stored_events; i++) {
-    /*+*/const char *name = object->events_buffer[index].file_name;
+    char *name = object->events_buffer[index].file_name;
     if (!containsName(file_name_list, name_count, name)) {
       if (name_count == max_name_count) {
 	assert(max_name_count <= (USHRT_MAX/2));
@@ -183,15 +183,15 @@ static /*+*/const char **getFileNameList(EventObject *object, uint16_t *count_re
   return file_name_list;
 }
 
-static /*+*/const char **getFunctionNameList(EventObject *object, uint16_t *count_ret) {
+static char **getFunctionNameList(EventObject *object, uint16_t *count_ret) {
   uint16_t name_count = 0;
   uint16_t max_name_count = INITIAL_LIST_SIZE;
-  /*+*/const char **function_name_list = malloc(max_name_count*sizeof(char *));
+  char **function_name_list = malloc(max_name_count*sizeof(char *));
   assert(function_name_list);
 
   uint32_t index = object->first_unsaved_event_index;
   for (uint32_t i=0; i<object->num_stored_events; i++) {
-    /*+*/const char *name = object->events_buffer[index].function_name;
+    char *name = object->events_buffer[index].function_name;
     if (!containsName(function_name_list, name_count, name)) {
       if (name_count == max_name_count) {
 	assert(max_name_count <= (USHRT_MAX/2));
@@ -250,7 +250,7 @@ static uint16_t getThreadIndex(uint64_t thread_id, uint64_t *thread_id_list, uin
   return 0;
 }
 
-static uint16_t getNameIndex(/*+*/const char *name, /*+*/const char **name_list, uint16_t name_count) {
+static uint16_t getNameIndex(char *name, char **name_list, uint16_t name_count) {
   for (uint16_t i=0; i<name_count; i++) {
     if (name == name_list[i]) return i;
   }
@@ -468,8 +468,8 @@ static void flushEvents(EventObject *object) {
   // File names and function names
   uint16_t file_name_count = 0;
   uint16_t function_name_count = 0;
-  /*+*/const char **file_name_list = NULL;
-  /*+*/const char **function_name_list = NULL;
+  char **file_name_list = NULL;
+  char **function_name_list = NULL;
   if (object->record_file_location) {
     // File names
     file_name_list = getFileNameList(object, &file_name_count);
@@ -478,7 +478,7 @@ static void flushEvents(EventObject *object) {
 #endif
     assert(object->flush(object->flush_user_data, &file_name_count, sizeof(file_name_count)));
     for (uint16_t i=0; i<file_name_count; i++) {
-      /*+*/const char *name = file_name_list[i];
+      char *name = file_name_list[i];
 #ifdef PRINT_FLUSH_INFO
       printf("    '%s'\n", name);
 #endif
@@ -493,7 +493,7 @@ static void flushEvents(EventObject *object) {
 #endif
     assert(object->flush(object->flush_user_data, &function_name_count, sizeof(function_name_count)));
     for (uint16_t i=0; i<function_name_count; i++) {
-      /*+*/const char *name = function_name_list[i];
+      char *name = function_name_list[i];
 #ifdef PRINT_FLUSH_INFO
       printf("    '%s'\n", name);
 #endif
@@ -681,8 +681,8 @@ static void recordEvent(EventObject *object, uint16_t event_id, double value, ui
     event->thread_id = myThreadId();
   }
 #endif
-  event->file_name = /*+(char *)*/file;  /*+ casting needed */
-  event->function_name = /*+(char *)*/function;  /*+ casting needed */
+  event->file_name = (char *)file;
+  event->function_name = (char *)function;
   event->line_number = line_number;
 
   // Set the index of the next future event

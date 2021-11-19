@@ -33,7 +33,7 @@ THREAD_LIBS   =
 OPTIMIZATION_CFLAGS  = -O2 -MD  # Release: -MT means static linking, and -MD means dynamic linking.
 #OPTIMIZATION_CFLAGS  = -Zi -MDd # Debug: -MTd or -MDd
 
-CFLAGS  = $(OPTIMIZATION_CFLAGS) -nologo -WX -W3 -I. -I../../inc $(INSTRUMENT_CFLAGS) $(CLOCK_CFLAGS) $(THREAD_CFLAGS)
+CFLAGS  = $(OPTIMIZATION_CFLAGS) -nologo -WX -W3 -I. -I../../inc -I../../ref $(INSTRUMENT_CFLAGS) $(CLOCK_CFLAGS) $(THREAD_CFLAGS)
 C_OBJS  = hello.obj $(INSTRUMENT_C_OBJS)
 LDFLAGS = -nologo -incremental:no -manifest:embed -subsystem:console
 LIBS    = $(INSTRUMENT_PRJ_LIBS) $(THREAD_LIBS)

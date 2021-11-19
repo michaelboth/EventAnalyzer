@@ -1,23 +1,10 @@
-INSTRUMENT_CFLAGS       =
-INSTRUMENT_C_OBJS       =
-INSTRUMENT_PRJ_LIBS     =
-CLOCK_CFLAGS            =
-
-!IF "$(INSTRUMENT_APP)" == "Yes"
-INSTRUMENT_CFLAGS       = -DINSTRUMENT_APP
-INSTRUMENT_C_OBJS       = event_clocks.obj event_file_flush.obj event_instrumenting.obj
-INSTRUMENT_PRJ_LIBS     = ../../lib/unikorn.lib -nodefaultlib:MSVCRTD.LIB
 # Define a clock
-CLOCK_CFLAGS = unset
-!  IF "$(CLOCK)" == "QueryPerformanceCounter"
+CLOCK_CFLAGS =
+!IF "$(CLOCK)" == "QueryPerformanceCounter"
 CLOCK_CFLAGS = -DUSE_QueryPerformanceCounter_CLOCK
-!  ENDIF
-!  IF "$(CLOCK)" == "ftime"
+!ENDIF
+!IF "$(CLOCK)" == "ftime"
 CLOCK_CFLAGS = -DUSE_ftime_CLOCK
-!  ENDIF
-!  IF "$(CLOCK_CFLAGS)" == "unset"
-!  ERROR 'The variable CLOCK is not defined!'
-!  ENDIF
 !ENDIF
 
 # Check if threading is enabled
@@ -33,11 +20,11 @@ THREAD_LIBS   =
 OPTIMIZATION_CFLAGS  = -O2 -MD  # Release: -MT means static linking, and -MD means dynamic linking.
 #OPTIMIZATION_CFLAGS  = -Zi -MDd # Debug: -MTd or -MDd
 
-CFLAGS  = $(OPTIMIZATION_CFLAGS) -nologo -WX -W3 -I. -I../../inc $(INSTRUMENT_CFLAGS) $(CLOCK_CFLAGS) $(THREAD_CFLAGS)
-C_OBJS  = hello.obj $(INSTRUMENT_C_OBJS)
+CFLAGS  = $(OPTIMIZATION_CFLAGS) -nologo -WX -W3 -I. -I../../inc -I../../ref $(CLOCK_CFLAGS) $(THREAD_CFLAGS)
+C_OBJS  = memory_contention.obj event_clocks.obj event_file_flush.obj event_instrumenting.obj
 LDFLAGS = -nologo -incremental:no -manifest:embed -subsystem:console
-LIBS    = $(INSTRUMENT_PRJ_LIBS) $(THREAD_LIBS)
-TARGET  = hello.exe
+LIBS    = ../../lib/unikorn.lib -nodefaultlib:MSVCRTD.LIB $(THREAD_LIBS)
+TARGET  = memory_contention.exe
 
 .SUFFIXES: .c
 
@@ -50,6 +37,7 @@ all: $(TARGET)
 	cl -c $(CFLAGS) -Fo $<
 
 $(TARGET): $(C_OBJS)
+	echo $(MAKECMDGOALS)
 	link $(LDFLAGS) $(C_OBJS) $(LIBS) -out:$(TARGET)
 
 clean:

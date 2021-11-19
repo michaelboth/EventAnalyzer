@@ -20,6 +20,7 @@
 #ifdef _WIN32
   #define WIN32_LEAN_AND_MEAN
   #include <Windows.h>
+  #define strdup _strdup
 #else
   #include <unistd.h>
 #endif
@@ -64,10 +65,10 @@ int main(int argc, char **argv) {
   // Create folders
   int id = 1;
   int num_folders = max_threads;
-  UkFolderInfo folders[num_folders];
+  UkFolderInfo *folders = malloc(num_folders*sizeof(UkFolderInfo));
   for (int i=0; i<max_threads; i++) {
     char name[100];
-    sprintf(name, "%d Concurrent %s", i+1, i==0 ? "Thread" : "Threads");
+    snprintf(name, 100, "%d Concurrent %s", i+1, i==0 ? "Thread" : "Threads");
     folders[i].name = strdup(name);
     folders[i].id = id++;
   }
@@ -77,7 +78,7 @@ int main(int argc, char **argv) {
   sleep_start_id = id++;
   sleep_end_id = id++;
   int num_event_types = 2;
-  UkEventInfo event_types[num_event_types];
+  UkEventInfo *event_types = malloc(num_event_types*sizeof(UkEventInfo));
   event_types[0].name = "Sqrt";
   event_types[0].start_id = sqrt_start_id;
   event_types[0].end_id = sqrt_end_id;
@@ -115,7 +116,7 @@ int main(int argc, char **argv) {
     ukRecordFolder(G_instance, folder_id);
 
     // Start threads
-    pthread_t thread_ids[num_concurrent_threads];
+    pthread_t *thread_ids = malloc(num_concurrent_threads*sizeof(pthread_t));
     for (uint16_t i=0; i<num_concurrent_threads; i++) {
       pthread_create(&thread_ids[i], NULL, thread, (void *)((uint64_t)i));
     }
@@ -127,7 +128,7 @@ int main(int argc, char **argv) {
     // Sleep 1 second
     ukRecordEvent(G_instance, sleep_start_id, 0.0, __FILE__, __FUNCTION__, __LINE__);
 #ifdef _WIN32
-    Sleep(1000);
+    Sleep(100);
 #else
     usleep(100000);
 #endif
@@ -142,6 +143,7 @@ int main(int argc, char **argv) {
     }
 
     ukCloseFolder(G_instance);
+    free(thread_ids);
   }
 
   // Clean up
@@ -156,6 +158,8 @@ int main(int argc, char **argv) {
   for (int i=0; i<max_threads; i++) {
     free((void *)folders[i].name);
   }
+  free(folders);
+  free(event_types);
   printf("Events were recorded to the file '%s'. Use the Unikorn Viewer to view the results.\n", filename);
 
   return 0;

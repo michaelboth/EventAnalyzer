@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #if !defined(USE_clock_gettime_MONOTONIC_CLOCK) && !defined(USE_gettimeofday_CLOCK) && !defined(USE_QueryPerformanceCounter_CLOCK) && !defined(USE_ftime_CLOCK)
-need to define one of USE_clock_gettime_MONOTONIC_CLOCK, USE_gettimeofday_CLOCK, USE_QueryPerformanceCounter_CLOCK, USE_ftime_CLOCK
+#error need to define one of USE_clock_gettime_MONOTONIC_CLOCK, USE_gettimeofday_CLOCK, USE_QueryPerformanceCounter_CLOCK, USE_ftime_CLOCK
 #endif
 
 #include "event_clocks.h"

@@ -1,15 +1,10 @@
-CLOCK_CFLAGS =
-
 # Define a clock
-CLOCK_CFLAGS = unset
+CLOCK_CFLAGS =
 !IF "$(CLOCK)" == "QueryPerformanceCounter"
 CLOCK_CFLAGS = -DUSE_QueryPerformanceCounter_CLOCK
 !ENDIF
 !IF "$(CLOCK)" == "ftime"
 CLOCK_CFLAGS = -DUSE_ftime_CLOCK
-!ENDIF
-!IF "$(CLOCK_CFLAGS)" == "unset"
-!  ERROR 'The variable CLOCK is not defined!'
 !ENDIF
 
 OPTIMIZATION_CFLAGS  = -O2 -MD  # Release: -MT means static linking, and -MD means dynamic linking.
