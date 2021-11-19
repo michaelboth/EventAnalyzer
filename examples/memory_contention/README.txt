@@ -1,4 +1,5 @@
 This example is used to show how see memory contention via visualizing events
+To see the time differences in the Unikon Viewer, view the average times in the histogram for each thread group
 
 Memory contention can come from different angles:
   Cache levels
