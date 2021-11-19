@@ -207,17 +207,21 @@ ref/events_loader.h       # Header file for events_loader.c
 ```
 
 ## Visualizing Events with the Unikorn Viewer
-The Unikorn Viewer is written in C++ using the Qt framework (www.qt.io).
-### Linux (gcc), Mac (xCode command line)
+The Unikorn Viewer is written in C++ using the Open Source Qt framework (www.qt.io).
+### Linux and Mac
+Linux: Tested on Ubutntu 18.04, using Qt Qt 5.15.2
+Mac: Tested on OSX 11.6 (Big Sur), xCode 13.1 command line, using Qt Qt 5.15.2
 ```
 > cd unikorn/visualizer
 > qmake
 > make
 > ./UnikornViewer
 ```
-### Windows (Visual Studio Qt console window)
+### Windows
+Tested with Visual Studio 2019 64bit, Qt 5.15.2 console window
 ```
 > cd unikorn\visualizer
 > qmake
 > nmake
+> release\UnikornViewer.exe
 ```

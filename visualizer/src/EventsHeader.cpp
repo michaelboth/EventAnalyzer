@@ -40,12 +40,19 @@ void EventsHeader::updateSelectionRange(uint64_t _selected_time_range) {
 }
 
 void EventsHeader::updateHeight() {
+  /*+
   int height = (int)(G_font_point_size * 1.8f);
   setMinimumHeight(height);
+  */
 
   QFont font = this->font();
   font.setPointSize(G_font_point_size);
   this->setFont(font);
+
+  // Calculate geometry
+  QFontMetrics fm = QFontMetrics(this->font());
+  int height = fm.height();
+  setMinimumHeight(height);
 
   update();
 }

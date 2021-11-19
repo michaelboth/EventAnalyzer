@@ -52,12 +52,16 @@ void HierarchyView::prepareIcon(QString filename, bool recolor, QColor color) {
 
 void HierarchyView::updateLineHeight() {
   // Calculate geometry
-  line_h = (int)(G_font_point_size * LINE_HEIGHT_FACTOR);
+  //*+ old */line_h = (int)(G_font_point_size * LINE_HEIGHT_FACTOR);
 
   // Update font size
   QFont font = this->font();
   font.setPointSize(G_font_point_size);
   this->setFont(font);
+
+  // Calculate geometry
+  QFontMetrics fm = QFontMetrics(this->font());
+  line_h = fm.height();
 
   // Rebuild icons to make sure there are correctly sized; if not, then edges will looked aliased
   prepareIcon("hierarchy_closed_arrow.png", true, ARROW_ICON_COLOR);

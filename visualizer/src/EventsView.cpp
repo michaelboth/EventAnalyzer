@@ -66,12 +66,16 @@ void EventsView::prepareIcon(QString filename, bool recolor, QColor color) {
 
 void EventsView::updateLineHeight() {
   // Calculate geometry
-  line_h = (int)(G_font_point_size * LINE_HEIGHT_FACTOR);
+  //*+*/line_h = (int)(G_font_point_size * LINE_HEIGHT_FACTOR);
 
   // Update font size
   QFont font = this->font();
   font.setPointSize(G_font_point_size);
   this->setFont(font);
+
+  // Calculate geometry
+  QFontMetrics fm = QFontMetrics(this->font());
+  line_h = fm.height();
 
   // Rebuild icons to make sure there are correctly sized; if not, then edges will looked aliased
   prepareIcon("hierarchy_closed_folder.png", true, FOLDER_ICON_COLOR);
@@ -477,7 +481,7 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
   int bucket_w = th / 2;
   if (bucket_w <= 1) bucket_w = 2;
   int num_buckets = (dialog_w-2) / bucket_w;
-  uint32_t buckets[num_buckets];
+  uint32_t *buckets = (uint32_t *)malloc(num_buckets*sizeof(uint32_t));
   for (int i=0; i<num_buckets; i++) buckets[i] = 0;
   uint64_t min, ave, max;
   uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, &min, &ave, &max);
@@ -532,6 +536,8 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
     painter.drawText(dialog_x, dialog_y+th*(num_lines-2), dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, text);
     painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, "max ");
   }
+
+  free(buckets);
 }
 
 void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *events) {

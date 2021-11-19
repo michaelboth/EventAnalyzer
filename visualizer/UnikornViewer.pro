@@ -21,13 +21,11 @@ INCLUDEPATH += src ../ref ../inc
 
 win32:CONFIG += embed_manifest_exe
 #win32:CONFIG += console
-#+CONFIG += release
-CONFIG += debug
+CONFIG += release
+#CONFIG += debug
 CONFIG += warn_on
 #CONFIG += c99
 CONFIG += c++17
-
-#+DEFINES += NAME_HERE
 
 HEADERS += src/main.hpp
 HEADERS += src/MainWindow.hpp

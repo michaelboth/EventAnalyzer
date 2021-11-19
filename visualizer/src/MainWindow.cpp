@@ -418,18 +418,25 @@ void MainWindow::on_loadButton_clicked() {
     // Get folder
     QString folder = filename.section("/", -999, -2);
     //printf("folder: '%s'\n", folder.toLatin1().data());
-    assert(!folder.isEmpty());
-    G_settings->setValue("prev_load_folder", folder);
+    if (folder.isEmpty()) {
+      QMessageBox::information(this, "File Error", "No folder.");
+      return;
+    }
+    // Get name of file
     QString name = filename.section("/", -1).section(".events", 0, 0);
-    assert(!name.isEmpty());
+    if (name.isEmpty()) {
+      QMessageBox::information(this, "File Error", "Empty filename.");
+      return;
+    }
     //printf("name: '%s'\n", name.toLatin1().data());
+    G_settings->setValue("prev_load_folder", folder);
 
     // If events file already loaded, then delete old data first
     if (G_event_tree_map.contains(filename)) {
       // Remove old events file
       EventTree *old_tree = G_event_tree_map[filename];
-      int items_removed = G_event_tree_map.remove(filename);
-      assert(items_removed == 1);
+      (void)/*int items_removed =*/G_event_tree_map.remove(filename);
+      //assert(items_removed == 1);
       freeEvents(old_tree->events);
       delete old_tree;
     }
