@@ -10,12 +10,15 @@ Unikorn is a C API and graphical visualizer (Windows, Mac, and Linux). These are
 <img src="docs/UnikornViewer.png" alt="Logo" style="width:900px;"/>
 
 ## Building Unikorn's C Library
-### Linux (gcc), Mac (xCode command line)
+### Linux and Mac
+*Linux: Tested on Ubutntu 18.04*<br>
+*Mac: Tested on OSX 11.6 (Big Sur), xCode 13.1 command line*
 ```
 > cd unikorn/lib
 > make RELEASE=Yes THREAD_SAFE=Yes
 ```
-### Windows (Visual Studio console window)
+### Windows
+*Tested with Visual Studio 2019 64bit console window*<br>
 Unikorn's API can optionally be thread safe, and if so requires Posix threads. Visual Studio does not have native support for Posix threads, so you'll need to download and build it:
 1. Get the source code from: https://sourceforge.net/projects/pthreads4w/
 2. Unzip, rename to 'pthreads4w' and put in the C:\ folder
@@ -209,8 +212,8 @@ ref/events_loader.h       # Header file for events_loader.c
 ## Visualizing Events with the Unikorn Viewer
 The Unikorn Viewer is written in C++ using the Open Source Qt framework (www.qt.io).
 ### Linux and Mac
-Linux: Tested on Ubutntu 18.04, using Qt Qt 5.15.2
-Mac: Tested on OSX 11.6 (Big Sur), xCode 13.1 command line, using Qt Qt 5.15.2
+*Linux: Tested on Ubutntu 18.04, using Qt Qt 5.15.2*<br>
+*Mac: Tested on OSX 11.6 (Big Sur), xCode 13.1 command line, using Qt Qt 5.15.2*
 ```
 > cd unikorn/visualizer
 > qmake
@@ -218,7 +221,7 @@ Mac: Tested on OSX 11.6 (Big Sur), xCode 13.1 command line, using Qt Qt 5.15.2
 > ./UnikornViewer
 ```
 ### Windows
-Tested with Visual Studio 2019 64bit, Qt 5.15.2 console window
+*Tested with Visual Studio 2019 64bit, Qt 5.15.2 console window*
 ```
 > cd unikorn\visualizer
 > qmake
