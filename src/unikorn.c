@@ -53,16 +53,22 @@
 #define MAGIC_VALUE2 987654321   // Use to partically validate the data structure
 #define CLOSE_FOLDER_ID 0        // Reserved ID
 #define INITIAL_LIST_SIZE 10
-#define ENABLE_ASSERTS  /*+ only use with recording functions to help optimize call speed */
+#ifdef RELEASE_BUILD
+  #define OPTIONAL_ASSERT(condition)
+#else
+  #define OPTIONAL_ASSERT(condition) assert(condition)
+#endif
 
 //#define PRINT_INIT_INFO
 //#define PRINT_FLUSH_INFO
 //#define PRINT_RECORD_INFO
 
+// IMPORTANT: Use this to test the performance of recording events
+//#define TEST_RECORDING_OVERHEAD
+
 typedef struct {
   char *name;
   uint16_t id;        // ID's must start with 1 and be contiguous across folders (defined first) and events
-  uint64_t instance;  // Number of times the folder was used
 } PrivateFolderInfo;
 
 typedef struct {
@@ -261,21 +267,6 @@ static uint16_t getNameIndex(char *name, char **name_list, uint16_t name_count) 
   return 0;
 }
 
-static void pushCurrentFolderStack(EventObject *object, uint16_t folder_id) {
-  uint16_t max_folder_stack_count = object->folder_info_count - 1; // -1 for the close folder event
-  assert(object->curr_folder_stack_count < max_folder_stack_count);
-  for (uint16_t i=0; i<object->curr_folder_stack_count; i++) {
-    assert(object->curr_folder_stack[i] != folder_id);
-  }
-  object->curr_folder_stack[object->curr_folder_stack_count] = folder_id;
-  object->curr_folder_stack_count++;
-}
-
-static void popCurrentFolderStack(EventObject *object) {
-  assert(object->curr_folder_stack_count > 0);
-  object->curr_folder_stack_count--;
-}
-
 static void pushStartingFolderStack(EventObject *object, uint16_t folder_id) {
   uint16_t max_folder_stack_count = object->folder_info_count - 1; // -1 for the close folder event
   assert(object->starting_folder_stack_count < max_folder_stack_count);
@@ -394,7 +385,6 @@ void *ukCreate(UkAttrs *attrs,
     printf("    ID=%d, name='%s'\n", object->folder_info_list[0].id, object->folder_info_list[0].name);
 #endif
     assert(object->folder_info_list[0].name != NULL);
-    object->folder_info_list[0].instance = 1;
     // Register custom folders
     for (uint16_t i=1; i<object->folder_info_count; i++) {
       object->folder_info_list[i].id = attrs->folder_info_list[i-1].id;
@@ -403,7 +393,6 @@ void *ukCreate(UkAttrs *attrs,
       printf("    ID=%d, name='%s'\n", object->folder_info_list[i].id, object->folder_info_list[i].name);
 #endif
       assert(object->folder_info_list[i].name != NULL);
-      object->folder_info_list[i].instance = 1;
     }
     // Create the stacks to track what folders are open
     uint16_t max_folder_stack_count = object->folder_info_count - 1; // -1 due to the close folder event
@@ -716,10 +705,7 @@ void ukDestroy(void *object_ref) {
   free(object);
 }
 
-// IMPORTANT: Use this to test the performance of recording events
-//#define TEST_OVERHEAD
-/*+ optimize recording */
-#ifdef TEST_OVERHEAD
+#ifdef TEST_RECORDING_OVERHEAD
 static uint64_t getTime() {
   // clock_gettime() has nanosecond precision
   struct timespec curr_time;
@@ -740,42 +726,36 @@ static uint64_t getTime() {
 /*+ need to optimize this function
   I = instance
   V = value
-  T = threaded
   L = location
-  recordIVTL
+
+  recordIVL
+
   I
   V
-  T
   L
   IV
-  IT
   IL
-  IVT
-  IVL
-  IVTL
-  VT
   VL
-  VTL
-  TL
+  IVL
  */
+
 static void recordEvent(EventObject *object, uint16_t event_id, double value, uint64_t instance, const char *file, const char *function, uint16_t line_number) {
-#ifdef TEST_OVERHEAD
+#ifdef TEST_RECORDING_OVERHEAD
   uint64_t t1 = getTime();
-  uint64_t t2 = getTime();
-  uint64_t t3 = getTime();
-  uint64_t t4 = getTime();
+  t1 = getTime();
 #endif
+  // Get the memory location in the event buffer
   size_t base_addr = (size_t)object->event_buffer + object->curr_event_index * object->bytes_per_event;
-  // Get pointers to each item in the event memory
-  // Store the values
+
+  // Store the required values
   uint64_t *time_ptr = (uint64_t *)(base_addr + object->offsets.time);
   *time_ptr = object->clock();
   uint16_t *event_id_ptr = (uint16_t *)(base_addr + object->offsets.event_id);
   uint16_t replaced_event_id = *event_id_ptr; // Need for book keeping at the end of this function
   *event_id_ptr = event_id;
-#ifdef TEST_OVERHEAD
-  uint64_t t5 = getTime();
-#endif
+
+  // Store the optional values
+  /*+ optimize */
   if (object->record_instance) {
     uint64_t *instance_ptr = (uint64_t *)(base_addr + object->offsets.instance);
     *instance_ptr = instance;
@@ -784,17 +764,11 @@ static void recordEvent(EventObject *object, uint16_t event_id, double value, ui
     double *value_ptr = (double *)(base_addr + object->offsets.value);
     *value_ptr = value;
   }
-#ifdef TEST_OVERHEAD
-  uint64_t t6 = getTime();
-#endif
 #ifdef ALLOW_THREADING
   if (object->is_threaded) {
     uint64_t *thread_id_ptr = (uint64_t *)(base_addr + object->offsets.thread_id);
     *thread_id_ptr = myThreadId();
   }
-#endif
-#ifdef TEST_OVERHEAD
-  uint64_t t7 = getTime();
 #endif
   if (object->record_file_location) {
     char **file_name_ptr = (char **)(base_addr + object->offsets.file_name);
@@ -804,12 +778,12 @@ static void recordEvent(EventObject *object, uint16_t event_id, double value, ui
     *function_name_ptr = (char *)function;
     *line_number_ptr = line_number;
   }
-#ifdef TEST_OVERHEAD
-  uint64_t t8 = getTime();
-#endif
 
   // Set the index of the next future event
   object->curr_event_index = (object->curr_event_index + 1) % object->max_event_count;
+#ifdef TEST_RECORDING_OVERHEAD
+  uint64_t t2 = getTime();
+#endif
 
   // See if time to flush or wrap
   bool buffer_is_full = object->num_stored_events == object->max_event_count;
@@ -833,34 +807,32 @@ static void recordEvent(EventObject *object, uint16_t event_id, double value, ui
     }
   }
 
-#ifdef TEST_OVERHEAD
-  uint64_t t9 = getTime();
+#ifdef TEST_RECORDING_OVERHEAD
+  uint64_t t3 = getTime();
   printf("time diff 1: %zd ns\n", t2-t1);
   printf("time diff 2: %zd ns\n", t3-t2);
-  printf("time diff 3: %zd ns\n", t4-t3);
-  printf("time diff 4 A: %zd ns (overhead)\n", t5-t4);
-  printf("time diff 5 B: %zd ns (overhead)\n", t6-t5);
-  printf("time diff 6 C: %zd ns (overhead)\n", t7-t6);
-  printf("time diff 7 D: %zd ns (overhead)\n", t8-t7);
-  printf("time diff 8 E: %zd ns (overhead)\n", t9-t8);
 #endif
 }
 
 void ukRecordEvent(void *object_ref, uint16_t event_id, double value, const char *file, const char *function, uint16_t line_number) {
   EventObject *object = (EventObject *)object_ref;
-  assert(object->magic_value1 == MAGIC_VALUE1);
-  assert(object->magic_value2 == MAGIC_VALUE2);
+  OPTIONAL_ASSERT(object->magic_value1 == MAGIC_VALUE1);
+  OPTIONAL_ASSERT(object->magic_value2 == MAGIC_VALUE2);
+  uint16_t event_index = (event_id - object->first_event_id) / 2;
+  OPTIONAL_ASSERT(event_index < object->event_info_count*2);
+  PrivateEventInfo *event = &object->event_info_list[event_index];
 #ifdef PRINT_RECORD_INFO
   printf("%s(): ID=%d, value=%f, file=%s, function=%s, line_number=%d\n", __FUNCTION__, event_id, value, file, function, line_number);
 #endif
-  uint16_t event_index = (event_id - object->first_event_id) / 2;
-  assert(event_index < object->event_info_count*2);
+
 #ifdef ALLOW_THREADING
   if (object->is_threaded) pthread_mutex_lock(&object->mutex);
 #endif
-  PrivateEventInfo *event = &object->event_info_list[event_index];
+
+  // Add the folder event to the event buffer
   uint64_t instance = event->instance++;
   recordEvent(object, event_id, value, instance, file, function, line_number);
+
 #ifdef ALLOW_THREADING
   if (object->is_threaded) pthread_mutex_unlock(&object->mutex);
 #endif
@@ -868,23 +840,29 @@ void ukRecordEvent(void *object_ref, uint16_t event_id, double value, const char
 
 void ukRecordFolder(void *object_ref, uint16_t folder_id) {
   EventObject *object = (EventObject *)object_ref;
-  /*+ separate functions for threaded */
-  assert(object->magic_value1 == MAGIC_VALUE1);
-  assert(object->magic_value2 == MAGIC_VALUE2);
+  OPTIONAL_ASSERT(object->magic_value1 == MAGIC_VALUE1);
+  OPTIONAL_ASSERT(object->magic_value2 == MAGIC_VALUE2);
+  OPTIONAL_ASSERT(object->folder_info_count > 0);
+  OPTIONAL_ASSERT(folder_id >= 1 && folder_id < object->folder_info_count);
 #ifdef PRINT_RECORD_INFO
   printf("%s(): ID=%d\n", __FUNCTION__, folder_id);
 #endif
-  assert(object->folder_info_count > 0);
-  assert(folder_id >= 1 && folder_id < object->folder_info_count);
-  PrivateFolderInfo *folder = &object->folder_info_list[folder_id];
-  uint64_t instance = folder->instance++;
-  /*+ still record instance at time location if record_instance not true */
+
 #ifdef ALLOW_THREADING
   if (object->is_threaded) pthread_mutex_lock(&object->mutex);
 #endif
-  pushCurrentFolderStack(object, folder_id);
-  /*+ just record time, id, and instance */
-  recordEvent(object, folder_id, 0, instance, L_unused_name, L_unused_name, 0);
+
+  // Push folder onto current folder stack
+  OPTIONAL_ASSERT(object->curr_folder_stack_count < (object->folder_info_count - 1)); // -1 for the close folder event
+  for (uint16_t i=0; i<object->curr_folder_stack_count; i++) {
+    OPTIONAL_ASSERT(object->curr_folder_stack[i] != folder_id);
+  }
+  object->curr_folder_stack[object->curr_folder_stack_count] = folder_id;
+  object->curr_folder_stack_count++;
+
+  // Add the folder event to the event buffer
+  recordEvent(object, folder_id, 0, 0, L_unused_name, L_unused_name, 0);
+
 #ifdef ALLOW_THREADING
   if (object->is_threaded) pthread_mutex_unlock(&object->mutex);
 #endif
@@ -892,19 +870,24 @@ void ukRecordFolder(void *object_ref, uint16_t folder_id) {
 
 void ukCloseFolder(void *object_ref) {
   EventObject *object = (EventObject *)object_ref;
-  assert(object->magic_value1 == MAGIC_VALUE1);
-  assert(object->magic_value2 == MAGIC_VALUE2);
+  OPTIONAL_ASSERT(object->magic_value1 == MAGIC_VALUE1);
+  OPTIONAL_ASSERT(object->magic_value2 == MAGIC_VALUE2);
+  OPTIONAL_ASSERT(object->folder_info_count > 0);
 #ifdef PRINT_RECORD_INFO
   printf("%s()\n", __FUNCTION__);
 #endif
-  assert(object->folder_info_count > 0);
-  PrivateFolderInfo *folder = &object->folder_info_list[CLOSE_FOLDER_ID];
-  uint64_t instance = folder->instance++;
+
 #ifdef ALLOW_THREADING
   if (object->is_threaded) pthread_mutex_lock(&object->mutex);
 #endif
-  popCurrentFolderStack(object);
-  recordEvent(object, CLOSE_FOLDER_ID, 0, instance, L_unused_name, L_unused_name, 0);
+
+  // Pop the latest folder from the current folder stack
+  OPTIONAL_ASSERT(object->curr_folder_stack_count > 0);
+  object->curr_folder_stack_count--;
+
+  // Add the folder event to the event buffer
+  recordEvent(object, CLOSE_FOLDER_ID, 0, 0, L_unused_name, L_unused_name, 0);
+
 #ifdef ALLOW_THREADING
   if (object->is_threaded) pthread_mutex_unlock(&object->mutex);
 #endif

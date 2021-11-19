@@ -7,7 +7,7 @@ THREAD_CFLAGS =
 
 # Check if release distribution is enabled
 !IF "$(RELEASE)" == "Yes"
-OPTIMIZATION_CFLAGS  = -O2 -MD  # Release: -MT means static linking, and -MD means dynamic linking.
+OPTIMIZATION_CFLAGS  = -O2 -MD -DRELEASE_BUILD # Release: -MT means static linking, and -MD means dynamic linking.
 !ELSE
 OPTIMIZATION_CFLAGS  = -Zi -MDd # Debug: -MTd or -MDd
 !ENDIF

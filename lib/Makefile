@@ -10,7 +10,7 @@ endif
 
 # Check if release distribution is enabled
 ifeq ($(RELEASE),Yes)
-    CFLAGS += -O2
+    CFLAGS += -O2 -DRELEASE_BUILD
 else
     CFLAGS += -g -O0
 endif
