@@ -79,6 +79,9 @@ typedef struct {
   uint64_t instance;  // Number of times the event was used
 } PrivateEventInfo;
 
+/*+*/
+#define MINIMIZE_MEMORY
+#ifdef MINIMIZE_MEMORY
 typedef struct {
   size_t time;
   size_t event_id;
@@ -89,6 +92,18 @@ typedef struct {
   size_t function_name;
   size_t line_number;
 } EventOffsets;
+#else
+typedef struct {
+  uint64_t time;
+  uint16_t event_id;
+  uint64_t instance;
+  double value;
+  uint64_t thread_id;
+  /*+ const */ char *file_name;
+  /*+ const */ char *function_name;
+  uint16_t line_number;
+} Event;
+#endif
 
 typedef struct {
   uint32_t magic_value1;
@@ -104,8 +119,6 @@ typedef struct {
   bool record_instance;
   bool record_file_location;
   bool record_value;
-  size_t bytes_per_event;
-  EventOffsets offsets;
   // Folders
   uint16_t folder_info_count;
   PrivateFolderInfo *folder_info_list;
@@ -122,7 +135,13 @@ typedef struct {
   uint32_t num_stored_events;
   uint32_t curr_event_index;
   uint32_t first_unsaved_event_index;
+#ifdef MINIMIZE_MEMORY
+  size_t bytes_per_event;
+  EventOffsets offsets;
   void *event_buffer;
+#else
+  Event *events_buffer;
+#endif
 #ifdef ALLOW_THREADING
   pthread_mutex_t mutex;
 #endif
@@ -166,10 +185,16 @@ static char **getFileNameList(EventObject *object, uint16_t *count_ret) {
   assert(file_name_list);
 
   uint32_t index = object->first_unsaved_event_index;
+#ifdef MINIMIZE_MEMORY
   size_t offset = object->offsets.file_name;
+#endif
   for (uint32_t i=0; i<object->num_stored_events; i++) {
+#ifdef MINIMIZE_MEMORY
     char **name_list = (char **)((size_t)object->event_buffer + index * object->bytes_per_event + offset);
     char *name = name_list[0];
+#else
+    char *name = object->events_buffer[index].file_name;
+#endif
     if (!containsName(file_name_list, name_count, name)) {
       if (name_count == max_name_count) {
 	assert(max_name_count <= (USHRT_MAX/2));
@@ -194,10 +219,16 @@ static char **getFunctionNameList(EventObject *object, uint16_t *count_ret) {
   assert(function_name_list);
 
   uint32_t index = object->first_unsaved_event_index;
+#ifdef MINIMIZE_MEMORY
   size_t offset = object->offsets.function_name;
+#endif
   for (uint32_t i=0; i<object->num_stored_events; i++) {
+#ifdef MINIMIZE_MEMORY
     char **name_list = (char **)((size_t)object->event_buffer + index * object->bytes_per_event + offset);
     char *name = name_list[0];
+#else
+    char *name = object->events_buffer[index].function_name;
+#endif
     if (!containsName(function_name_list, name_count, name)) {
       if (name_count == max_name_count) {
 	assert(max_name_count <= (USHRT_MAX/2));
@@ -229,11 +260,17 @@ static uint64_t *getThreadIdList(EventObject *object, uint16_t *count_ret) {
   assert(thread_id_list);
 
   uint32_t index = object->first_unsaved_event_index;
+#ifdef MINIMIZE_MEMORY
   size_t offset = object->offsets.thread_id;
+#endif
   for (uint32_t i=0; i<object->num_stored_events; i++) {
+#ifdef MINIMIZE_MEMORY
     uint64_t *thread_id_ptr = (uint64_t *)((size_t)object->event_buffer + index * object->bytes_per_event + offset);
     uint64_t thread_id;
     memcpy(&thread_id, thread_id_ptr, sizeof(uint64_t)); // Copying to local address to make sure alignment is good
+#else
+    uint64_t thread_id = object->events_buffer[index].thread_id;
+#endif
     if (!containsValue(thread_id_list, id_count, thread_id)) {
       if (id_count == max_id_count) {
 	assert(max_id_count <= (USHRT_MAX/2));
@@ -333,6 +370,7 @@ void *ukCreate(UkAttrs *attrs,
   pthread_mutex_init(&object->mutex, NULL);
 #endif
 
+#ifdef MINIMIZE_MEMORY
   // Calculate bytes and offset per event
   object->bytes_per_event = 0;
   object->offsets.time = object->bytes_per_event;
@@ -359,6 +397,7 @@ void *ukCreate(UkAttrs *attrs,
     object->offsets.line_number = object->bytes_per_event;
     object->bytes_per_event += sizeof(uint32_t);   // Line number
   }
+#endif
 #ifdef PRINT_INIT_INFO
   printf("%s():\n", __FUNCTION__);
   printf("  max_event_count = %d\n", object->max_event_count);
@@ -368,7 +407,9 @@ void *ukCreate(UkAttrs *attrs,
   printf("  record_value = %s\n", object->record_value ? "yes" : "no");
   printf("  record_file_location = %s\n", object->record_file_location ? "yes" : "no");
   printf("  first_event_id = %d\n", object->first_event_id);
+#ifdef MINIMIZE_MEMORY
   printf("  bytes_per_event = %zd\n", object->bytes_per_event);
+#endif
 #endif
 
   // Named Folders
@@ -425,8 +466,13 @@ void *ukCreate(UkAttrs *attrs,
   object->num_stored_events = 0;
   object->curr_event_index = 0;
   object->first_unsaved_event_index = 0;
+#ifdef MINIMIZE_MEMORY
   object->event_buffer = malloc(object->max_event_count * object->bytes_per_event);
   assert(object->event_buffer != NULL);
+#else
+  object->events_buffer = malloc(object->max_event_count * sizeof(Event));
+  assert(object->events_buffer != NULL);
+#endif
 
   return object;
 }
@@ -581,6 +627,7 @@ static void flushEvents(EventObject *object) {
   assert(object->flush(object->flush_user_data, &object->num_stored_events, sizeof(object->num_stored_events)));
   uint32_t index = object->first_unsaved_event_index;
   for (uint32_t i=0; i<object->num_stored_events; i++) {
+#ifdef MINIMIZE_MEMORY
     size_t event_ptr = (size_t)object->event_buffer + index * object->bytes_per_event;
 
     // Time
@@ -650,6 +697,53 @@ static void flushEvents(EventObject *object) {
 #endif
     }
 
+#else
+    Event *event = &object->events_buffer[index];
+    // Time
+    assert(object->flush(object->flush_user_data, &event->time, sizeof(event->time)));
+    // Event ID
+    assert(object->flush(object->flush_user_data, &event->event_id, sizeof(event->event_id)));
+#ifdef PRINT_FLUSH_INFO
+    printf("    time=%"UINT64_FORMAT", event_id=%d\n", time, event_id);
+#endif
+    // Instance
+    if (object->record_instance) {
+      assert(object->flush(object->flush_user_data, &event->instance, sizeof(event->instance)));
+#ifdef PRINT_FLUSH_INFO
+      printf("    event_instance=%"UINT64_FORMAT"\n", event_instance);
+#endif
+    }
+    // Value
+    if (object->record_value) {
+      assert(object->flush(object->flush_user_data, &event->value, sizeof(event->value)));
+#ifdef PRINT_FLUSH_INFO
+      printf("    value=%f\n", value);
+#endif
+    }
+    // Thread ID
+    if (object->is_threaded) {
+      uint16_t thread_index = getThreadIndex(event->thread_id, thread_id_list, thread_id_count);
+      assert(object->flush(object->flush_user_data, &thread_index, sizeof(thread_index)));
+#ifdef PRINT_FLUSH_INFO
+      printf("    thread_index=%d\n", thread_index);
+#endif
+    }
+    // Location
+    if (object->record_file_location) {
+      // File name
+      uint16_t file_name_index = getNameIndex(event->file_name, file_name_list, file_name_count);
+      assert(object->flush(object->flush_user_data, &file_name_index, sizeof(file_name_index)));
+      // Function name
+      uint16_t function_name_index = getNameIndex(event->function_name, function_name_list, function_name_count);
+      assert(object->flush(object->flush_user_data, &function_name_index, sizeof(function_name_index)));
+      // Line number
+      assert(object->flush(object->flush_user_data, &event->line_number, sizeof(event->line_number)));
+#ifdef PRINT_FLUSH_INFO
+      printf("    file='%s', function='%s', line=%d\n", file_name, function_name, line_number);
+#endif
+    }
+#endif
+
     index = (index + 1) % object->max_event_count;
   }
 
@@ -698,7 +792,11 @@ void ukDestroy(void *object_ref) {
     }
     free(object->event_info_list);
   }
+#ifdef MINIMIZE_MEMORY
   free(object->event_buffer);
+#else
+  free(object->events_buffer);
+#endif
 #ifdef ALLOW_THREADING
   pthread_mutex_destroy(&object->mutex);
 #endif
@@ -744,6 +842,8 @@ static void recordEvent(EventObject *object, uint16_t event_id, double value, ui
   uint64_t t1 = getTime();
   t1 = getTime();
 #endif
+
+#ifdef MINIMIZE_MEMORY
   // Get the memory location in the event buffer
   size_t base_addr = (size_t)object->event_buffer + object->curr_event_index * object->bytes_per_event;
 
@@ -778,6 +878,26 @@ static void recordEvent(EventObject *object, uint16_t event_id, double value, ui
     *function_name_ptr = (char *)function;
     *line_number_ptr = line_number;
   }
+#else
+
+/*+*/
+  // Store the required values
+  Event *event = &object->events_buffer[object->curr_event_index];
+  uint16_t replaced_event_id = event->event_id; // Need for book keeping at the end of this function
+  event->time = object->clock();
+  event->event_id = event_id;
+  // Store the optional values
+  event->instance = instance;
+  event->value = value;
+#ifdef ALLOW_THREADING
+  if (object->is_threaded) {
+    event->thread_id = myThreadId();
+  }
+#endif
+  event->file_name = (char *)file; /*+ casting needed */
+  event->function_name = (char *)function; /*+ casting needed */
+  event->line_number = line_number;
+#endif
 
   // Set the index of the next future event
   object->curr_event_index = (object->curr_event_index + 1) % object->max_event_count;
