@@ -20,8 +20,6 @@
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
 
-/*+ show vertical line where mouse is along with time in header, instead of in info dialog? */
-
 #define MIN_SELECTION_PIXEL_DIFF 5
 #define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
 #define ROLLOVER_BG_COLOR QColor(200, 200, 200, 220)
@@ -52,6 +50,43 @@ EventsView::EventsView(QWidget *parent) : QWidget(parent) {
 
 EventsView::~EventsView() {
   // Nothing to do
+}
+
+static uint32_t findEventIndexAtTime(Events *events, EventTreeNode *node, uint64_t time, int32_t index_offset) {
+  uint32_t first = 0;
+  uint32_t last = node->num_event_instances-1;
+
+  // See if before first event
+  uint32_t first_event_index = node->event_indices[first];
+  Event *first_event = &events->event_buffer[first_event_index];
+  if (time <= first_event->time) return first;
+
+  // See if after last event
+  uint32_t last_event_index = node->event_indices[last];
+  Event *last_event = &events->event_buffer[last_event_index];
+  if (time > last_event->time) return last+1;
+
+  // Binary search
+  while ((last-first) > 1) {
+    uint32_t mid = first + (last-first)/2;
+    uint32_t event_index = node->event_indices[mid];
+    Event *event = &events->event_buffer[event_index];
+    if (event->time <= time) {
+      first = mid;
+    } else {
+      last = mid;
+    }
+  }
+  first++; // NOTE: want the first event to the right of the mouse, not the left
+  if (first > 0 && index_offset < 0) {
+    first--;
+    index_offset++;
+  }
+  if (first < (node->num_event_instances-1) && index_offset > 0) {
+    first++;
+    index_offset--;
+  }
+  return first;
 }
 
 void EventsView::popupContextMenu(const QPoint &mouse_location) {
@@ -194,6 +229,76 @@ void EventsView::zoomToRegion() {
   rebuildAndUpdate();
 }
 
+void EventsView::centerPrevEvent(Events *events, EventTreeNode *events_row) {
+  // Check if zoomed in, otherwise all events are visible
+  if (percent_visible < 1.0) {
+    // IMPORTANT: Using time range that was last calculated from the paintEvent()
+    // Get event currently at center
+    uint64_t center_time = start_time + (end_time - start_time)/2;
+    uint32_t center_event_index = findEventIndexAtTime(events, events_row, center_time, 0);
+    if (center_event_index >= events_row->num_event_instances) center_event_index = events_row->num_event_instances-1;
+    Event *event = &events->event_buffer[events_row->event_indices[center_event_index]];
+
+    // See if need to skip to the prev event
+    uint64_t margin = (uint64_t)(0.01*(end_time-start_time)); // 1% of visible time
+    if (event->time >= (center_time-margin)) {
+      if (center_event_index > 0) {
+        center_event_index--;
+        event = &events->event_buffer[events_row->event_indices[center_event_index]];
+      }
+    }
+
+    if (event->time < center_time) {
+      // Move the percent_offset to center this event
+      // From:
+      //   [-------|+++X+++++++++|-------------------]
+      // To:
+      //   [----|++++++X++++++|----------------------]
+      double center_percent = (event->time - full_start_time) / (double)(full_end_time - full_start_time);
+      percent_offset = std::max(center_percent - percent_visible/2.0, 0.0);
+      selected_time_range_x1 = -1;
+      selected_time_range_x2 = -1;
+      emit timeRangeChanged();
+      rebuildAndUpdate();
+    }
+  }
+}
+
+void EventsView::centerNextEvent(Events *events, EventTreeNode *events_row) {
+  // Check if zoomed in, otherwise all events are visible
+  if (percent_visible < 1.0) {
+    // IMPORTANT: Using time range that was last calculated from the paintEvent()
+    // Get event currently at center
+    uint64_t center_time = start_time + (end_time - start_time)/2;
+    uint32_t center_event_index = findEventIndexAtTime(events, events_row, center_time, 0);
+    if (center_event_index >= events_row->num_event_instances) center_event_index = events_row->num_event_instances-1;
+    Event *event = &events->event_buffer[events_row->event_indices[center_event_index]];
+
+    // See if need to skip to the next event
+    uint64_t margin = (uint64_t)(0.01*(end_time-start_time)); // 1% of visible time
+    if (event->time <= (center_time+margin)) {
+      if (center_event_index < (events_row->num_event_instances-1)) {
+        center_event_index++;
+        event = &events->event_buffer[events_row->event_indices[center_event_index]];
+      }
+    }
+
+    if (event->time > center_time) {
+      // Move the percent_offset to center this event
+      // From:
+      //   [-------|+++++++++X+++|-------------------]
+      // To:
+      //   [----------|++++++X++++++|----------------]
+      double center_percent = (event->time - full_start_time) / (double)(full_end_time - full_start_time);
+      percent_offset = std::max(center_percent - percent_visible/2.0, 0.0);
+      selected_time_range_x1 = -1;
+      selected_time_range_x2 = -1;
+      emit timeRangeChanged();
+      rebuildAndUpdate();
+    }
+  }
+}
+
 void EventsView::mousePressEvent(QMouseEvent *event) {
   if (G_event_tree_map.count() == 0) return;
   if (event->button() == Qt::LeftButton) {
@@ -246,41 +351,21 @@ void EventsView::leaveEvent(QEvent * /*event*/) {
   update(); // Avoids full redraw
 }
 
-static uint32_t findEventIndexAtTime(Events *events, EventTreeNode *node, uint64_t time, int32_t index_offset) {
-  uint32_t first = 0;
-  uint32_t last = node->num_event_instances-1;
-
-  // See if before first event
-  uint32_t first_event_index = node->event_indices[first];
-  Event *first_event = &events->event_buffer[first_event_index];
-  if (time <= first_event->time) return first;
-
-  // See if after last event
-  uint32_t last_event_index = node->event_indices[last];
-  Event *last_event = &events->event_buffer[last_event_index];
-  if (time > last_event->time) return last+1;
-
-  // Binary search
-  while ((last-first) > 1) {
-    uint32_t mid = first + (last-first)/2;
-    uint32_t event_index = node->event_indices[mid];
-    Event *event = &events->event_buffer[event_index];
-    if (event->time <= time) {
-      first = mid;
-    } else {
-      last = mid;
+void EventsView::hasEventsOutsideOfVisibleRegion(Events *events, EventTreeNode *events_row, bool *events_to_the_left_ret, bool *events_to_the_right_ret) {
+  *events_to_the_left_ret = false;
+  *events_to_the_right_ret = false;
+  // Check if zoomed in, otherwise all events are visible
+  if (percent_visible < 1.0) {
+    // IMPORTANT: Using time range that was last calculated from the paintEvent()
+    uint32_t first_visible_event_index = findEventIndexAtTime(events, events_row, start_time, 0);
+    uint32_t last_visible_event_index = findEventIndexAtTime(events, events_row, end_time, 0);
+    if (first_visible_event_index > 0) {
+      *events_to_the_left_ret = true;
+    }
+    if (last_visible_event_index < events_row->num_event_instances) {
+      *events_to_the_right_ret = true;
     }
   }
-  first++; // NOTE: want the first event to the right of the mouse, not the left
-  if (first > 0 && index_offset < 0) {
-    first--;
-    index_offset++;
-  }
-  if (first < (node->num_event_instances-1) && index_offset > 0) {
-    first++;
-    index_offset--;
-  }
-  return first;
 }
 
 void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *parent, int &line_index, int ancestor_open) {
@@ -785,6 +870,8 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   }
 
   // Determine time range
+  full_start_time = 0;
+  full_end_time = 0;
   start_time = 0;
   end_time = 0;
   {
@@ -799,17 +886,19 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       Event *last_event = &events->event_buffer[events->event_count-1];
       if (!got_time_range) {
         // Record initial times
-        start_time = first_event->time;
-        end_time = last_event->time;
+        full_start_time = first_event->time;
+        full_end_time = last_event->time;
       } else {
         // Update time range
-        if (first_event->time < start_time) start_time = first_event->time;
-        if (last_event->time < end_time) end_time = last_event->time;
+        if (first_event->time < full_start_time) full_start_time = first_event->time;
+        if (last_event->time < full_end_time) full_end_time = last_event->time;
       }
     }
   }
 
   // Zoom in as needed
+  start_time = full_start_time;
+  end_time = full_end_time;
   if (percent_visible < 1.0) {
     uint64_t elapsed_nanoseconds = end_time - start_time;
     uint64_t visible_nanoseconds = (uint64_t)(elapsed_nanoseconds * percent_visible);

@@ -1,14 +1,18 @@
 API:
+ - Allow folders to also contain instance, locations, and value?
+ - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
+
 
 Visualizer:
-- Filter dialog:
-  - Collapse filtered rows to a few pixels to make it obvious filtering is active
-- Event window mouse modes
-  - Time alignment (row highlights)
-    - Grab row and move left/right to align events file
-    - Shift rows to native start
-    - Align by event instances (ignore folders and threads?)
-      - Draw lines between alignments
-      - Allow clock drift correction between files via scaling first and last event instances
-    - Selected row can use prev/next buttons
-  - Search for largest duration/gap
+ - Filter dialog:
+   - Collapse filtered rows to a few pixels to make it obvious filtering is active
+ - Mouse mode: adjust event times (equally for all events in a file)
+   - Grab row and move left/right to align events file
+   - Via dialog?
+     - Shift rows to start time of 0
+     - Shift rows to native start
+     - Align by event instances (ignore folders and threads?)
+       - Draw lines between alignments
+       - Allow clock drift correction between files via scaling first and last event instances
+ - Events buttons:
+   - Search for largest duration/gap (similar to prev/next event)?

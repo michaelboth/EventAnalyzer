@@ -30,11 +30,12 @@
         <file alias="mouse_mode_info.png">icons/mouse_mode_info.png</file>
         <file alias="mouse_mode_histogram.png">icons/mouse_mode_histogram.png</file>
         <file alias="mouse_mode_time_shift.png">icons/mouse_mode_time_shift.png</file>
-
         <file alias="zoom_to_all.png">icons/zoom_to_all.png</file>
         <file alias="zoom_in.png">icons/zoom_in.png</file>
         <file alias="zoom_out.png">icons/zoom_out.png</file>
         <file alias="zoom_to_selected.png">icons/zoom_to_selected.png</file>
+        <file alias="prev_event.png">icons/prev_event.png</file>
+        <file alias="next_event.png">icons/next_event.png</file>
 
     </qresource>
 </RCC>

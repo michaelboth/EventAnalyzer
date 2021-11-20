@@ -38,6 +38,9 @@ public:
   void updateTimeOffset(double percent_offset);
   bool timeRangeSelected();
   void setMouseMode(MouseMode mouse_mode);
+  void hasEventsOutsideOfVisibleRegion(Events *events, EventTreeNode *events_row, bool *events_to_the_left_ret, bool *events_to_the_right_ret);
+  void centerPrevEvent(Events *events, EventTreeNode *events_row);
+  void centerNextEvent(Events *events, EventTreeNode *events_row);
 
 protected:
   void paintEvent(QPaintEvent *event);
@@ -68,6 +71,8 @@ private:
   int line_h = 0;
   int v_offset = 0;
   QPoint mouse_location = QPoint(-1,-1);
+  uint64_t full_start_time = 0;
+  uint64_t full_end_time = 0;
   uint64_t start_time = 0;
   uint64_t end_time = 0;
   double time_range = 0;

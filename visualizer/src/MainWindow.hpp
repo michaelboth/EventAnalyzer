@@ -16,6 +16,7 @@
 #define _MainWindow_hpp_
 
 #include <QMainWindow>
+#include "EventTree.hpp"
 
 namespace Ui {
   class MainWindow;
@@ -51,6 +52,8 @@ private slots:
   void on_mouseModeInfoButton_clicked();
   void on_mouseModeHistogramButton_clicked();
   void on_mouseModeTimeShiftButton_clicked();
+  void on_prevEventButton_clicked();
+  void on_nextEventButton_clicked();
   // Custom
   void updateColumnWidths(int pos, int index);
   void setWidgetUsability();
@@ -66,7 +69,9 @@ private:
   void updateEventTreeBuild();
   bool eventFilesHaveFolders();
   bool eventFilesHaveThreads();
-  bool eventFilesSelected();
+  bool eventFileSelected();
+  EventTreeNode *eventRowSelected(Events **selected_events_ret);
+  EventTreeNode *eventRowSelected(EventTreeNode *parent);
   uint32_t totalEventInstances();
   void freeAllEventFiles();
   void updateViews();

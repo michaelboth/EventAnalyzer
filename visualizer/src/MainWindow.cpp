@@ -104,11 +104,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     "  background: rgb(240, 240, 240);"
     "  height: 14px;"
     "  margin: 0px 0px 0px 0px;"
-    "  padding: 4px 2px 4px 2px;"
+    "  padding: 2px 2px 2px 2px;"
     "}"
     "QScrollBar::handle:horizontal {"
     "  background: rgb(100, 100, 100);"
-    "  border-radius: 3px;"
+    "  border-radius: 5px;"
     "  min-width: 6px;"
     "}"
     "QScrollBar::handle:horizontal:disabled {"
@@ -127,11 +127,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     "  background: rgb(240, 240, 240);"
     "  height: 14px;"
     "  margin: 0px 14px 0px 14px;"
-    "  padding: 4px 0px 4px 0px;"
+    "  padding: 2px 0px 2px 0px;"
     "}"
     "QScrollBar::handle:horizontal {"
     "  background: rgb(100, 100, 100);"
-    "  border-radius: 3px;"
+    "  border-radius: 5px;"
     "  min-width: 6px;"
     "}"
     "QScrollBar::handle:horizontal:disabled {"
@@ -167,11 +167,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     "  background: rgb(240, 240, 240);"
     "  width: 14px;"
     "  margin: 0px 0px 0px 0px;"
-    "  padding: 2px 4px 2px 4px;"
+    "  padding: 2px 2px 2px 2px;"
     "}"
     "QScrollBar::handle:vertical {"
     "  background: rgb(100, 100, 100);"
-    "  border-radius: 3px;"
+    "  border-radius: 5px;"
     "  min-height: 6px;"
     "}"
     "QScrollBar::handle:vertical:disabled {"
@@ -217,7 +217,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->zoomToAllButton,
     ui->zoomInButton,
     ui->zoomOutButton,
-    ui->zoomToSelectedButton
+    ui->zoomToSelectedButton,
+    ui->prevEventButton,
+    ui->nextEventButton
   };
 
   // Set button sizes
@@ -256,10 +258,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->mouseModeInfoButton->setIcon(buildIcon(":/mouse_mode_info.png",            true, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->mouseModeHistogramButton->setIcon(buildIcon(":/mouse_mode_histogram.png",  true, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->mouseModeTimeShiftButton->setIcon(buildIcon(":/mouse_mode_time_shift.png", true, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->zoomToAllButton->setIcon(buildIcon(":/zoom_to_all.png",           false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->zoomInButton->setIcon(buildIcon(":/zoom_in.png",                  false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->zoomOutButton->setIcon(buildIcon(":/zoom_out.png",                false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->zoomToSelectedButton->setIcon(buildIcon(":/zoom_to_selected.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomToAllButton->setIcon(buildIcon(":/zoom_to_all.png",                    false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomInButton->setIcon(buildIcon(":/zoom_in.png",                           false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomOutButton->setIcon(buildIcon(":/zoom_out.png",                         false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomToSelectedButton->setIcon(buildIcon(":/zoom_to_selected.png",          false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->prevEventButton->setIcon(buildIcon(":/prev_event.png",                     false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->nextEventButton->setIcon(buildIcon(":/next_event.png",                     false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
 
   // Make sure events window stretches
   ui->viewSplitter->setStretchFactor(0, 0);
@@ -299,6 +303,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   this->connect(ui->eventsView, SIGNAL(visibleTimeRangeChanged(uint64_t,uint64_t)), ui->eventsHeader, SLOT(updateUnits(uint64_t,uint64_t)));
   this->connect(ui->eventsView, SIGNAL(selectionTimeRangeChanged(uint64_t)), ui->eventsHeader, SLOT(updateSelectionRange(uint64_t)));
   this->connect(ui->eventsView, SIGNAL(utilizationRecalculated()), ui->profilingView, SLOT(update()));
+  this->connect(ui->eventsView, SIGNAL(utilizationRecalculated()), this, SLOT(setWidgetUsability()));
   this->connect(ui->zoomToAllButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomToAll()));
   this->connect(ui->zoomInButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomIn()));
   this->connect(ui->zoomOutButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomOut()));
@@ -365,7 +370,14 @@ QIcon MainWindow::buildIcon(QString filename, bool is_toggle, QColor normal_colo
 
 void MainWindow::setWidgetUsability() {
   bool event_files_loaded = (G_event_tree_map.count() > 0);
-  bool event_files_selected = eventFilesSelected();
+  bool event_file_selected = eventFileSelected();
+  Events *selected_events = NULL;
+  EventTreeNode *events_row = eventRowSelected(&selected_events);
+  bool events_to_the_left = false;
+  bool events_to_the_right = false;
+  if (events_row != NULL) {
+    ui->eventsView->hasEventsOutsideOfVisibleRegion(selected_events, events_row, &events_to_the_left, &events_to_the_right);
+  }
   bool folders_exist = eventFilesHaveFolders();
   bool threads_exist = eventFilesHaveThreads();
   bool filters_are_set = false;/*+*/
@@ -377,7 +389,7 @@ void MainWindow::setWidgetUsability() {
 
   // Hierarchy toolbar
   ui->closeAllButton->setEnabled(event_files_loaded);
-  ui->closeSelectedButton->setEnabled(event_files_selected);
+  ui->closeSelectedButton->setEnabled(event_file_selected);
   ui->setFilterButton->setEnabled(event_files_loaded);
   ui->clearFilterButton->setEnabled(filters_are_set);
   ui->showFoldersButton->setEnabled(folders_exist);
@@ -398,8 +410,11 @@ void MainWindow::setWidgetUsability() {
   ui->zoomInButton->setEnabled(event_files_loaded);
   ui->zoomOutButton->setEnabled(event_files_loaded && !zoomed_to_all);
   ui->zoomToSelectedButton->setEnabled(event_files_loaded && ui->eventsView->timeRangeSelected());
+  ui->prevEventButton->setEnabled(event_files_loaded && events_to_the_left);
+  ui->nextEventButton->setEnabled(event_files_loaded && events_to_the_right);
 
-  /*+ hide until implemented */
+  /*+ hide filtering buttons until filtering implemented */
+  ui->filterSpacer->changeSize(10, 0, QSizePolicy::Minimum, QSizePolicy::Fixed);
   ui->setFilterButton->setHidden(true);
   ui->clearFilterButton->setHidden(true);
   ui->mouseModeTimeShiftButton->setHidden(true);
@@ -417,13 +432,13 @@ void MainWindow::on_loadButton_clicked() {
     QString folder = filename.section("/", -999, -2);
     //printf("folder: '%s'\n", folder.toLatin1().data());
     if (folder.isEmpty()) {
-      QMessageBox::information(this, "File Error", "No folder.");
+      QMessageBox::critical(this, "File Error", "No folder.");
       return;
     }
     // Get name of file
     QString name = filename.section("/", -1).section(".events", 0, 0);
     if (name.isEmpty()) {
-      QMessageBox::information(this, "File Error", "Empty filename.");
+      QMessageBox::critical(this, "File Error", "Empty filename.");
       return;
     }
     //printf("name: '%s'\n", name.toLatin1().data());
@@ -486,12 +501,11 @@ void MainWindow::on_closeSelectedButton_clicked() {
 }
 
 void MainWindow::on_setFilterButton_clicked() {
-  /*+*/
-  QMessageBox::information(this, "Filters", "Filtering is not implemented yet.");
+  /*+ filtering */
 }
 
 void MainWindow::on_clearFilterButton_clicked() {
-  /*+*/
+  /*+ filtering */
 }
 
 void MainWindow::updateEventTreeBuild() {
@@ -563,7 +577,7 @@ bool MainWindow::eventFilesHaveThreads() {
   return false;
 }
 
-bool MainWindow::eventFilesSelected() {
+bool MainWindow::eventFileSelected() {
   QMapIterator<QString, EventTree*> i(G_event_tree_map);
   while (i.hasNext()) {
     // Get old tree info
@@ -572,6 +586,33 @@ bool MainWindow::eventFilesSelected() {
     if (tree->tree->row_selected) return true;
   }
   return false;
+}
+
+EventTreeNode *MainWindow::eventRowSelected(EventTreeNode *parent) {
+  if (parent->row_selected && parent->tree_node_type == TREE_NODE_IS_EVENT) {
+    return parent;
+  }
+  for (auto child: parent->children) {
+    EventTreeNode *event_row = eventRowSelected(child);
+    if (event_row != NULL) return event_row;
+  }
+  return NULL;
+}
+
+EventTreeNode *MainWindow::eventRowSelected(Events **selected_events_ret) {
+  *selected_events_ret = NULL;
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  while (i.hasNext()) {
+    // Get old tree info
+    i.next();
+    EventTree *tree = i.value();
+    EventTreeNode *event_row = eventRowSelected(tree->tree);
+    if (event_row != NULL) {
+      *selected_events_ret = tree->events;
+      return event_row;
+    }
+  }
+  return NULL;
 }
 
 void MainWindow::on_showFoldersButton_clicked() {
@@ -802,6 +843,20 @@ void MainWindow::updateEventsTimeOffset(int scroll_offset) {
     percent_offset = scroll_offset / (double)max;
   }
   ui->eventsView->updateTimeOffset(percent_offset);
+  // NOTE: since the visible events may change, this may effect some of the tool buttons
+  setWidgetUsability();
+}
+
+void MainWindow::on_prevEventButton_clicked() {
+  Events *selected_events = NULL;
+  EventTreeNode *events_row = eventRowSelected(&selected_events);
+  ui->eventsView->centerPrevEvent(selected_events, events_row);
+}
+
+void MainWindow::on_nextEventButton_clicked() {
+  Events *selected_events = NULL;
+  EventTreeNode *events_row = eventRowSelected(&selected_events);
+  ui->eventsView->centerNextEvent(selected_events, events_row);
 }
 
 void MainWindow::updateViews() {
