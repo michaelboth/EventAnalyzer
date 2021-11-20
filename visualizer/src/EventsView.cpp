@@ -342,16 +342,20 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
 }
 
 static QPixmap drawEventIcon(int height, QColor color) {
-  int w = (int)(height * 1.0f);
-  QPixmap pixmap(w, height);
+  int icon_h = height * G_pixels_per_point;
+  int icon_w = (int)(icon_h * 1.0f);
+  QPixmap pixmap(icon_w, icon_h);
+  pixmap.setDevicePixelRatio(G_pixels_per_point);
+  icon_h /= G_pixels_per_point;
+  icon_w /= G_pixels_per_point;
   pixmap.fill(Qt::transparent);
   QPainter painter(&pixmap);
   int x1 = 1;
-  int x2 = w-3;
-  int y1 = (int)(height * 0.2f);
-  int y2 = (int)(height * 0.35f);
-  int y3 = (int)(height * 0.65f);
-  int y4 = (int)(height * 0.8f);
+  int x2 = icon_w-3;
+  int y1 = (int)(icon_h * 0.2f);
+  int y2 = (int)(icon_h * 0.35f);
+  int y3 = (int)(icon_h * 0.65f);
+  int y4 = (int)(icon_h * 0.8f);
   painter.fillRect(x1, y1, 2, y3-y1, color);
   painter.fillRect(x2, y2, 2, y4-y2, color);
   painter.fillRect(x1, y2, x2-x1, y3-y2, color);
@@ -598,12 +602,12 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   } else if (node->tree_node_type == TREE_NODE_IS_THREAD) {
     image_icon = node->is_open ? icon_map["hierarchy_opened_thread.png"] : icon_map["hierarchy_closed_thread.png"];
   } else {
-    image_icon = drawEventIcon(th, node->color); /*+ G_pixels_per_point */
+    image_icon = drawEventIcon(th, node->color);
   }
   int icon_offset = 0;
   if (!image_icon.isNull()) {
     painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
-    icon_offset = m+image_icon.width(); /*+ G_pixels_per_point */
+    icon_offset = m + image_icon.width() / G_pixels_per_point;
     int image_w = th * image_icon.width() / (float)image_icon.height();
     painter.drawPixmap(dialog_x+m, dialog_y, image_w, th, image_icon);
     painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
@@ -698,7 +702,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
         text += "," + QString(events->function_name_list[prev_event->function_name_index]);
         text += "():" + QString::number(prev_event->line_number);
       }
-      painter.drawText(dialog_x, dialog_y, dialog_w-m*2, th, Qt::AlignLeft | Qt::AlignVCenter, text); /*+ ... at begining */
+      painter.drawText(dialog_x, dialog_y, dialog_w-m, th, Qt::AlignRight | Qt::AlignVCenter, text);
     }
     dialog_y += th;
     if (has_next_event) {
@@ -708,7 +712,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
         text += "," + QString(events->function_name_list[next_event->function_name_index]);
         text += "():" + QString::number(next_event->line_number);
       }
-      painter.drawText(dialog_x, dialog_y, dialog_w-m*2, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+      painter.drawText(dialog_x, dialog_y, dialog_w-m, th, Qt::AlignRight | Qt::AlignVCenter, text);
     }
   }
 }
@@ -782,7 +786,6 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
 
   // Make sure the frame buffer is the correct size
   if (frame_buffer.width() != w || frame_buffer.height() != h) {
-    /*+ G_pixels_per_point */
     frame_buffer = QImage(w, h, QImage::Format_ARGB32);
     rebuild_frame_buffer = true;
   }
