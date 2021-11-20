@@ -1,22 +1,9 @@
-Examples:
-  - Memory contention
-    - Do each test in a separate folder; e.g. "3 Threads, 1 MB"
-    - Use a thread barrier between tests
-    - 1..N threads
-    - Small to large memory sizes; 1KB, 10KB, 100KB, 1MB
-  - Context switching
-  - O(N) vs O(logN)
+API:
 
 Visualizer:
-- Allow sorting events by usilization
-- Utilization coloumn:
-  - Show color bar and text percentage
-  - Maybe also show min/ave/mean/max times based on width of view
 - Filter dialog:
   - Collapse filtered rows to a few pixels to make it obvious filtering is active
-- Event windows modes
-  - Rollover info
-  - Rollover histogram
+- Event window mouse modes
   - Time alignment (row highlights)
     - Grab row and move left/right to align events file
     - Shift rows to native start

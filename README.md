@@ -217,7 +217,7 @@ The Unikorn Viewer is written in C++ using the Open Source Qt framework (www.qt.
 ```
 > cd unikorn/visualizer
 > qmake
-> make
+> make -j8
 > ./UnikornViewer
 ```
 ### Windows

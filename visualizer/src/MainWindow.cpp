@@ -20,8 +20,6 @@
 #include "main.hpp"
 #include "unikorn.h"
 
-/*+ use stable version of Qt on all platforms */
-
 #define NORMAL_COLOR     QColor(50, 50, 50)
 #define DISABLED_COLOR   QColor(200, 200, 200)
 #define TOGGLE_ON_COLOR  QColor(0, 100, 255)

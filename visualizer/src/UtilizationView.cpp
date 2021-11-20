@@ -25,9 +25,6 @@ UtilizationView::~UtilizationView() {
 }
 
 void UtilizationView::updateLineHeight() {
-  // Calculate geometry
-  //*+*/line_h = (int)(G_font_point_size * LINE_HEIGHT_FACTOR);
-
   // Update font size
   QFont font = this->font();
   font.setPointSize(G_font_point_size);

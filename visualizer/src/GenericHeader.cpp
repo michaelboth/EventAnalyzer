@@ -25,11 +25,6 @@ GenericHeader::~GenericHeader() {
 }
 
 void GenericHeader::updateHeight() {
-  /*+
-  int height = (int)(G_font_point_size * 1.8f);
-  setMinimumHeight(height);
-  */
-
   QFont font = this->font();
   font.setPointSize(G_font_point_size);
   this->setFont(font);
