@@ -60,6 +60,7 @@ public slots:
   void zoomOut();
   void zoomToRegion();
   void rebuildAndUpdate();
+  void popupContextMenu(const QPoint &mouse_location);
 
 private:
   QPixmap logo;

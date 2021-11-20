@@ -14,11 +14,12 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+#include <QAction>
+#include <QMenu>
 #include "EventsView.hpp"
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
 
-/*+ allow right click menu in events area to zoom? Or maybe just use keyboard shortcuts */
 /*+ show vertical line where mouse is along with time in header, instead of in info dialog? */
 
 #define MIN_SELECTION_PIXEL_DIFF 5
@@ -39,6 +40,10 @@ EventsView::EventsView(QWidget *parent) : QWidget(parent) {
   // Allow for keyboard focus now
   //setFocus();
 
+  // Allow mouse right click
+  this->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(popupContextMenu(const QPoint &)));
+
   // Load the logo
   QImage image = QImage(":/unikorn_logo.png");
   recolorImage(image, QColor(220,220,220));
@@ -47,6 +52,38 @@ EventsView::EventsView(QWidget *parent) : QWidget(parent) {
 
 EventsView::~EventsView() {
   // Nothing to do
+}
+
+void EventsView::popupContextMenu(const QPoint &mouse_location) {
+  if (G_event_tree_map.count() == 0) return;
+
+  QMenu menu("Right click menu", this);
+
+  QAction zoom_to_region_action("Zoom To Region", this);
+  QAction zoom_to_all_action("Zoom To All", this);
+  QAction zoom_in_action("Zoom In", this);
+  QAction zoom_out_action("Zoom Out", this);
+
+  if (timeRangeSelected()) {
+    connect(&zoom_to_region_action, SIGNAL(triggered()), this, SLOT(zoomToRegion()));
+    menu.addAction(&zoom_to_region_action);
+  }
+
+  if (percent_visible < 1.0) {
+    connect(&zoom_to_all_action, SIGNAL(triggered()), this, SLOT(zoomToAll()));
+    menu.addAction(&zoom_to_all_action);
+  }
+
+  connect(&zoom_in_action, SIGNAL(triggered()), this, SLOT(zoomIn()));
+  menu.addAction(&zoom_in_action);
+
+  if (percent_visible < 1.0) {
+    connect(&zoom_out_action, SIGNAL(triggered()), this, SLOT(zoomOut()));
+    menu.addAction(&zoom_out_action);
+  }
+
+  // Display the menu
+  menu.exec(mapToGlobal(mouse_location));
 }
 
 void EventsView::setMouseMode(MouseMode _mouse_mode) {
