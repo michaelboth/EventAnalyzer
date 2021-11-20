@@ -112,6 +112,7 @@ int main(int argc, char **argv) {
 
   // Run the threads
   for (uint16_t num_concurrent_threads=1; num_concurrent_threads<=max_threads; num_concurrent_threads++) {
+    /*+ store as multiple files so they can be time aligned in the viewer. Use a barrier event */
     uint16_t folder_id = num_concurrent_threads;
     ukRecordFolder(G_instance, folder_id);
 

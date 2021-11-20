@@ -93,11 +93,24 @@ void EventsView::popupContextMenu(const QPoint &mouse_location) {
   if (G_event_tree_map.count() == 0) return;
 
   QMenu menu("Right click menu", this);
+  QString style_text =
+    "QMenu {\n"
+    "  icon-size: 32px;\n"
+    "  background-color: #bbbbbb;\n"
+    "  border: 1px solid black;\n"
+    "}\n"
+    "QMenu::item {\n"
+    "  background-color: transparent;\n"
+    "}\n"
+    "QMenu::item:selected {\n"
+    "  background-color: #999999;\n"
+    "}\n";
+  menu.setStyleSheet(style_text);
 
-  QAction zoom_to_region_action("Zoom To Region", this);
-  QAction zoom_to_all_action("Zoom To All", this);
-  QAction zoom_in_action("Zoom In", this);
-  QAction zoom_out_action("Zoom Out", this);
+  QAction zoom_to_region_action(QIcon(":/zoom_to_selected.png"), "Zoom To Region", this);
+  QAction zoom_to_all_action(QIcon(":/zoom_to_all.png"), "Zoom To All", this);
+  QAction zoom_in_action(QIcon(":/zoom_in.png"), "Zoom In", this);
+  QAction zoom_out_action(QIcon(":/zoom_out.png"), "Zoom Out", this);
 
   if (timeRangeSelected()) {
     connect(&zoom_to_region_action, SIGNAL(triggered()), this, SLOT(zoomToRegion()));

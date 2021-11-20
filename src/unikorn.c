@@ -76,7 +76,8 @@ typedef struct {
   uint16_t start_id;  // ID's must start with 1 and be contiguous across folders (defined first) and events
   uint16_t end_id;    // ID's must start with 1 and be contiguous across folders (defined first) and events
   uint16_t rgb;       // 0x0RGB
-  uint64_t instance;  // Number of times the event was used
+  uint64_t start_instance; // Number of times the start event was used
+  uint64_t end_instance;   // Number of times the end event was used
 } PrivateEventInfo;
 
 typedef struct {
@@ -382,7 +383,8 @@ void *ukCreate(UkAttrs *attrs,
     printf("    startID=%d, endID=%d, RGB=0x%04x, name='%s'\n", object->event_info_list[i].start_id, object->event_info_list[i].end_id, object->event_info_list[i].rgb, object->event_info_list[i].name);
 #endif
     assert(object->event_info_list[i].name != NULL);
-    object->event_info_list[i].instance = 1;
+    object->event_info_list[i].start_instance = 1;
+    object->event_info_list[i].end_instance = 1;
   }
 
   // Prepare the storage buffer
@@ -735,7 +737,7 @@ void ukRecordEvent(void *object_ref, uint16_t event_id, double value, const char
 #endif
 
   // Add the folder event to the event buffer
-  uint64_t instance = event->instance++;
+  uint64_t instance = (event->start_id == event_id) ? event->start_instance++ : event->end_instance++;
   recordEvent(object, event_id, value, instance, file, function, line_number);
 
 #ifdef ALLOW_THREADING
