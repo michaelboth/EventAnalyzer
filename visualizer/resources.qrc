@@ -27,6 +27,7 @@
         <file alias="hierarchy_opened_folder.png">icons/hierarchy_opened_folder.png</file>
         <file alias="hierarchy_opened_thread.png">icons/hierarchy_opened_thread.png</file>
 
+        <file alias="time_align.png">icons/time_align.png</file>
         <file alias="mouse_mode_info.png">icons/mouse_mode_info.png</file>
         <file alias="mouse_mode_histogram.png">icons/mouse_mode_histogram.png</file>
         <file alias="mouse_mode_time_shift.png">icons/mouse_mode_time_shift.png</file>

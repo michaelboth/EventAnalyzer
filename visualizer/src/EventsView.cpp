@@ -870,7 +870,7 @@ void EventsView::alignToNativeStartTime() {
     }
   }
 
-  /*+ make sure zoomed out and no selection? */
+  // Update display
   selected_time_range_x1 = -1;
   selected_time_range_x2 = -1;
   emit timeRangeChanged();
@@ -891,11 +891,15 @@ void EventsView::alignToZeroStartTime() {
     }
   }
 
-  /*+ make sure zoomed out and no selection? */
+  // Update display
   selected_time_range_x1 = -1;
   selected_time_range_x2 = -1;
   emit timeRangeChanged();
   rebuildAndUpdate();
+}
+
+void EventsView::alignToEventIdAndInstance(QString /*event_name*/, bool /*is_start*/, uint32_t /*instance*/) {
+  /*+*/
 }
 
 void EventsView::paintEvent(QPaintEvent* /*event*/) {

@@ -71,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->profilingLayout->setSpacing(0);
 
   // Decorations
-  this->setStyleSheet("QWidget { background: rgb(240, 240, 240); }");
+  //this->setStyleSheet("QWidget { background: rgb(240, 240, 240); }");
   QString separator_attrs = "QWidget { background: rgb(220, 220, 220); border: none; }";
   ui->hierarchyVLine->setStyleSheet(separator_attrs);
   ui->eventsHLine->setStyleSheet(separator_attrs);
@@ -212,6 +212,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->increaseFontSizeButton,
     ui->decreaseFontSizeButton,
     // Events toolbar
+    ui->timeAlignButton,
     ui->mouseModeInfoButton,
     ui->mouseModeHistogramButton,
     ui->mouseModeTimeShiftButton,
@@ -256,9 +257,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->decreaseFontSizeButton->setIcon(buildIcon(":/decrease_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
 
   // Set events toolbar button icons
-  ui->mouseModeInfoButton->setIcon(buildIcon(":/mouse_mode_info.png",            true, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->mouseModeHistogramButton->setIcon(buildIcon(":/mouse_mode_histogram.png",  true, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->mouseModeTimeShiftButton->setIcon(buildIcon(":/mouse_mode_time_shift.png", true, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->timeAlignButton->setIcon(buildIcon(":/time_align.png",                     false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->mouseModeInfoButton->setIcon(buildIcon(":/mouse_mode_info.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->mouseModeHistogramButton->setIcon(buildIcon(":/mouse_mode_histogram.png",  true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->mouseModeTimeShiftButton->setIcon(buildIcon(":/mouse_mode_time_shift.png", true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->zoomToAllButton->setIcon(buildIcon(":/zoom_to_all.png",                    false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->zoomInButton->setIcon(buildIcon(":/zoom_in.png",                           false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->zoomOutButton->setIcon(buildIcon(":/zoom_out.png",                         false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
@@ -370,7 +372,8 @@ QIcon MainWindow::buildIcon(QString filename, bool is_toggle, QColor normal_colo
 }
 
 void MainWindow::setWidgetUsability() {
-  bool event_files_loaded = (G_event_tree_map.count() > 0);
+  int num_files_loaded = G_event_tree_map.count();
+  bool event_files_loaded = (num_files_loaded > 0);
   bool event_file_selected = eventFileSelected();
   Events *selected_events = NULL;
   EventTreeNode *events_row = eventRowSelected(&selected_events);
@@ -404,6 +407,7 @@ void MainWindow::setWidgetUsability() {
   ui->decreaseFontSizeButton->setEnabled(event_files_loaded && font_size_can_shrink);
 
   // Events toolbar
+  ui->timeAlignButton->setEnabled(event_files_loaded && num_files_loaded > 1);
   ui->mouseModeInfoButton->setEnabled(event_files_loaded);
   ui->mouseModeHistogramButton->setEnabled(event_files_loaded);
   ui->mouseModeTimeShiftButton->setEnabled(event_files_loaded);
@@ -477,7 +481,6 @@ void MainWindow::on_loadButton_clicked() {
   }
 }
 
-/*+ create icon and button */
 void MainWindow::on_timeAlignButton_clicked() {
   TimeAlignDialog dialog(this);
   dialog.adjustSize(); // Shrink to fit content
@@ -485,7 +488,7 @@ void MainWindow::on_timeAlignButton_clicked() {
   // Setup signals
   this->connect(&dialog, SIGNAL(alignToNativeTime()), ui->eventsView, SLOT(alignToNativeStartTime()));
   this->connect(&dialog, SIGNAL(alignToTimeZero()), ui->eventsView, SLOT(alignToZeroStartTime()));
-  //*+*/this->connect(&dialog, SIGNAL(alignToEventInstance(uint16_t, uint32_t)), ui->eventsView, SLOT(alignToEventIdAndInstance(uint16_t, uint32_t)));
+  this->connect(&dialog, SIGNAL(alignToEventInstance(QString, bool, uint32_t)), ui->eventsView, SLOT(alignToEventIdAndInstance(QString, bool, uint32_t)));
 
   //if (dialog.exec() == QDialog::Accepted) {
   dialog.exec();

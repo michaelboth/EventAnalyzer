@@ -19,9 +19,60 @@
 TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::TimeAlignDialog) {
   ui->setupUi(this);
 
-  /*+ get events that can be aligned */
-  /*+ see if event files recorded instances */
-  /*+ see if any files have a non zero start time */
+  /*+ remember what the time alignment mode was if user click on align button, otherwise from loaded files, always start with native time */
+  bool all_files_have_instances = true;
+  bool one_or_more_files_have_non_zero_start_time = false;
+  {
+    QMapIterator<QString, EventTree*> i(G_event_tree_map);
+    bool got_initial_names = false;
+    while (i.hasNext()) {
+      i.next();
+      EventTree *event_tree = i.value();
+      Events *events = event_tree->events;
+
+      if (!events->includes_instance) {
+        all_files_have_instances = false;
+        break;
+      }
+
+      uint64_t first_time = event_tree->native_start_time;
+      if (first_time > 0) {
+        one_or_more_files_have_non_zero_start_time = true;
+      }
+
+      if (!got_initial_names) {
+        // Create initial name list
+        got_initial_names = true;
+        for (uint16_t i=0; i<events->event_info_count; i++) {
+          EventInfo *event_info = &events->event_info_list[i];
+          common_event_names += QString(event_info->name);
+        }
+      } else {
+        // Remove names that are not common
+        QStringList new_common_event_names;
+        for (uint16_t i=0; i<events->event_info_count; i++) {
+          EventInfo *event_info = &events->event_info_list[i];
+          QString name = event_info->name;
+          if (common_event_names.contains(name)) {
+            new_common_event_names += name;
+          }
+        }
+        common_event_names = new_common_event_names;
+      }
+    }
+  }
+
+  /*+ get instance ranges
+    for (uint32_t j=0; j<events->event_count; j++) {
+    events->event_buffer[j].time -= first_time;
+    }
+  */
+
+  ui->startFromZeroRadio->setEnabled(one_or_more_files_have_non_zero_start_time);
+  ui->alignByEventRadio->setEnabled(all_files_have_instances && common_event_names.count() > 0);
+  if (all_files_have_instances && common_event_names.count() > 0) {
+    ui->eventNameCombo->addItems(common_event_names);
+  }
 
   this->connect(ui->noAlignmentRadio, SIGNAL(clicked()), this, SLOT(setWidgetUsability()));
   this->connect(ui->startFromZeroRadio, SIGNAL(clicked()), this, SLOT(setWidgetUsability()));
@@ -41,12 +92,13 @@ void TimeAlignDialog::setWidgetUsability() {
   } else if (ui->startFromZeroRadio->isChecked()) {
     emit alignToTimeZero();
   } else if (ui->alignByEventRadio->isChecked()) {
+    /*+ if no common instances, then just use first instance found in each file */
     /*+
       eventNameCombo
       instanceSpin
       drawAlignmentLinesCheck
     */
-    //*+*/emit alignToEventInstance(uint16_t event_id, uint32_t instance);
+    //*+*/emit alignToEventInstance(QString event_name, bool is_start, uint32_t instance);
   }
 }
 

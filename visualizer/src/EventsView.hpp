@@ -66,6 +66,7 @@ public slots:
   void popupContextMenu(const QPoint &mouse_location);
   void alignToNativeStartTime();
   void alignToZeroStartTime();
+  void alignToEventIdAndInstance(QString event_name, bool is_start, uint32_t instance);
 
 private:
   QPixmap logo;

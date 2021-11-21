@@ -16,6 +16,7 @@
 #define _TimeAlignDialog_hpp_
 
 #include <QDialog>
+#include <QStringList>
 
 namespace Ui {
   class TimeAlignDialog;
@@ -31,19 +32,15 @@ public:
 signals:
   void alignToNativeTime();
   void alignToTimeZero();
-  void alignToEventInstance(uint16_t event_id, uint32_t instance);
+  void alignToEventInstance(QString event_name, bool is_start, uint32_t instance);
 
 private slots:
   void on_doneButton_clicked();
-  /*+
-  void on_noAlignmentRadio_clicked();
-  void on_startFromZeroRadio_clicked();
-  void on_alignByEventRadio_clicked();
-  */
   void setWidgetUsability();
 
 private:
   Ui::TimeAlignDialog *ui;
+  QStringList common_event_names;
 };
 
 #endif
