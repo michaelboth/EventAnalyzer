@@ -852,6 +852,31 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   }
 }
 
+void EventsView::alignToNativeStartTime() {
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  while (i.hasNext()) {
+    i.next();
+    EventTree *event_tree = i.value();
+    Events *events = event_tree->events;
+    uint64_t first_time = events->event_buffer[0].time;
+    bool increase_time = (first_time < event_tree->native_start_time);
+    uint64_t delta = increase_time ? event_tree->native_start_time - first_time : first_time - event_tree->native_start_time;
+    if (delta > 0) {
+      if (increase_time) {
+        for (uint32_t j=0; j<events->event_count; j++) events->event_buffer[j].time += delta;
+      } else {
+        for (uint32_t j=0; j<events->event_count; j++) events->event_buffer[j].time -= delta;
+      }
+    }
+  }
+
+  /*+ make sure zoomed out and no selection? */
+  selected_time_range_x1 = -1;
+  selected_time_range_x2 = -1;
+  emit timeRangeChanged();
+  rebuildAndUpdate();
+}
+
 void EventsView::alignToZeroStartTime() {
   QMapIterator<QString, EventTree*> i(G_event_tree_map);
   while (i.hasNext()) {
@@ -859,25 +884,18 @@ void EventsView::alignToZeroStartTime() {
     EventTree *event_tree = i.value();
     Events *events = event_tree->events;
     uint64_t first_time = events->event_buffer[0].time;
-    for (uint32_t j=0; j<events->event_count; j++) {
-      events->event_buffer[j].time -= first_time;
+    if (first_time > 0) {
+      for (uint32_t j=0; j<events->event_count; j++) {
+        events->event_buffer[j].time -= first_time;
+      }
     }
   }
-}
 
-void EventsView::alignToNativeStartTime() {
-  /*+
-  QMapIterator<QString, EventTree*> i(G_event_tree_map);
-  while (i.hasNext()) {
-    i.next();
-    EventTree *event_tree = i.value();
-    Events *events = event_tree->events;
-    uint64_t first_time = events->event_buffer[0].time;
-    for (uint32_t j=0; j<events->event_count; j++) {
-      events->event_buffer[j].time -= first_time;
-    }
-  }
-  */
+  /*+ make sure zoomed out and no selection? */
+  selected_time_range_x1 = -1;
+  selected_time_range_x2 = -1;
+  emit timeRangeChanged();
+  rebuildAndUpdate();
 }
 
 void EventsView::paintEvent(QPaintEvent* /*event*/) {

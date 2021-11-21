@@ -54,6 +54,7 @@ private slots:
   void on_mouseModeTimeShiftButton_clicked();
   void on_prevEventButton_clicked();
   void on_nextEventButton_clicked();
+  void on_timeAlignButton_clicked();
   // Custom
   void updateColumnWidths(int pos, int index);
   void setWidgetUsability();

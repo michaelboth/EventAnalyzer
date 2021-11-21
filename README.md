@@ -185,8 +185,8 @@ Example | Description
 --------|------------
 hello1 | The most basic example where everything is in a single C file
 hello2 | A more realistic example where the event instrumentation comes from separate files, from the ```ref/``` folder, that can easily be excluded if event profiling is not needed
+memory_contention | A multi-threaded example, with lots of event types and event instances, to show how multi-threaded processing can effect memory.
 test_clock | Determine the overhead and precision of a clock that is used with event recording. Helpful if you need to characterize the behaviour of the clock.
-memory_contention | A multi-threaded example to show how too many threads can slow access to memory.
 record_and_load | A simple example used to validate the unikorn API and event loading file ```ref/events_loader.c```
 
 ## Developing Your Application

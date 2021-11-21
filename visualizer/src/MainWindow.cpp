@@ -17,6 +17,7 @@
 #include "ui_MainWindow.h"
 #include "MainWindow.hpp"
 #include "HelpfulFunctions.hpp"
+#include "TimeAlignDialog.hpp"
 #include "main.hpp"
 #include "unikorn.h"
 
@@ -465,14 +466,29 @@ void MainWindow::on_loadButton_clicked() {
     G_event_tree_map[filename] = tree; // NOTE: QMaps are ordered alphabetically
   }
   if (files.count() > 0) {
-    /*+*/ui->eventsView->alignToZeroStartTime();
-    //*+*/ui->eventsView->alignToNativeStartTime();
     setWidgetUsability();
     updateHierarchyScrollbars();
     ui->eventsView->zoomToAll();
     updateViews();
-    /*+ pop up align dialog if needed */
+    if (G_event_tree_map.count() > 1) {
+      // Multiple files loaded, ask to time align
+      on_timeAlignButton_clicked();
+    }
   }
+}
+
+/*+ create icon and button */
+void MainWindow::on_timeAlignButton_clicked() {
+  TimeAlignDialog dialog(this);
+  dialog.adjustSize(); // Shrink to fit content
+
+  // Setup signals
+  this->connect(&dialog, SIGNAL(alignToNativeTime()), ui->eventsView, SLOT(alignToNativeStartTime()));
+  this->connect(&dialog, SIGNAL(alignToTimeZero()), ui->eventsView, SLOT(alignToZeroStartTime()));
+  //*+*/this->connect(&dialog, SIGNAL(alignToEventInstance(uint16_t, uint32_t)), ui->eventsView, SLOT(alignToEventIdAndInstance(uint16_t, uint32_t)));
+
+  //if (dialog.exec() == QDialog::Accepted) {
+  dialog.exec();
 }
 
 void MainWindow::on_closeAllButton_clicked() {

@@ -26,8 +26,6 @@ Linux & Mac:
   Run:
     > ./memory_contention <num_threads> <num_elements>
     > ./memory_contention 8 1000
-    > ./memory_contention 8 10000
-    > ./memory_contention 8 100000
   View Results:
     View all the event files simultaneously with Unikorn Viewer
   Clean:
@@ -42,8 +40,6 @@ Windows:
   Run:
     > memory_contention <num_threads> <num_elements>
     > memory_contention 8 1000
-    > memory_contention 8 10000
-    > memory_contention 8 100000
   View Results:
     View all the event files simultaneously with Unikorn Viewer
   Clean:

@@ -14,24 +14,42 @@
 
 #include "ui_TimeAlignDialog.h"
 #include "TimeAlignDialog.hpp"
+#include "main.hpp"
 
 TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::TimeAlignDialog) {
   ui->setupUi(this);
-  /*+
-    noAlignmentRadio
-    startFromZeroRadio
-    alignByEventRadio
-    eventNameCombo
-    instanceSpin
-    drawAlignmentLinesCheck
-    doneButton
-  */
+
+  /*+ get events that can be aligned */
+  /*+ see if event files recorded instances */
+  /*+ see if any files have a non zero start time */
+
+  this->connect(ui->noAlignmentRadio, SIGNAL(clicked()), this, SLOT(setWidgetUsability()));
+  this->connect(ui->startFromZeroRadio, SIGNAL(clicked()), this, SLOT(setWidgetUsability()));
+  this->connect(ui->alignByEventRadio, SIGNAL(clicked()), this, SLOT(setWidgetUsability()));
+
+  setWidgetUsability();
 }
 
 TimeAlignDialog::~TimeAlignDialog() {
   // Nothing to do
 }
 
-void TimeAlignDialog::on_DoneButton_clicked() {
+void TimeAlignDialog::setWidgetUsability() {
+  ui->alignToCommonFrame->setEnabled(ui->alignByEventRadio->isChecked());
+  if (ui->noAlignmentRadio->isChecked()) {
+    emit alignToNativeTime();
+  } else if (ui->startFromZeroRadio->isChecked()) {
+    emit alignToTimeZero();
+  } else if (ui->alignByEventRadio->isChecked()) {
+    /*+
+      eventNameCombo
+      instanceSpin
+      drawAlignmentLinesCheck
+    */
+    //*+*/emit alignToEventInstance(uint16_t event_id, uint32_t instance);
+  }
+}
+
+void TimeAlignDialog::on_doneButton_clicked() {
   accept();
 }
