@@ -459,15 +459,19 @@ void MainWindow::on_loadButton_clicked() {
 
     // Build the display tree
     EventTree *tree = new EventTree(events, name, folder, ui->showFoldersButton->isChecked(), ui->showThreadsButton->isChecked());
+    tree->native_start_time = events->event_buffer[0].time;
     SortType sort_type = ui->sortByIdButton->isChecked() ? SORT_BY_ID : ui->sortByNameButton->isChecked() ? SORT_BY_NAME : SORT_BY_TIME;
     tree->sortTree(sort_type);
     G_event_tree_map[filename] = tree; // NOTE: QMaps are ordered alphabetically
   }
   if (files.count() > 0) {
+    /*+*/ui->eventsView->alignToZeroStartTime();
+    //*+*/ui->eventsView->alignToNativeStartTime();
     setWidgetUsability();
     updateHierarchyScrollbars();
     ui->eventsView->zoomToAll();
     updateViews();
+    /*+ pop up align dialog if needed */
   }
 }
 
@@ -517,11 +521,13 @@ void MainWindow::updateEventTreeBuild() {
     QString filename = i.key();
     EventTree *tree = i.value();
     Events *events = tree->events;
+    uint64_t native_start_time = tree->native_start_time;
     QString name = tree->name;
     QString folder = tree->folder;
     delete tree;
     // Build new tree
     tree = new EventTree(events, name, folder, ui->showFoldersButton->isChecked(), ui->showThreadsButton->isChecked());
+    tree->native_start_time = native_start_time;
     tree->sortTree(sort_type);
     G_event_tree_map[filename] = tree; // NOTE: QMaps are ordered alphabetically
   }

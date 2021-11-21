@@ -1,13 +1,16 @@
 CFLAGS       := -std=gnu99 -Wall -Werror -pthread -I. -I../../inc -I../../ref
 CFLAGS       += -O2
 #CFLAGS       += -g -O0
-C_OBJS       := memory_contention.o event_clocks.o event_file_flush.o event_instrumenting.o
-
-HEADER_FILES := unikorn.h event_clocks.h event_file_flush.h
-LIBS         := -L ../../lib -lunikorn -pthread -lm
+C_OBJS       := memory_contention.o
+HEADER_FILES := event_instrumenting.h custom_folders_and_events.h
+LIBS         := -pthread -lm
 TARGET       := memory_contention
 
-ifneq ($(MAKECMDGOALS),clean)
+ifeq ($(INSTRUMENT_APP),Yes)
+    CFLAGS       += -DINSTRUMENT_APP
+    C_OBJS       += event_clocks.o event_file_flush.o event_instrumenting.o
+    HEADER_FILES += unikorn.h event_clocks.h event_file_flush.h
+    LIBS         += -L ../../lib -lunikorn
     # Define a clock
     ifeq ($(CLOCK),clock_gettime)
         CFLAGS += -DUSE_clock_gettime_MONOTONIC_CLOCK
@@ -28,7 +31,7 @@ clean:
 	rm -f *.o
 	rm -f *~
 	rm -f $(TARGET)
-	rm -f $(TARGET).events
+	rm -f *.events
 
 $(C_OBJS): %.o: %.c $(HEADER_FILES)
 	gcc $(CFLAGS) -c $< -o $@

@@ -41,6 +41,8 @@ public:
   void hasEventsOutsideOfVisibleRegion(Events *events, EventTreeNode *events_row, bool *events_to_the_left_ret, bool *events_to_the_right_ret);
   void centerPrevEvent(Events *events, EventTreeNode *events_row);
   void centerNextEvent(Events *events, EventTreeNode *events_row);
+  void alignToZeroStartTime();
+  void alignToNativeStartTime();
 
 protected:
   void paintEvent(QPaintEvent *event);

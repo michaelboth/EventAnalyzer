@@ -1,13 +1,13 @@
 CFLAGS       := -std=gnu99 -Wall -Werror -pthread -I. -I../../inc -I../../ref
 C_OBJS       := record_and_load.o
-HEADER_FILES := event_instrumenting.h
+HEADER_FILES := event_instrumenting.h custom_folders_and_events.h
 LIBS         := -pthread
 TARGET       := record_and_load
 
 ifeq ($(INSTRUMENT_APP),Yes)
     CFLAGS       += -DINSTRUMENT_APP -DPRINT_LOAD_INFO
     C_OBJS       += event_clocks.o event_file_flush.o events_loader.o event_instrumenting.o
-    HEADER_FILES := unikorn.h event_clocks.h event_file_flush.h events_loader.h
+    HEADER_FILES += unikorn.h event_clocks.h event_file_flush.h events_loader.h
     LIBS         += -L ../../lib -lunikorn
     # Define the clock
     ifeq ($(CLOCK),clock_gettime)

@@ -281,24 +281,26 @@ void *ukCreate(UkAttrs *attrs,
 	       bool (*flush)(void *user_data, const void *data, size_t bytes),
 	       bool (*finishFlush)(void *user_data)) {
   // Verify attributes
-  assert(attrs->max_event_count >= MIN_EVENT_COUNT);
-  assert(attrs->event_info_count > 0);
+  if (attrs->max_event_count < MIN_EVENT_COUNT) { printf("Expected max events count=%d to be at least %d\n", attrs->max_event_count, MIN_EVENT_COUNT); assert(0); }
+  if (attrs->event_info_count == 0) { printf("Expected at least one named event to be registered\n"); assert(0); }
 #ifdef ALLOW_THREADING
 #else
-  assert(!attrs->is_threaded);
+  if (attrs->is_threaded) { printf("Asked for threading, but the library is not compiled with threading.\n"); assert(0); }
 #endif
   uint32_t num_event_types = 1;
   for (uint16_t i=0; i<attrs->folder_info_count; i++) {
-    assert(attrs->folder_info_list[i].name != NULL && strlen(attrs->folder_info_list[i].name) < MAX_NAME_LENGTH);
-    assert(attrs->folder_info_list[i].id == num_event_types);
+    if (attrs->folder_info_list[i].name == NULL) { printf("Folder name[%d] is NULL\n", i); assert(0); }
+    if (strlen(attrs->folder_info_list[i].name) >= MAX_NAME_LENGTH) { printf("Folder name[%d]='%s' has more than %d chars.\n", i, attrs->folder_info_list[i].name, MAX_NAME_LENGTH); assert(0); }
+    if (attrs->folder_info_list[i].id != num_event_types) { printf("Folder name[%d]='%s' was expected to have an ID=%d but has %d\n", i, attrs->folder_info_list[i].name, num_event_types, attrs->folder_info_list[i].id); assert(0); }
     num_event_types++;
   }
   uint16_t first_event_id = num_event_types;
   for (uint16_t i=0; i<attrs->event_info_count; i++) {
-    assert(attrs->event_info_list[i].name != NULL && strlen(attrs->event_info_list[i].name) < MAX_NAME_LENGTH);
-    assert(attrs->event_info_list[i].start_id == num_event_types);
+    if (attrs->event_info_list[i].name == NULL) { printf("Event name[%d] is NULL\n", i); assert(0); }
+    if (strlen(attrs->event_info_list[i].name) >= MAX_NAME_LENGTH) { printf("Event name[%d]='%s' has more than %d chars.\n", i, attrs->event_info_list[i].name, MAX_NAME_LENGTH); assert(0); }
+    if (attrs->event_info_list[i].start_id != num_event_types) { printf("Event name[%d]='%s' was expected to have a start ID=%d but has %d\n", i, attrs->event_info_list[i].name, num_event_types, attrs->event_info_list[i].start_id); assert(0); }
     num_event_types++;
-    assert(attrs->event_info_list[i].end_id == num_event_types);
+    if (attrs->event_info_list[i].end_id != num_event_types) { printf("Event name[%d]='%s' was expected to have an end ID=%d but has %d\n", i, attrs->event_info_list[i].name, num_event_types, attrs->event_info_list[i].end_id); assert(0); }
     num_event_types++;
   }
 

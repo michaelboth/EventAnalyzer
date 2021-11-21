@@ -23,6 +23,8 @@
 
 enum {
   // Folders
+  //  FOLDER1_ID=1,
+  //  FOLDER2_ID,
   // Events
   QUICK_SORT_START_ID=1,
   QUICK_SORT_END_ID,

@@ -44,9 +44,9 @@ typedef struct {
 
 typedef struct {
   // Header (should be same for each flush)
-  bool is_threaded;
   uint16_t version_major;
   uint16_t version_minor;
+  bool is_threaded;
   bool includes_instance;
   bool includes_value;
   bool includes_file_location;

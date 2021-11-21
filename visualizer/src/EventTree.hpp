@@ -41,7 +41,7 @@ public:
   uint16_t event_info_index = 0;
   uint16_t ID = 0;
   QColor color;
-  uint64_t first_time = 0; // A convenince here for sorting
+  uint64_t row_start_time = 0; // A convenince here for sorting. This not the first time for the whole file, but the first time for the row. This is just a relative time and doesn't need to be modified of the events file is time shifted.
   QString name; // A convenince here for sorting
   uint32_t max_event_instances = 0;
   uint32_t num_event_instances = 0;
@@ -58,10 +58,11 @@ public:
 
 class EventTree {
 public:
-  Events *events;
+  Events *events = NULL;
+  uint64_t native_start_time = 0;
   QString name;
   QString folder;
-  EventTreeNode *tree;
+  EventTreeNode *tree = NULL;
 
   EventTree(Events *events, QString name, QString folder, bool show_folders, bool show_threads);
   ~EventTree();

@@ -852,6 +852,34 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   }
 }
 
+void EventsView::alignToZeroStartTime() {
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  while (i.hasNext()) {
+    i.next();
+    EventTree *event_tree = i.value();
+    Events *events = event_tree->events;
+    uint64_t first_time = events->event_buffer[0].time;
+    for (uint32_t j=0; j<events->event_count; j++) {
+      events->event_buffer[j].time -= first_time;
+    }
+  }
+}
+
+void EventsView::alignToNativeStartTime() {
+  /*+
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  while (i.hasNext()) {
+    i.next();
+    EventTree *event_tree = i.value();
+    Events *events = event_tree->events;
+    uint64_t first_time = events->event_buffer[0].time;
+    for (uint32_t j=0; j<events->event_count; j++) {
+      events->event_buffer[j].time -= first_time;
+    }
+  }
+  */
+}
+
 void EventsView::paintEvent(QPaintEvent* /*event*/) {
   int w = width();
   int h = height();
@@ -888,7 +916,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   start_time = 0;
   end_time = 0;
   {
-    bool got_time_range = false;
+    bool got_first_time_range = false;
     QMapIterator<QString, EventTree*> i(G_event_tree_map);
     while (i.hasNext()) {
       // Get old tree info
@@ -897,14 +925,15 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       Events *events = event_tree->events;
       Event *first_event = &events->event_buffer[0];
       Event *last_event = &events->event_buffer[events->event_count-1];
-      if (!got_time_range) {
+      if (!got_first_time_range) {
         // Record initial times
         full_start_time = first_event->time;
         full_end_time = last_event->time;
+        got_first_time_range = true;
       } else {
         // Update time range
         if (first_event->time < full_start_time) full_start_time = first_event->time;
-        if (last_event->time < full_end_time) full_end_time = last_event->time;
+        if (last_event->time > full_end_time) full_end_time = last_event->time;
       }
     }
   }
@@ -942,6 +971,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       i.next();
       EventTree *event_tree = i.value();
       drawHierarchyLine(&painter2, event_tree->events, event_tree->tree, line_index, true);
+      line_index++;
     }
     emit utilizationRecalculated();
   }

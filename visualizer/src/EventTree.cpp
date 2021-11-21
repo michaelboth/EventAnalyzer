@@ -94,7 +94,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
     // Look at next event
     Event *event = &events->event_buffer[event_index];
     if (event->event_id < events->folder_info_count) {
-      // Process folder
+      // Process folder event
       if (!show_folders) {
         // Skip over folder events
         event_index++;
@@ -119,7 +119,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
       }
 
     } else {
-      // Process event
+      // Process time event
       uint16_t first_event_id = (events->folder_info_count==0) ? 1 : events->folder_info_count;
       uint16_t event_info_index = (event->event_id - first_event_id) / 2;
       EventInfo *event_info = &events->event_info_list[event_info_index];
@@ -137,7 +137,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
         child = new EventTreeNode();
         child->tree_node_type = TREE_NODE_IS_EVENT;
         child->event_info_index = event_info_index;
-        child->first_time = event->time;
+        child->row_start_time = event->time;
         child->ID = event->event_id;
         int red   = (int)(255 * (((event_info->rgb & 0xf00) >> 8) / (float)0xf));
         int green = (int)(255 * (((event_info->rgb & 0xf0) >> 4) / (float)0xf));
@@ -169,9 +169,9 @@ void EventTree::printTree(EventTreeNode *parent, const char *title, int level) {
   if (parent->is_open) {
     for (auto child: parent->children) {
       for (int i=0; i<level*2; i++) printf(" ");
-      printf("  %s: %s, ID=%d, first_time=%" UINT64_FORMAT "\n",
+      printf("  %s: %s, ID=%d, row_start_time=%" UINT64_FORMAT "\n",
              (child->tree_node_type == TREE_NODE_IS_FILE) ? "FILE" : (child->tree_node_type == TREE_NODE_IS_FOLDER) ? "FOLDER" : (child->tree_node_type == TREE_NODE_IS_THREAD) ? "THREAD" : "EVENT",
-             child->name.toLatin1().data(), child->ID, child->first_time);
+             child->name.toLatin1().data(), child->ID, child->row_start_time);
       if (child->tree_node_type == TREE_NODE_IS_FILE || child->tree_node_type == TREE_NODE_IS_FOLDER || child->tree_node_type == TREE_NODE_IS_THREAD) {
         printTree(child, NULL, level+1);
       }
@@ -197,8 +197,8 @@ static bool eventFirstTimeIncreasing(const EventTreeNode *a, const EventTreeNode
   if (a->tree_node_type == TREE_NODE_IS_EVENT && b->tree_node_type != TREE_NODE_IS_EVENT) return true;
   if (a->tree_node_type != TREE_NODE_IS_EVENT && b->tree_node_type == TREE_NODE_IS_EVENT) return false;
   // IMPORTANT: container will have the same starting time, so sort by name
-  if (a->first_time == b->first_time) return a->name < b->name;
-  return a->first_time < b->first_time;
+  if (a->row_start_time == b->row_start_time) return a->name < b->name;
+  return a->row_start_time < b->row_start_time;
 }
 
 void EventTree::sortNode(EventTreeNode *parent, SortType sort_type) {
@@ -206,7 +206,7 @@ void EventTree::sortNode(EventTreeNode *parent, SortType sort_type) {
   if (parent->children.count() > 1) {
     std::sort(parent->children.begin(), parent->children.end(), (sort_type == SORT_BY_NAME) ? eventNameIncreasing : (sort_type == SORT_BY_ID) ? eventIdIncreasing : eventFirstTimeIncreasing);
   }
-  // Recurse into childer if they are containers
+  // Recurse into childen if they are containers
   for (auto child: parent->children) {
     if (child->tree_node_type == TREE_NODE_IS_FILE || child->tree_node_type == TREE_NODE_IS_FOLDER || child->tree_node_type == TREE_NODE_IS_THREAD) {
       sortNode(child, sort_type);
