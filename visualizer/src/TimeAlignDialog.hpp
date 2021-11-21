@@ -37,6 +37,8 @@ signals:
 private slots:
   void on_doneButton_clicked();
   void setWidgetUsability();
+  void eventInfoChanged(int index);
+  void drawAlignmentLines(bool draw_lines);
 
 private:
   Ui::TimeAlignDialog *ui;

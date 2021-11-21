@@ -19,7 +19,6 @@
 TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::TimeAlignDialog) {
   ui->setupUi(this);
 
-  /*+ remember what the time alignment mode was if user click on align button, otherwise from loaded files, always start with native time */
   bool all_files_have_instances = true;
   bool one_or_more_files_have_non_zero_start_time = false;
   {
@@ -62,21 +61,40 @@ TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::
     }
   }
 
-  /*+ get instance ranges
-    for (uint32_t j=0; j<events->event_count; j++) {
-    events->event_buffer[j].time -= first_time;
-    }
-  */
-
   ui->startFromZeroRadio->setEnabled(one_or_more_files_have_non_zero_start_time);
   ui->alignByEventRadio->setEnabled(all_files_have_instances && common_event_names.count() > 0);
+  /*+*/ui->alignByEventRadio->setEnabled(false);
   if (all_files_have_instances && common_event_names.count() > 0) {
     ui->eventNameCombo->addItems(common_event_names);
+  }
+  bool prev_is_start = G_settings->value("alignment_event_is_start", false).toBool();
+  ui->startEndCombo->setCurrentIndex(prev_is_start ? 0 : 1);
+  bool draw_alignment_lines = G_settings->value("draw_alignment_lines", true).toBool();
+  ui->drawAlignmentLinesCheck->setChecked(draw_alignment_lines);
+  QString prev_event_name = G_settings->value("alignment_event_name", "unset").toString();
+  ui->eventNameCombo->setCurrentText(prev_event_name);
+  int prev_instance_index = G_settings->value("alignment_instance_index", 0).toInt();
+  ui->instanceSpin->setMinimum(0);
+  ui->instanceSpin->setMaximum(INT_MAX);
+  ui->instanceSpin->setValue(prev_instance_index);
+
+  // Set the initial alignment mode
+  QString prev_alignment_mode = G_settings->value("alignment_mode", "Native").toString();  // One of "Native", "TimeZero", "EventId"
+  if (prev_alignment_mode == "Native") {
+    ui->noAlignmentRadio->setChecked(true);
+  } else if (prev_alignment_mode == "TimeZero") {
+    ui->startFromZeroRadio->setChecked(true);
+  } else {
+    ui->alignByEventRadio->setChecked(true);
   }
 
   this->connect(ui->noAlignmentRadio, SIGNAL(clicked()), this, SLOT(setWidgetUsability()));
   this->connect(ui->startFromZeroRadio, SIGNAL(clicked()), this, SLOT(setWidgetUsability()));
   this->connect(ui->alignByEventRadio, SIGNAL(clicked()), this, SLOT(setWidgetUsability()));
+  this->connect(ui->startEndCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(eventInfoChanged(int)));
+  this->connect(ui->eventNameCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(eventInfoChanged(int)));
+  this->connect(ui->instanceSpin, SIGNAL(valueChanged(int)), this, SLOT(eventInfoChanged(int)));
+  this->connect(ui->drawAlignmentLinesCheck, SIGNAL(toggled(bool)), this, SLOT(drawAlignmentLines(bool)));
 
   setWidgetUsability();
 }
@@ -85,20 +103,44 @@ TimeAlignDialog::~TimeAlignDialog() {
   // Nothing to do
 }
 
+void TimeAlignDialog::drawAlignmentLines(bool draw_lines) {
+  G_settings->setValue("draw_alignment_lines", draw_lines);
+  /*+ emit rebuild events */
+}
+
+void TimeAlignDialog::eventInfoChanged(int /*index*/) {
+  setWidgetUsability();
+}
+
 void TimeAlignDialog::setWidgetUsability() {
   ui->alignToCommonFrame->setEnabled(ui->alignByEventRadio->isChecked());
   if (ui->noAlignmentRadio->isChecked()) {
+    G_settings->setValue("alignment_mode", "Native");  // One of "Native", "TimeZero", "EventId"
+    /*+ really only need one signal since G_settings has all the info */
     emit alignToNativeTime();
   } else if (ui->startFromZeroRadio->isChecked()) {
+    G_settings->setValue("alignment_mode", "TimeZero");  // One of "Native", "TimeZero", "EventId"
     emit alignToTimeZero();
   } else if (ui->alignByEventRadio->isChecked()) {
-    /*+ if no common instances, then just use first instance found in each file */
-    /*+
-      eventNameCombo
-      instanceSpin
-      drawAlignmentLinesCheck
+    bool is_start = (ui->startEndCombo->currentIndex() == 0);
+    QString event_name = ui->eventNameCombo->currentText();
+
+    /*+ get instance range
+      for (uint32_t j=0; j<events->event_count; j++) {
+      events->event_buffer[j].time -= first_time;
+      }
     */
-    //*+*/emit alignToEventInstance(QString event_name, bool is_start, uint32_t instance);
+
+    int instance_index = ui->instanceSpin->value();
+    //*+*/printf("name='%s', is_start=%s, instance_index=%d\n", event_name.toLatin1().data(), is_start ? "yes" : "no", instance_index);
+
+    /*+ if no common instances, then just use first instance found in each file */
+    /*+ save results to settings */
+    G_settings->setValue("alignment_mode", "EventId");  // One of "Native", "TimeZero", "EventId"
+    G_settings->setValue("alignment_event_name", event_name);
+    G_settings->setValue("alignment_event_is_start", is_start);
+    G_settings->setValue("alignment_instance_index", instance_index);
+    emit alignToEventInstance(event_name, is_start, instance_index); /*+ also include time shift amount? */
   }
 }
 

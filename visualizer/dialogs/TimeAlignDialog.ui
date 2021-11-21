@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>445</width>
+    <width>506</width>
     <height>285</height>
    </rect>
   </property>
@@ -121,6 +121,20 @@
             </item>
             <item>
              <widget class="QComboBox" name="eventNameCombo"/>
+            </item>
+            <item>
+             <widget class="QComboBox" name="startEndCombo">
+              <item>
+               <property name="text">
+                <string>Start ID</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>End ID</string>
+               </property>
+              </item>
+             </widget>
             </item>
             <item>
              <widget class="QLabel" name="label_3">

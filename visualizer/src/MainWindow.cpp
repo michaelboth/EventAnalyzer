@@ -476,6 +476,7 @@ void MainWindow::on_loadButton_clicked() {
     updateViews();
     if (G_event_tree_map.count() > 1) {
       // Multiple files loaded, ask to time align
+      G_settings->setValue("alignment_mode", "Native");  // One of "Native", "TimeZero", "EventId"
       on_timeAlignButton_clicked();
     }
   }
