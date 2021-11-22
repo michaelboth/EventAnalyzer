@@ -17,16 +17,6 @@
 #include "TimeAlignDialog.hpp"
 #include "main.hpp"
 
-/*+ move draw alignments to events toolbar
-void drawAlignmentLines(bool draw_lines);
-void TimeAlignDialog::drawAlignmentLines(bool draw_lines) {
-  G_settings->setValue("draw_alignment_lines", draw_lines);
-}
-bool draw_alignment_lines = G_settings->value("draw_alignment_lines", true).toBool();
-ui->drawAlignmentLinesCheck->setChecked(draw_alignment_lines);
-this->connect(ui->drawAlignmentLinesCheck, SIGNAL(toggled(bool)), this, SLOT(drawAlignmentLines(bool)));
-*/
-
 TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::TimeAlignDialog) {
   ui->setupUi(this);
 
@@ -74,7 +64,6 @@ TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::
 
   ui->startFromZeroRadio->setEnabled(one_or_more_files_have_non_zero_start_time);
   ui->alignByEventRadio->setEnabled(all_files_have_instances && common_event_names.count() > 0);
-  /*+ temp */ui->alignByEventRadio->setEnabled(false);
   if (all_files_have_instances && common_event_names.count() > 0) {
     ui->eventNameCombo->addItems(common_event_names);
   }
@@ -192,11 +181,10 @@ void TimeAlignDialog::setWidgetUsability() {
   ui->alignToCommonFrame->setEnabled(ui->alignByEventRadio->isChecked());
   if (ui->noAlignmentRadio->isChecked()) {
     G_settings->setValue("alignment_mode", "Native");  // One of "Native", "TimeZero", "EventId"
-    /*+ really only need one signal since G_settings has all the info */
-    emit alignToNativeTime();
+    emit timeAlignmentChanged();
   } else if (ui->startFromZeroRadio->isChecked()) {
     G_settings->setValue("alignment_mode", "TimeZero");  // One of "Native", "TimeZero", "EventId"
-    emit alignToTimeZero();
+    emit timeAlignmentChanged();
   } else if (ui->alignByEventRadio->isChecked()) {
     bool is_start = (ui->startEndCombo->currentIndex() == 0);
     QString event_name = ui->eventNameCombo->currentText();
@@ -206,7 +194,7 @@ void TimeAlignDialog::setWidgetUsability() {
     if (!found_range) {
       QString message = "No common instances exist for the ";
       message += is_start ? "start" : "end";
-      message += " event '" + event_name + "'. No algnments changed.";
+      message += " event '" + event_name + "'. No alignments changed.";
       QMessageBox::warning(this, "Time Align", message);
       return;
     }
@@ -221,7 +209,7 @@ void TimeAlignDialog::setWidgetUsability() {
     G_settings->setValue("alignment_event_name", event_name);
     G_settings->setValue("alignment_event_is_start", is_start);
     G_settings->setValue("alignment_instance_index", instance_index);
-    emit alignToEventInstance(event_name, is_start, instance_index); /*+ also include time shift amount? */
+    emit timeAlignmentChanged();
   }
 }
 

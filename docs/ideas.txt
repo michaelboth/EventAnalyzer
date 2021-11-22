@@ -1,5 +1,5 @@
 API:
- - Allow folders to also contain instance, locations, and value?
+ - Allow folders to also contain instance, locations, and value? Can this meaningfully help with anything?
  - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
 
 

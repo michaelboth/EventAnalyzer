@@ -64,9 +64,7 @@ public slots:
   void zoomToRegion();
   void rebuildAndUpdate();
   void popupContextMenu(const QPoint &mouse_location);
-  void alignToNativeStartTime();
-  void alignToZeroStartTime();
-  void alignToEventIdAndInstance(QString event_name, bool is_start, uint32_t instance);
+  void updateTimeAlignment();
 
 private:
   QPixmap logo;
@@ -87,6 +85,7 @@ private:
   bool rebuild_frame_buffer = true;
   QImage frame_buffer;
   MouseMode mouse_mode = MOUSE_MODE_EVENT_INFO;
+  uint64_t alignment_time = 0;
 
   void prepareIcon(QString filename, bool recolor, QColor color);
   void drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *tree, int &line_index, int ancestor_open);

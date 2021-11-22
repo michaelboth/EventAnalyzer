@@ -425,7 +425,11 @@ void MainWindow::setWidgetUsability() {
   ui->mouseModeTimeShiftButton->setHidden(true);
 
   // Update status bar
-  QString message = "Event files loaded: " + QString::number(G_event_tree_map.count()) + "          Filters Set: none          Total Events: " + QString::number(totalEventInstances()); /*+ filters set */
+  QString alignment_mode = G_settings->value("alignment_mode", "Native").toString();  // One of "Native", "TimeZero", "EventId"
+  QString message = "Event files loaded: " + QString::number(G_event_tree_map.count());
+  message += "          Total Events: " + QString::number(totalEventInstances());
+  message += "          Alignment: " + alignment_mode;
+  message += "          Filters Set: none"; /*+ filters set */
   statusBar()->showMessage(message);
 }
 
@@ -487,9 +491,7 @@ void MainWindow::on_timeAlignButton_clicked() {
   dialog.adjustSize(); // Shrink to fit content
 
   // Setup signals
-  this->connect(&dialog, SIGNAL(alignToNativeTime()), ui->eventsView, SLOT(alignToNativeStartTime()));
-  this->connect(&dialog, SIGNAL(alignToTimeZero()), ui->eventsView, SLOT(alignToZeroStartTime()));
-  this->connect(&dialog, SIGNAL(alignToEventInstance(QString, bool, uint32_t)), ui->eventsView, SLOT(alignToEventIdAndInstance(QString, bool, uint32_t)));
+  this->connect(&dialog, SIGNAL(timeAlignmentChanged()), ui->eventsView, SLOT(updateTimeAlignment()));
 
   //if (dialog.exec() == QDialog::Accepted) {
   dialog.exec();
@@ -522,6 +524,7 @@ void MainWindow::on_closeSelectedButton_clicked() {
   updateHierarchyScrollbars();
   ui->eventsView->zoomToAll();
   updateViews();
+  ui->eventsView->updateTimeAlignment();
 }
 
 void MainWindow::on_setFilterButton_clicked() {

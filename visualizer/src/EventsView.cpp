@@ -28,6 +28,7 @@
 #define ROLLOVER_SEPARATOR_COLOR QColor(175, 175, 175)
 #define ROW_HIGHLIGHT_COLOR2 QColor(0, 0, 0, 15)
 #define HISTOGRAM_BAR_BG_COLOR QColor(230,230,230)
+#define ALIGNMENT_COLOR QColor(150, 150, 150)
 
 EventsView::EventsView(QWidget *parent) : QWidget(parent) {
   // Track mouse when not pressed
@@ -852,20 +853,132 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   }
 }
 
-void EventsView::alignToNativeStartTime() {
-  QMapIterator<QString, EventTree*> i(G_event_tree_map);
-  while (i.hasNext()) {
-    i.next();
-    EventTree *event_tree = i.value();
-    Events *events = event_tree->events;
-    uint64_t first_time = events->event_buffer[0].time;
-    bool increase_time = (first_time < event_tree->native_start_time);
-    uint64_t delta = increase_time ? event_tree->native_start_time - first_time : first_time - event_tree->native_start_time;
-    if (delta > 0) {
-      if (increase_time) {
-        for (uint32_t j=0; j<events->event_count; j++) events->event_buffer[j].time += delta;
-      } else {
-        for (uint32_t j=0; j<events->event_count; j++) events->event_buffer[j].time -= delta;
+void EventsView::updateTimeAlignment() {
+  QString alignment_mode = G_settings->value("alignment_mode", "Native").toString();  // One of "Native", "TimeZero", "EventId"
+
+  if (alignment_mode == "Native") {
+    QMapIterator<QString, EventTree*> i(G_event_tree_map);
+    while (i.hasNext()) {
+      i.next();
+      EventTree *event_tree = i.value();
+      Events *events = event_tree->events;
+      uint64_t first_time = events->event_buffer[0].time;
+      bool increase_time = (first_time < event_tree->native_start_time);
+      uint64_t delta = increase_time ? event_tree->native_start_time - first_time : first_time - event_tree->native_start_time;
+      if (delta > 0) {
+        if (increase_time) {
+          for (uint32_t j=0; j<events->event_count; j++) events->event_buffer[j].time += delta;
+        } else {
+          for (uint32_t j=0; j<events->event_count; j++) events->event_buffer[j].time -= delta;
+        }
+      }
+    }
+
+  } else if (alignment_mode == "TimeZero") {
+    QMapIterator<QString, EventTree*> i(G_event_tree_map);
+    while (i.hasNext()) {
+      i.next();
+      EventTree *event_tree = i.value();
+      Events *events = event_tree->events;
+      uint64_t first_time = events->event_buffer[0].time;
+      if (first_time > 0) {
+        for (uint32_t j=0; j<events->event_count; j++) {
+          events->event_buffer[j].time -= first_time;
+        }
+      }
+    }
+
+  } else { // "EventId"
+    // Move all event files to time zero
+    {
+      QMapIterator<QString, EventTree*> i(G_event_tree_map);
+      while (i.hasNext()) {
+        i.next();
+        EventTree *event_tree = i.value();
+        Events *events = event_tree->events;
+        uint64_t first_time = events->event_buffer[0].time;
+        if (first_time > 0) {
+          for (uint32_t j=0; j<events->event_count; j++) {
+            events->event_buffer[j].time -= first_time;
+          }
+        }
+      }
+    }
+
+    // Get the alignment values
+    bool is_start = G_settings->value("alignment_event_is_start", false).toBool();
+    QString event_name = G_settings->value("alignment_event_name", "unset").toString();
+    uint32_t instance_index = (uint32_t)G_settings->value("alignment_instance_index", 0).toInt();
+
+    // Find the greatest time across files
+    uint64_t max_time = 0;
+    {
+      QMapIterator<QString, EventTree*> i(G_event_tree_map);
+      while (i.hasNext()) {
+        i.next();
+        EventTree *event_tree = i.value();
+        Events *events = event_tree->events;
+
+        // Get the event ID
+        uint16_t event_id = 0;
+        for (uint16_t j=0; j<events->event_info_count; j++) {
+          EventInfo *event_info = &events->event_info_list[j];
+          if (QString(event_info->name) == event_name) {
+            event_id = is_start ? event_info->start_id : event_info->end_id;
+            break;
+          }
+        }
+
+        // Find the event time with event_id and instance
+        for (uint32_t j=0; j<events->event_count; j++) {
+          Event *event = &events->event_buffer[j];
+          if (event->event_id == event_id && event->instance == instance_index) {
+            if (event->time > max_time) max_time = event->time;
+            break;
+          }
+        }
+      }
+    }
+
+    // Adjust times
+    alignment_time = max_time;
+    if (max_time > 0) {
+      QMapIterator<QString, EventTree*> i(G_event_tree_map);
+      while (i.hasNext()) {
+        i.next();
+        EventTree *event_tree = i.value();
+        Events *events = event_tree->events;
+
+        // Get the event ID
+        uint16_t event_id = 0;
+        for (uint16_t j=0; j<events->event_info_count; j++) {
+          EventInfo *event_info = &events->event_info_list[j];
+          if (QString(event_info->name) == event_name) {
+            event_id = is_start ? event_info->start_id : event_info->end_id;
+            break;
+          }
+        }
+
+        // Find the event time with event_id and instance
+        uint64_t max_time2 = 0;
+        for (uint32_t j=0; j<events->event_count; j++) {
+          Event *event = &events->event_buffer[j];
+          if (event->event_id == event_id && event->instance == instance_index) {
+            max_time2 = event->time;
+            break;
+          }
+        }
+
+        // Adjust all times
+        bool increase_time = (max_time2 < max_time);
+        uint64_t delta = increase_time ? max_time - max_time2 : max_time2 - max_time;
+        if (delta > 0) {
+          if (increase_time) {
+            for (uint32_t j=0; j<events->event_count; j++) events->event_buffer[j].time += delta;
+          } else {
+            for (uint32_t j=0; j<events->event_count; j++) events->event_buffer[j].time -= delta;
+          }
+        }
       }
     }
   }
@@ -877,33 +990,6 @@ void EventsView::alignToNativeStartTime() {
   selected_time_range_x2 = -1;
   emit timeRangeChanged();
   rebuildAndUpdate();
-}
-
-void EventsView::alignToZeroStartTime() {
-  QMapIterator<QString, EventTree*> i(G_event_tree_map);
-  while (i.hasNext()) {
-    i.next();
-    EventTree *event_tree = i.value();
-    Events *events = event_tree->events;
-    uint64_t first_time = events->event_buffer[0].time;
-    if (first_time > 0) {
-      for (uint32_t j=0; j<events->event_count; j++) {
-        events->event_buffer[j].time -= first_time;
-      }
-    }
-  }
-
-  // Update display
-  percent_visible = 1.0;
-  percent_offset = 0.0;
-  selected_time_range_x1 = -1;
-  selected_time_range_x2 = -1;
-  emit timeRangeChanged();
-  rebuildAndUpdate();
-}
-
-void EventsView::alignToEventIdAndInstance(QString /*event_name*/, bool /*is_start*/, uint32_t /*instance*/) {
-  /*+*/
 }
 
 void EventsView::paintEvent(QPaintEvent* /*event*/) {
@@ -989,6 +1075,17 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     rebuild_frame_buffer = false;
     QPainter painter2(&frame_buffer);
     painter2.fillRect(QRect(0,0,w,h), QColor(255,255,255));
+    // Draw alignment time
+    if (G_event_tree_map.count() > 1) {
+      QString alignment_mode = G_settings->value("alignment_mode", "Native").toString();  // One of "Native", "TimeZero", "EventId"
+      if (alignment_mode == "EventId") {
+        if (alignment_time > start_time && alignment_time < end_time) {
+          painter2.setPen(QPen(ALIGNMENT_COLOR, 1, Qt::DashLine));
+          int x = (int)(w * (alignment_time-start_time) / time_range);
+          painter2.drawLine(x, 0, x, h);
+        }
+      }
+    }
     // Draw event tree
     int line_index = 0;
     QMapIterator<QString, EventTree*> i(G_event_tree_map);

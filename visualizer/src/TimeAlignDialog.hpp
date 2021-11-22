@@ -30,9 +30,7 @@ public:
   ~TimeAlignDialog();
 
 signals:
-  void alignToNativeTime();
-  void alignToTimeZero();
-  void alignToEventInstance(QString event_name, bool is_start, uint32_t instance);
+  void timeAlignmentChanged();
 
 private slots:
   void on_doneButton_clicked();
