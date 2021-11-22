@@ -38,11 +38,12 @@ private slots:
   void on_doneButton_clicked();
   void setWidgetUsability();
   void eventInfoChanged(int index);
-  void drawAlignmentLines(bool draw_lines);
 
 private:
   Ui::TimeAlignDialog *ui;
   QStringList common_event_names;
+
+  bool getCommonInstanceRange(QString event_name, bool is_start, int *min_instance_index_ret, int *max_instance_index_ret);
 };
 
 #endif

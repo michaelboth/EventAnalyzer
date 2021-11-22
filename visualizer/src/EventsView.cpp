@@ -871,6 +871,8 @@ void EventsView::alignToNativeStartTime() {
   }
 
   // Update display
+  percent_visible = 1.0;
+  percent_offset = 0.0;
   selected_time_range_x1 = -1;
   selected_time_range_x2 = -1;
   emit timeRangeChanged();
@@ -892,6 +894,8 @@ void EventsView::alignToZeroStartTime() {
   }
 
   // Update display
+  percent_visible = 1.0;
+  percent_offset = 0.0;
   selected_time_range_x1 = -1;
   selected_time_range_x2 = -1;
   emit timeRangeChanged();

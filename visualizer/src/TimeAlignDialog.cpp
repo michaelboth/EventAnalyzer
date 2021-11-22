@@ -12,9 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <QMessageBox>
 #include "ui_TimeAlignDialog.h"
 #include "TimeAlignDialog.hpp"
 #include "main.hpp"
+
+/*+ move draw alignments to events toolbar
+void drawAlignmentLines(bool draw_lines);
+void TimeAlignDialog::drawAlignmentLines(bool draw_lines) {
+  G_settings->setValue("draw_alignment_lines", draw_lines);
+}
+bool draw_alignment_lines = G_settings->value("draw_alignment_lines", true).toBool();
+ui->drawAlignmentLinesCheck->setChecked(draw_alignment_lines);
+this->connect(ui->drawAlignmentLinesCheck, SIGNAL(toggled(bool)), this, SLOT(drawAlignmentLines(bool)));
+*/
 
 TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::TimeAlignDialog) {
   ui->setupUi(this);
@@ -63,14 +74,12 @@ TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::
 
   ui->startFromZeroRadio->setEnabled(one_or_more_files_have_non_zero_start_time);
   ui->alignByEventRadio->setEnabled(all_files_have_instances && common_event_names.count() > 0);
-  /*+*/ui->alignByEventRadio->setEnabled(false);
+  /*+ temp */ui->alignByEventRadio->setEnabled(false);
   if (all_files_have_instances && common_event_names.count() > 0) {
     ui->eventNameCombo->addItems(common_event_names);
   }
   bool prev_is_start = G_settings->value("alignment_event_is_start", false).toBool();
   ui->startEndCombo->setCurrentIndex(prev_is_start ? 0 : 1);
-  bool draw_alignment_lines = G_settings->value("draw_alignment_lines", true).toBool();
-  ui->drawAlignmentLinesCheck->setChecked(draw_alignment_lines);
   QString prev_event_name = G_settings->value("alignment_event_name", "unset").toString();
   ui->eventNameCombo->setCurrentText(prev_event_name);
   int prev_instance_index = G_settings->value("alignment_instance_index", 0).toInt();
@@ -94,7 +103,6 @@ TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::
   this->connect(ui->startEndCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(eventInfoChanged(int)));
   this->connect(ui->eventNameCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(eventInfoChanged(int)));
   this->connect(ui->instanceSpin, SIGNAL(valueChanged(int)), this, SLOT(eventInfoChanged(int)));
-  this->connect(ui->drawAlignmentLinesCheck, SIGNAL(toggled(bool)), this, SLOT(drawAlignmentLines(bool)));
 
   setWidgetUsability();
 }
@@ -103,13 +111,81 @@ TimeAlignDialog::~TimeAlignDialog() {
   // Nothing to do
 }
 
-void TimeAlignDialog::drawAlignmentLines(bool draw_lines) {
-  G_settings->setValue("draw_alignment_lines", draw_lines);
-  /*+ emit rebuild events */
-}
-
 void TimeAlignDialog::eventInfoChanged(int /*index*/) {
   setWidgetUsability();
+}
+
+static void getInstanceRange(Events *events, uint16_t event_id, int *min_instance_ret, int *max_instance_ret) {
+  uint32_t min_instance = 1, max_instance = 0;
+
+  // Forward search for lowest instance
+  for (uint32_t j=0; j<events->event_count; j++) {
+    if (events->event_buffer[j].event_id == event_id) {
+      min_instance = events->event_buffer[j].instance;
+      break;
+    }
+  }
+
+  // Reverse search for max instance
+  for (uint32_t j=0; j<events->event_count; j++) {
+    uint32_t j2 = events->event_count - 1 - j;
+    if (events->event_buffer[j2].event_id == event_id) {
+      max_instance = events->event_buffer[j2].instance;
+      break;
+    }
+  }
+
+  if (min_instance > INT_MAX || max_instance > INT_MAX) {
+    // Out of range for a QSpinBox
+    min_instance = 1;
+    max_instance = 0;
+  }
+
+  *min_instance_ret = min_instance;
+  *max_instance_ret = max_instance;
+}
+
+bool TimeAlignDialog::getCommonInstanceRange(QString event_name, bool is_start, int *min_instance_index_ret, int *max_instance_index_ret) {
+  // NOTE: can only get here if all events file record instance and have the even name
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  bool got_initial_range = false;
+  int min_instance = 1, max_instance = 0;
+  while (i.hasNext()) {
+    i.next();
+    EventTree *event_tree = i.value();
+    Events *events = event_tree->events;
+
+    // Get the event ID
+    uint16_t event_id = 0;
+    for (uint16_t j=0; j<events->event_info_count; j++) {
+      EventInfo *event_info = &events->event_info_list[j];
+      if (QString(event_info->name) == event_name) {
+	event_id = is_start ? event_info->start_id : event_info->end_id;
+	break;
+      }
+    }
+
+    // Find the min and max instance
+    if (!got_initial_range) {
+      // Initial file
+      getInstanceRange(events, event_id, &min_instance, &max_instance);
+      if (max_instance < min_instance) return false;
+      got_initial_range = true;
+    } else {
+      // Subsequent file
+      int min_instance2 = 1, max_instance2 = 0;
+      getInstanceRange(events, event_id, &min_instance2, &max_instance2);
+      if (max_instance2 < min_instance2) return false;
+      // Find intersection
+      if (min_instance2 > min_instance) min_instance = min_instance2;
+      if (max_instance2 < max_instance) max_instance = max_instance2;
+      if (max_instance2 < min_instance2) return false;
+    }
+  }
+
+  *min_instance_index_ret = min_instance;
+  *max_instance_index_ret = max_instance;
+  return true;
 }
 
 void TimeAlignDialog::setWidgetUsability() {
@@ -124,18 +200,23 @@ void TimeAlignDialog::setWidgetUsability() {
   } else if (ui->alignByEventRadio->isChecked()) {
     bool is_start = (ui->startEndCombo->currentIndex() == 0);
     QString event_name = ui->eventNameCombo->currentText();
-
-    /*+ get instance range
-      for (uint32_t j=0; j<events->event_count; j++) {
-      events->event_buffer[j].time -= first_time;
-      }
-    */
-
     int instance_index = ui->instanceSpin->value();
-    //*+*/printf("name='%s', is_start=%s, instance_index=%d\n", event_name.toLatin1().data(), is_start ? "yes" : "no", instance_index);
+    int min_instance_index, max_instance_index;
+    bool found_range = getCommonInstanceRange(event_name, is_start, &min_instance_index, &max_instance_index);
+    if (!found_range) {
+      QString message = "No common instances exist for the ";
+      message += is_start ? "start" : "end";
+      message += " event '" + event_name + "'. No algnments changed.";
+      QMessageBox::warning(this, "Time Align", message);
+      return;
+    }
+    ui->instanceSpin->setMinimum(min_instance_index);
+    ui->instanceSpin->setMaximum(max_instance_index);
+    if (instance_index < min_instance_index || instance_index > max_instance_index) {
+      instance_index = min_instance_index;
+    }
+    ui->instanceSpin->setValue(instance_index);
 
-    /*+ if no common instances, then just use first instance found in each file */
-    /*+ save results to settings */
     G_settings->setValue("alignment_mode", "EventId");  // One of "Native", "TimeZero", "EventId"
     G_settings->setValue("alignment_event_name", event_name);
     G_settings->setValue("alignment_event_is_start", is_start);

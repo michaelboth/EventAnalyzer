@@ -36,8 +36,6 @@ enum {
   JOIN_THREADS_END_ID,
   BARRIER_START_ID,
   BARRIER_END_ID,
-  PROCESSING_START_ID,
-  PROCESSING_END_ID,
   SQRT_START_ID,
   SQRT_END_ID
 };
@@ -54,7 +52,6 @@ static UkEventInfo L_events[] = {
   { "Start Threads",      INIT_THREADS_START_ID, INIT_THREADS_END_ID, UK_GREEN},
   { "Join Threads",       JOIN_THREADS_START_ID, JOIN_THREADS_END_ID, UK_GREEN},
   { "Barrier",            BARRIER_START_ID,      BARRIER_END_ID,      UK_RED},
-  { "Processing",         PROCESSING_START_ID,   PROCESSING_END_ID,   UK_BLACK},
   { "Sqrt()",             SQRT_START_ID,         SQRT_END_ID,         UK_BLUE}
 };
 #endif
@@ -81,8 +78,6 @@ static UkEventInfo L_events[] = {
 #define EVENTS_END_JOIN_THREADS()   ukRecordEvent(G_instance, JOIN_THREADS_END_ID,   0.0, __FILE__, __FUNCTION__, __LINE__)
 #define EVENTS_START_BARRIER()      ukRecordEvent(G_instance, BARRIER_START_ID,      0.0, __FILE__, __FUNCTION__, __LINE__)
 #define EVENTS_END_BARRIER()        ukRecordEvent(G_instance, BARRIER_END_ID,        0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_START_PROCESSING()   ukRecordEvent(G_instance, PROCESSING_START_ID,   0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_END_PROCESSING()     ukRecordEvent(G_instance, PROCESSING_END_ID,     0.0, __FILE__, __FUNCTION__, __LINE__)
 #define EVENTS_START_SQRT()         ukRecordEvent(G_instance, SQRT_START_ID,         0.0, __FILE__, __FUNCTION__, __LINE__)
 #define EVENTS_END_SQRT()           ukRecordEvent(G_instance, SQRT_END_ID,           0.0, __FILE__, __FUNCTION__, __LINE__)
 
@@ -108,8 +103,6 @@ static UkEventInfo L_events[] = {
 #define EVENTS_END_JOIN_THREADS()
 #define EVENTS_START_BARRIER()
 #define EVENTS_END_BARRIER()
-#define EVENTS_START_PROCESSING()
-#define EVENTS_END_PROCESSING()
 #define EVENTS_START_SQRT()
 #define EVENTS_END_SQRT()
 
