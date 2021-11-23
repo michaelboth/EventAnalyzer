@@ -25,6 +25,7 @@ int G_font_point_size = 0;
 int G_min_font_point_size = 0;
 int G_max_font_point_size = 0;
 QMap<QString,EventTree*> G_event_tree_map;
+QStringList G_event_filters; // List of event names to be filtered
 
 int main(int argc, char *argv[]) {
   QApplication *app = new QApplication(argc, argv);

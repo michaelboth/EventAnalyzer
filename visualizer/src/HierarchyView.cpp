@@ -78,6 +78,9 @@ void HierarchyView::updateLineHeight() {
 }
 
 void HierarchyView::calculateGeometry(EventTreeNode *parent, int &line_index, int &max_width, int level) {
+  bool is_filtered = (parent->tree_node_type == TREE_NODE_IS_EVENT && G_event_filters.contains(parent->name));
+  if (is_filtered) return;
+
   QFontMetrics fm = fontMetrics();
   int x = level * G_font_point_size + arrow_w + image_w + (int)(line_h * EXTRA_MARGIN_FACTOR);
   int w = x + fm.horizontalAdvance(parent->name);
@@ -113,6 +116,8 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
   int x = -h_offset + level * G_font_point_size;
   int y = -v_offset + line_index * line_h;
   if (y > h) return;
+  bool is_filtered = (parent->tree_node_type == TREE_NODE_IS_EVENT && G_event_filters.contains(parent->name));
+  if (is_filtered) return;
 
   // Determine icons to draw
   QPixmap arrow_icon;
@@ -175,6 +180,7 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
     x += (int)(line_h * EXTRA_MARGIN_FACTOR);
 
     // Draw name
+    painter->setPen(QPen(Qt::black, 1, Qt::SolidLine));
     painter->drawText(x, y, w-x, line_h, Qt::AlignLeft | Qt::AlignVCenter, parent->name);
   }
 
@@ -252,7 +258,6 @@ void HierarchyView::paintEvent(QPaintEvent* /*event*/) {
   node_with_mouse = NULL;
 
   // Draw hierarchy tree
-  painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
   int line_index = 0;
   QMapIterator<QString, EventTree*> i(G_event_tree_map);
   while (i.hasNext()) {

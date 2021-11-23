@@ -25,7 +25,7 @@ Linux & Mac:
     > make INSTRUMENT_APP=Yes CLOCK=clock_gettime
   Run:
     > ./memory_contention <num_threads> <num_elements>
-    > ./memory_contention 8 1000
+    > ./memory_contention 4 1000
   View Results:
     View all the event files simultaneously with Unikorn Viewer
   Clean:
@@ -39,7 +39,7 @@ Windows:
     > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=ftime
   Run:
     > memory_contention <num_threads> <num_elements>
-    > memory_contention 8 1000
+    > memory_contention 4 1000
   View Results:
     View all the event files simultaneously with Unikorn Viewer
   Clean:

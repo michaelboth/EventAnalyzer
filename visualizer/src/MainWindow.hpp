@@ -61,6 +61,7 @@ private slots:
   void updateEventsScrollRange();
   void updateEventsTimeOffset(int scroll_offset);
   void updateHierarchyScrollbars();
+  void eventFiltersModified();
 
 private:
   Ui::MainWindow *ui;

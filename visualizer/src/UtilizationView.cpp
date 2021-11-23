@@ -14,6 +14,7 @@
 
 #include <QPainter>
 #include "UtilizationView.hpp"
+#include "HelpfulFunctions.hpp"
 #include "main.hpp"
 
 UtilizationView::UtilizationView(QWidget *parent) : QWidget(parent) {
@@ -44,6 +45,8 @@ void UtilizationView::drawHierarchyLine(QPainter *painter, Events *events, Event
   int h = height();
   int w = width();
   int y = -v_offset + line_index * line_h;
+  bool is_filtered = (parent->tree_node_type == TREE_NODE_IS_EVENT && G_event_filters.contains(parent->name));
+  if (is_filtered) return;
 
   // only draw if visible
   if (y > -line_h && y < h) {

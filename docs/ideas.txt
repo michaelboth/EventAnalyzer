@@ -1,11 +1,9 @@
 API:
- - Allow folders to also contain instance, locations, and value? Can this meaningfully help with anything?
+ - Allow folders to also contain instance, locations, and value? Any benefit with this?
  - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
 
 
 Visualizer:
- - Filter dialog:
-   - Collapse filtered rows to a few pixels to make it obvious filtering is active
  - From the time align dialog:
        - Allow clock drift correction between files via scaling first and last event instances
  - Search for largest duration/gap (similar to prev/next event)

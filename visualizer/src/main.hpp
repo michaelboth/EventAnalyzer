@@ -16,6 +16,7 @@
 #define _main_hpp_
 
 #include <QSettings>
+#include <QStringList>
 #include <QMap>
 #include "EventTree.hpp"
 #include "events_loader.h"
@@ -25,6 +26,7 @@ extern double G_pixels_per_point;
 extern int G_font_point_size;
 extern int G_min_font_point_size;
 extern int G_max_font_point_size;
+extern QStringList G_event_filters;
 
 extern QMap<QString,EventTree*> G_event_tree_map; // QMap is always sorted by key
 

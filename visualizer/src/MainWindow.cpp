@@ -18,10 +18,12 @@
 #include "MainWindow.hpp"
 #include "HelpfulFunctions.hpp"
 #include "TimeAlignDialog.hpp"
+#include "EventFilterDialog.hpp"
 #include "main.hpp"
 #include "unikorn.h"
 
 #define NORMAL_COLOR     QColor(50, 50, 50)
+#define IMPORTANT_COLOR  QColor(200, 0, 0)
 #define DISABLED_COLOR   QColor(200, 200, 200)
 #define TOGGLE_ON_COLOR  QColor(0, 100, 255)
 #define TOGGLE_OFF_COLOR QColor(150, 200, 255)
@@ -245,7 +247,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->closeAllButton->setIcon(buildIcon(":/close.png",                      false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->closeSelectedButton->setIcon(buildIcon(":/close_selected.png",        false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->setFilterButton->setIcon(buildIcon(":/filter.png",                    false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->clearFilterButton->setIcon(buildIcon(":/clear_filter.png",            false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->clearFilterButton->setIcon(buildIcon(":/clear_filter.png",            false, IMPORTANT_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->showFoldersButton->setIcon(buildIcon(":/show_folders.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->openFoldersButton->setIcon(buildIcon(":/open_folders.png",            false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
@@ -281,6 +283,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   // Update the events toolbar spacer width
   ui->eventsToolbarSpacer->changeSize(prev_name_column_width, 5, QSizePolicy::Fixed, QSizePolicy::Minimum);
   ui->eventsToolbarLayout->invalidate();
+
+  // Havn't decied on if this feature should be implemented
+  ui->mouseModeTimeShiftButton->setHidden(true);
 
   // Set usable widgets
   setWidgetUsability();
@@ -384,7 +389,7 @@ void MainWindow::setWidgetUsability() {
   }
   bool folders_exist = eventFilesHaveFolders();
   bool threads_exist = eventFilesHaveThreads();
-  bool filters_are_set = false;/*+*/
+  int num_events_filtered = G_event_filters.count();
   bool font_size_can_grow = (G_font_point_size < G_max_font_point_size);
   bool font_size_can_shrink = (G_font_point_size > G_min_font_point_size);
   double percent_visible, percent_offset;
@@ -395,7 +400,7 @@ void MainWindow::setWidgetUsability() {
   ui->closeAllButton->setEnabled(event_files_loaded);
   ui->closeSelectedButton->setEnabled(event_file_selected);
   ui->setFilterButton->setEnabled(event_files_loaded);
-  ui->clearFilterButton->setEnabled(filters_are_set);
+  ui->clearFilterButton->setEnabled(num_events_filtered > 0);
   ui->showFoldersButton->setEnabled(folders_exist);
   ui->showThreadsButton->setEnabled(threads_exist);
   ui->openFoldersButton->setEnabled(event_files_loaded);
@@ -418,18 +423,18 @@ void MainWindow::setWidgetUsability() {
   ui->prevEventButton->setEnabled(event_files_loaded && events_to_the_left);
   ui->nextEventButton->setEnabled(event_files_loaded && events_to_the_right);
 
-  /*+ hide filtering buttons until filtering implemented */
-  ui->filterSpacer->changeSize(10, 0, QSizePolicy::Minimum, QSizePolicy::Fixed);
-  ui->setFilterButton->setHidden(true);
-  ui->clearFilterButton->setHidden(true);
-  ui->mouseModeTimeShiftButton->setHidden(true);
-
   // Update status bar
   QString alignment_mode = G_settings->value("alignment_mode", "Native").toString();  // One of "Native", "TimeZero", "EventId"
   QString message = "Event files loaded: " + QString::number(G_event_tree_map.count());
   message += "          Total Events: " + QString::number(totalEventInstances());
   message += "          Alignment: " + alignment_mode;
-  message += "          Filters Set: none"; /*+ filters set */
+  if (num_events_filtered == 0) {
+    message += "          Filters Set: none";
+  } else if (num_events_filtered == 1) {
+    message += "          Filters Set: " + QString::number(num_events_filtered) + " event";
+  } else if (num_events_filtered > 1) {
+    message += "          Filters Set: " + QString::number(num_events_filtered) + " events";
+  }
   statusBar()->showMessage(message);
 }
 
@@ -528,11 +533,24 @@ void MainWindow::on_closeSelectedButton_clicked() {
 }
 
 void MainWindow::on_setFilterButton_clicked() {
-  /*+ filtering */
+  EventFilterDialog dialog(this);
+  dialog.adjustSize(); // Shrink to fit content
+
+  // Setup signals
+  this->connect(&dialog, SIGNAL(eventFilterChanged()), this, SLOT(eventFiltersModified()));
+
+  //if (dialog.exec() == QDialog::Accepted) {
+  dialog.exec();
 }
 
 void MainWindow::on_clearFilterButton_clicked() {
-  /*+ filtering */
+  G_event_filters.clear();
+  eventFiltersModified();
+}
+
+void MainWindow::eventFiltersModified() {
+  updateViews();
+  updateHierarchyScrollbars();
 }
 
 void MainWindow::updateEventTreeBuild() {

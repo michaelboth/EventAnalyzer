@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <QPainter>
 #include "HelpfulFunctions.hpp"
+#include "main.hpp"
 
 QRect getFittedRect(FitType fit, int window_w, int window_h, int image_w, int image_h) {
   if (fit == FitType::Inside) {
@@ -107,4 +109,25 @@ QString getTimeUnitsAndFactor(uint64_t nsecs, uint64_t max_times_to_display, uin
 
   *units_factor_ret = units_factor;
   return units;
+}
+
+QPixmap drawEventIcon(int height, QColor color) {
+  int icon_h = height * G_pixels_per_point;
+  int icon_w = (int)(icon_h * 1.0f);
+  QPixmap pixmap(icon_w, icon_h);
+  pixmap.setDevicePixelRatio(G_pixels_per_point);
+  icon_h /= G_pixels_per_point;
+  icon_w /= G_pixels_per_point;
+  pixmap.fill(Qt::transparent);
+  QPainter painter(&pixmap);
+  int x1 = 1;
+  int x2 = icon_w-3;
+  int y1 = (int)(icon_h * 0.2f);
+  int y2 = (int)(icon_h * 0.35f);
+  int y3 = (int)(icon_h * 0.65f);
+  int y4 = (int)(icon_h * 0.8f);
+  painter.fillRect(x1, y1, 2, y3-y1, color);
+  painter.fillRect(x2, y2, 2, y4-y2, color);
+  painter.fillRect(x1, y2, x2-x1, y3-y2, color);
+  return pixmap;
 }

@@ -388,9 +388,10 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
   int y = -v_offset + line_index * line_h;
   parent->events_row_rect = QRect();
   parent->utilization = 0.0;
+  bool parent_is_filtered = (parent->tree_node_type == TREE_NODE_IS_EVENT && G_event_filters.contains(parent->name));
 
   // only draw if visible
-  if (y > -line_h && y < h) {
+  if (!parent_is_filtered && y > -line_h && y < h) {
     // Remember the row geometry
     QRect row_rect = QRect(0,y,w,line_h);
     parent->events_row_rect = row_rect;
@@ -472,30 +473,10 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
     ancestor_open = false;
   }
   for (auto child: parent->children) {
-    if (ancestor_open && parent->is_open) line_index++;
+    bool child_is_filtered = (child->tree_node_type == TREE_NODE_IS_EVENT && G_event_filters.contains(child->name));
+    if (ancestor_open && parent->is_open && !child_is_filtered) line_index++;
     drawHierarchyLine(painter, events, child, line_index, ancestor_open ? parent->is_open : false);
   }
-}
-
-static QPixmap drawEventIcon(int height, QColor color) {
-  int icon_h = height * G_pixels_per_point;
-  int icon_w = (int)(icon_h * 1.0f);
-  QPixmap pixmap(icon_w, icon_h);
-  pixmap.setDevicePixelRatio(G_pixels_per_point);
-  icon_h /= G_pixels_per_point;
-  icon_w /= G_pixels_per_point;
-  pixmap.fill(Qt::transparent);
-  QPainter painter(&pixmap);
-  int x1 = 1;
-  int x2 = icon_w-3;
-  int y1 = (int)(icon_h * 0.2f);
-  int y2 = (int)(icon_h * 0.35f);
-  int y3 = (int)(icon_h * 0.65f);
-  int y4 = (int)(icon_h * 0.8f);
-  painter.fillRect(x1, y1, 2, y3-y1, color);
-  painter.fillRect(x2, y2, 2, y4-y2, color);
-  painter.fillRect(x1, y2, x2-x1, y3-y2, color);
-  return pixmap;
 }
 
 uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, Events *events, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret) {
