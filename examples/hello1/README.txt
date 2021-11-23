@@ -14,7 +14,7 @@ Linux & Mac:
 
 Windows:
   Build:
-    > nmake -f windows.Makefile [THREAD_SAFE=Yes]
+    > nmake -f windows.Makefile
   Run:
     > hello
   View Results:

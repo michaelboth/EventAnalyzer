@@ -1,8 +1,10 @@
 # Check if threading is enabled
-!IF "$(THREAD_SAFE)" == "Yes"
-THREAD_CFLAGS = -DALLOW_THREADING -Ic:/pthreads4w/install/include
+!IF "$(ALLOW_THREADS)" == "Yes"
+THREAD_CFLAGS = -DALLOW_THREADS -Ic:/pthreads4w/install/include
+LIBRARY = unikornMT.lib
 !ELSE
 THREAD_CFLAGS =
+LIBRARY = unikorn.lib
 !ENDIF
 
 # Check if release distribution is enabled
@@ -13,21 +15,21 @@ OPTIMIZATION_CFLAGS  = -Zi -MDd # Debug: -MTd or -MDd
 !ENDIF
 
 CFLAGS  = $(OPTIMIZATION_CFLAGS) -nologo -WX -W3 -I../inc $(THREAD_CFLAGS)
-C_OBJS  = unikorn.obj
-LIBRARY = unikorn.lib
 
 .SUFFIXES: .c
 
 all: $(LIBRARY)
 
 clean:
-	-del $(LIBRARY)
+	-del *.lib
 	-del *.obj
 	-del *.pdb
 	-del *~
 
-$(LIBRARY): $(C_OBJS)
-	lib -nologo $(C_OBJS) -out:$(LIBRARY)
+unikorn.lib:
+	cl -c $(CFLAGS) -Fo.\unikorn.obj ..\src\unikorn.c
+	lib -nologo unikorn.obj -out:unikorn.lib
 
-{..\src\}.c.obj::
-	cl -c $(CFLAGS) -Fo.\ $<
+unikornMT.lib:
+	cl -c $(CFLAGS) -Fo.\unikornMT.obj ..\src\unikorn.c
+	lib -nologo unikornMT.obj -out:unikornMT.lib

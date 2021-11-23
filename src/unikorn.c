@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
     #include <Windows.h>
@@ -122,7 +122,7 @@ typedef struct {
   uint32_t curr_event_index;
   uint32_t first_unsaved_event_index;
   Event *events_buffer;
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   pthread_mutex_t mutex;
 #endif
   uint32_t magic_value2;
@@ -136,7 +136,7 @@ static bool isBigEndian() {
   return (b[3] == 1);
 }
 
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
 static uint64_t myThreadId() {
   // IMPORTANT: Can't use pthread_self() because it's opaque
 #ifdef _WIN32
@@ -283,7 +283,7 @@ void *ukCreate(UkAttrs *attrs,
   // Verify attributes
   if (attrs->max_event_count < MIN_EVENT_COUNT) { printf("Expected max events count=%d to be at least %d\n", attrs->max_event_count, MIN_EVENT_COUNT); assert(0); }
   if (attrs->event_info_count == 0) { printf("Expected at least one named event to be registered\n"); assert(0); }
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
 #else
   if (attrs->is_threaded) { printf("Asked for threading, but the library is not compiled with threading.\n"); assert(0); }
 #endif
@@ -323,7 +323,7 @@ void *ukCreate(UkAttrs *attrs,
   object->folder_info_count = (attrs->folder_info_count == 0) ? 0 : attrs->folder_info_count + 1; // Also need the close folder event
   object->event_info_count = attrs->event_info_count;
   object->first_event_id = first_event_id;
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   pthread_mutex_init(&object->mutex, NULL);
 #endif
 
@@ -614,11 +614,11 @@ void ukFlush(void *object_ref) {
   EventObject *object = (EventObject *)object_ref;
   assert(object->magic_value1 == MAGIC_VALUE1);
   assert(object->magic_value2 == MAGIC_VALUE2);
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   if (object->is_threaded) pthread_mutex_lock(&object->mutex);
 #endif
   flushEvents(object);
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   if (object->is_threaded) pthread_mutex_unlock(&object->mutex);
 #endif
 }
@@ -643,7 +643,7 @@ void ukDestroy(void *object_ref) {
     free(object->event_info_list);
   }
   free(object->events_buffer);
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   pthread_mutex_destroy(&object->mutex);
 #endif
   free(object);
@@ -680,7 +680,7 @@ static void recordEvent(EventObject *object, uint16_t event_id, double value, ui
   //                        Thread ID recorded: ~2000 ns
   event->instance = instance;
   event->value = value;
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   if (object->is_threaded) {
     event->thread_id = myThreadId();
   }
@@ -734,7 +734,7 @@ void ukRecordEvent(void *object_ref, uint16_t event_id, double value, const char
   printf("%s(): ID=%d, value=%f, file=%s, function=%s, line_number=%d\n", __FUNCTION__, event_id, value, file, function, line_number);
 #endif
 
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   if (object->is_threaded) pthread_mutex_lock(&object->mutex);
 #endif
 
@@ -742,7 +742,7 @@ void ukRecordEvent(void *object_ref, uint16_t event_id, double value, const char
   uint64_t instance = (event->start_id == event_id) ? event->start_instance++ : event->end_instance++;
   recordEvent(object, event_id, value, instance, file, function, line_number);
 
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   if (object->is_threaded) pthread_mutex_unlock(&object->mutex);
 #endif
 }
@@ -757,7 +757,7 @@ void ukRecordFolder(void *object_ref, uint16_t folder_id) {
   printf("%s(): ID=%d\n", __FUNCTION__, folder_id);
 #endif
 
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   if (object->is_threaded) pthread_mutex_lock(&object->mutex);
 #endif
 
@@ -772,7 +772,7 @@ void ukRecordFolder(void *object_ref, uint16_t folder_id) {
   // Add the folder event to the event buffer
   recordEvent(object, folder_id, 0, 0, L_unused_name, L_unused_name, 0);
 
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   if (object->is_threaded) pthread_mutex_unlock(&object->mutex);
 #endif
 }
@@ -786,7 +786,7 @@ void ukCloseFolder(void *object_ref) {
   printf("%s()\n", __FUNCTION__);
 #endif
 
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   if (object->is_threaded) pthread_mutex_lock(&object->mutex);
 #endif
 
@@ -797,7 +797,7 @@ void ukCloseFolder(void *object_ref) {
   // Add the folder event to the event buffer
   recordEvent(object, CLOSE_FOLDER_ID, 0, 0, L_unused_name, L_unused_name, 0);
 
-#ifdef ALLOW_THREADING
+#ifdef ALLOW_THREADS
   if (object->is_threaded) pthread_mutex_unlock(&object->mutex);
 #endif
 }

@@ -63,7 +63,7 @@ int main() {
   const char *filename = "./hello.events";
   uint32_t max_events = 10000;
   bool flush_when_full = false;
-  bool is_threaded = true;
+  bool is_threaded = false;
   bool record_instance = true;
   bool record_value = true;
   bool record_location = true;

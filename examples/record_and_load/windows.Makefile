@@ -21,10 +21,12 @@ CLOCK_CFLAGS = -DUSE_ftime_CLOCK
 !ENDIF
 
 # Check if threading is enabled
+THREAD_SAFE = Yes
 !IF "$(THREAD_SAFE)" == "Yes"
-THREAD_CFLAGS = -DALLOW_THREADING -Ic:/pthreads4w/install/include
+THREAD_CFLAGS = -Ic:/pthreads4w/install/include
 THREAD_LIBS   = c:/pthreads4w/install/lib/libpthreadVC3.lib -nodefaultlib:LIBCMT.LIB
 #THREAD_LIBS   = c:/pthreads4w/install/lib/libpthreadVC3d.lib -nodefaultlib:LIBCMT.LIB
+INSTRUMENT_PRJ_LIBS = ../../lib/unikornMT.lib -nodefaultlib:MSVCRTD.LIB
 !ELSE
 THREAD_CFLAGS =
 THREAD_LIBS   =

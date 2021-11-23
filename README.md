@@ -15,7 +15,7 @@ Unikorn is a C API and graphical visualizer (Windows, Mac, and Linux). These are
 *Mac: Tested on OSX 11.6 (Big Sur), xCode 13.1 command line*
 ```
 > cd unikorn/lib
-> make RELEASE=Yes THREAD_SAFE=Yes
+> make RELEASE=Yes ALLOW_THREADS=Yes
 ```
 ### Windows
 *Tested with Visual Studio 2019 64bit console window*<br>
@@ -27,10 +27,11 @@ Unikorn's API can optionally be thread safe, and if so requires Posix threads. V
 > cd c:\pthreads4w
 > nmake VC VC-debug VC-static VC-static-debug install DESTROOT=.\install
 ```
-4. Build the Unikorn API
+4. Build the Unikorn API (2 libraries: not thread enabled vs thread enabled)
 ```
 > cd unikorn\lib
-> nmake -f windows.Makefile RELEASE=Yes THREAD_SAFE=Yes
+> nmake -f windows.Makefile RELEASE=Yes ALLOW_THREADS=No
+> nmake -f windows.Makefile RELEASE=Yes ALLOW_THREADS=Yes
 ```
 ## Instrumenting Your Application with Events
 I'll step through the ```examples/hello1/``` example to get you familiar with event instrumentation.

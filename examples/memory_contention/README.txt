@@ -33,10 +33,10 @@ Linux & Mac:
 
 Windows:
   Without instrumentation:
-    > nmake -f windows.Makefile [THREAD_SAFE=Yes]
+    > nmake -f windows.Makefile
   With instrumentation (one of):
-    > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=QueryPerformanceCounter
-    > nmake -f windows.Makefile [THREAD_SAFE=Yes] INSTRUMENT_APP=Yes CLOCK=ftime
+    > nmake -f windows.Makefile INSTRUMENT_APP=Yes CLOCK=QueryPerformanceCounter
+    > nmake -f windows.Makefile INSTRUMENT_APP=Yes CLOCK=ftime
   Run:
     > memory_contention <num_threads> <num_elements>
     > memory_contention 4 1000
