@@ -15,7 +15,6 @@
 #define DEFINE_FOLDERS_AND_EVENTS
 #include "custom_folders_and_events.h"
 #include <stdio.h>
-#include <stdlib.h>
 
 // Define the event session global variable
 EVENTS_GLOBAL_INSTANCE;

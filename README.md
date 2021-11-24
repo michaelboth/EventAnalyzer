@@ -30,18 +30,17 @@ You may need Posix threads. Unikorn's API can optionally be thread safe, and if 
 ```
 
 ## Instrumenting Your Application with Events
-The following is the 'hello' example.
+The following is the 'hello' example. The source code in <span style="color:blue">blue</span> is the the extra code used for event instrumentation. All of that source code is compiled out if ```INSTRUMENT_APP``` is not defined when compiling.
 ```
-#define DEFINE_FOLDERS_AND_EVENTS
-#include "custom_folders_and_events.h"
+<span style="color:blue">#define DEFINE_FOLDERS_AND_EVENTS
+#include "custom_folders_and_events.h"</span>
 #include <stdio.h>
-#include <stdlib.h>
 
-// Define the event session global variable
-EVENTS_GLOBAL_INSTANCE;
+<span style="color:blue">// Define the event session global variable
+EVENTS_GLOBAL_INSTANCE;</span>
 
 int main() {
-  // Create event session
+<span style="color:blue">  // Create event session
 #ifdef INSTRUMENT_APP
   const char *filename = "./hello.events";
   uint32_t max_events = 10000;
@@ -51,32 +50,31 @@ int main() {
   bool record_value = true;
   bool record_location = true;
 #endif
-  EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location);
+  EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location);</span>
 
   // Do some processing
-  EVENTS_START_FOR_LOOP();
+  <span style="color:blue">EVENTS_START_FOR_LOOP();</span>
   for (int j=0; j<10; j++) {
-    EVENTS_START_PRINTF();
+    <span style="color:blue">EVENTS_START_PRINTF();</span>
     printf("%d: Hello!\n", j+1);
-    EVENTS_END_PRINTF();
+    <span style="color:blue">EVENTS_END_PRINTF();</span>
   }
-  EVENTS_END_FOR_LOOP();
+  <span style="color:blue">EVENTS_END_FOR_LOOP();</span>
 
-  // Clean up
+<span style="color:blue">  // Clean up
   EVENTS_FLUSH();
   EVENTS_FINALIZE();
 #ifdef INSTRUMENT_APP
   printf("Events were recorded to the file '%s'. Use the Unikorn Viewer to view the results.\n", filename);
 #else
   printf("Event recording is not enabled.\n");
-#endif
+#endif</span>
 
   return 0;
 }
 ```
 
-The custom folders and events are defined in ```custom_folders_and_events.h```<br>
-Here is the code snippet that defined the events (names and colors):
+The custom folders and events are defined in ```custom_folders_and_events.h```. Here is the code snippet that defined the events (names and colors):
 ```
 static UkEventInfo L_events[] = {
   // Name          Start ID              End ID              Color
@@ -84,9 +82,9 @@ static UkEventInfo L_events[] = {
   { "printf()",    PRINTF_START_ID,      PRINTF_END_ID,      UK_BLUE}
 };
 ```
-You could define many more events, that are specific to the application.<br>
+Modify this file for use in your application. You could define any number of folders and events.<br>
 
-The example is built with a few other files that can be common to any application you instrument with event recording:
+If ```INSTRUMENT_APP``` is defined then example is built with a few other files that can be common to any application you instrument with event recording:
 ```
 src/unikorn.c                                       # The event recording engine
 src/app_event_recording.c                           # A wrapper file to make it easy to compile out event instrumentation
