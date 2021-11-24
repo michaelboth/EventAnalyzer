@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "event_clocks.h"
+#include "event_recorder_clock.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -29,6 +29,7 @@ int main() {
 
   // Run the clock a few times just to get things cached up
   int priming_cycles = 10;
+  printf("Priming with %d calls to getEventTime(), then %d iterations to calculates the stats...\n", priming_cycles, num_elements);
   for (int i=0; i<priming_cycles; i++) {
     time_list[i] = getEventTime();
   }
@@ -41,10 +42,10 @@ int main() {
   // Calculate the overhead: how long it takes to call getEventTime()
   uint64_t overall_time = time_list[num_elements-1] - time_list[0];
   if (overall_time == 0) {
-    printf("Need more than %d itterations to calculate time attributes\n", num_elements);
+    printf("  Need more than %d itterations to calculate time attributes\n", num_elements);
   } else {
     uint64_t overhead_nanoseconds = overall_time / (num_elements-1);
-    printf("Overhead: how long it takes to call getEventTime()\n");
+    printf("  Overhead: how long it takes to call getEventTime()\n");
     printf("    %"UINT64_FORMAT" nanoseconds ()\n", overhead_nanoseconds);
 
     // Calculate the precision: the smallest amount of time it can report
@@ -55,7 +56,7 @@ int main() {
         min_non_zero_diff = diff;
       }
     }
-    printf("Precision: the smallest amount of time getEventTime() can report\n");
+    printf("  Precision: the smallest amount of time getEventTime() can report\n");
     printf("    %"UINT64_FORMAT" nanoseconds ()\n", min_non_zero_diff);
   }
 

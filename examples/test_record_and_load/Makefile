@@ -1,16 +1,17 @@
 CFLAGS       := -std=gnu99 -Wall -Werror -pthread -I. -I../../inc
 CFLAGS       += -O2
 #CFLAGS       += -g -O0
-C_OBJS       := memory_contention.o
+C_OBJS       := test_record_and_load.o
 HEADER_FILES := custom_folders_and_events.h
 LIBS         := -pthread -lm
-TARGET       := memory_contention
+TARGET       := test_record_and_load
 
 ifeq ($(INSTRUMENT_APP),Yes)
-    CFLAGS       += -DINSTRUMENT_APP # Needed to enable event recording
-    CFLAGS       += -DALLOW_THREADS  # Needed by unikorn.c if threading needs to be enabled
-    C_OBJS       += unikorn.o event_recorder_file_flush.o app_event_recording.o
-    HEADER_FILES += unikorn.h event_recorder_clock.h event_recorder_file_flush.h app_event_recording.h
+    CFLAGS       += -DINSTRUMENT_APP  # Needed to enable event recording
+    CFLAGS       += -DALLOW_THREADS   # Needed by unikorn.c if threading needs to be enabled
+    CFLAGS       += -DPRINT_LOAD_INFO # Needed by event_file_loader.c to print all the loaded event information
+    C_OBJS       += unikorn.o event_recorder_file_flush.o app_event_recording.o event_file_loader.o
+    HEADER_FILES += unikorn.h event_recorder_clock.h event_recorder_file_flush.h app_event_recording.h event_file_loader.h
     # Define a clock
     ifeq ($(CLOCK),gettime)
 	C_OBJS += event_recorder_clock_gettime.o

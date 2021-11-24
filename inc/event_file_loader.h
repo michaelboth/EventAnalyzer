@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _EVENTS_LOADER_H_
-#define _EVENTS_LOADER_H_
+#ifndef _EVENT_FILE_LOADER_H_
+#define _EVENT_FILE_LOADER_H_
 
 #include <stdio.h>
 #include <stdint.h>

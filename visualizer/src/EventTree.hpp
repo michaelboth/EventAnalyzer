@@ -18,7 +18,7 @@
 #include <QList>
 #include <QRect>
 #include <QColor>
-#include "events_loader.h"
+#include "event_file_loader.h"
 
 typedef enum {
   SORT_BY_ID,

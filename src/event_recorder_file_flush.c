@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "event_file_flush.h"
+#include "event_recorder_file_flush.h"
 
 bool prepareFileFlush(void *user_data) {
   FileFlushInfo *flush_info = (FileFlushInfo *)user_data;

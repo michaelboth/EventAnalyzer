@@ -1,15 +1,14 @@
 This example is used to determine clock performance for the various
 clocks that are supported. Test you own custom clock as needed.
 
-To add your own clock to the common reference, edit ref/event_clocks.c
+Many clocks were already implemented in src/event_recorder_clock_*.c
+but you can implement you own clock if needed.
 
 
-BUILD & RUN
 Linux & Mac:
   Choose one of:
     > make CLOCK=gettimeofday
-    > make CLOCK=clock_gettime
-    > make CLOCK=<your-own-clock>
+    > make CLOCK=gettime
   Run:
     > ./test_clock
   Clean:
@@ -19,7 +18,6 @@ Windows:
   Choose one of:
     > nmake -f windows.Makefile CLOCK=ftime
     > nmake -f windows.Makefile CLOCK=QueryPerformanceCounter
-    > nmake -f windows.Makefile CLOCK=<your-own-clock>
   Run:
     > test_clock
   Clean:

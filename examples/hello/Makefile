@@ -1,10 +1,10 @@
 CFLAGS       := -std=gnu99 -Wall -Werror -pthread -I. -I../../inc
 CFLAGS       += -O2
 #CFLAGS       += -g -O0
-C_OBJS       := memory_contention.o
+C_OBJS       := hello.o
 HEADER_FILES := custom_folders_and_events.h
-LIBS         := -pthread -lm
-TARGET       := memory_contention
+LIBS         := -pthread
+TARGET       := hello
 
 ifeq ($(INSTRUMENT_APP),Yes)
     CFLAGS       += -DINSTRUMENT_APP # Needed to enable event recording

@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "event_instrumenting.h"
-#include "event_clocks.h"
-#include "event_file_flush.h"
+#include "app_event_recording.h"
+#include "event_recorder_clock.h"
+#include "event_recorder_file_flush.h"
 
 // Global handle to the event session
 //   - Global to all files; hence 'G_'
 //   - If multiple recording sessions to different output need to be created, then don't use a global value
-void *G_instance = NULL;
+void *G_event_recording_session = NULL;
 
 // Handle to flushing events to a file
 //   - Global only to this file; hence 'L_'
 //   - If flushing to a different type of output stream, this will need to replaced
 static FileFlushInfo L_flush_info;
 
-void initEventIntrumenting(const char *filename, uint32_t max_events, bool flush_when_full, bool is_threaded, bool record_instance, bool record_value, bool record_location,
-                           uint16_t num_folders, UkFolderInfo *folder_info_list, uint16_t num_event_types, UkEventInfo *event_info_list) {
+void initEventRecording(const char *filename, uint32_t max_events, bool flush_when_full, bool is_threaded, bool record_instance, bool record_value, bool record_location,
+                        uint16_t num_folders, UkFolderInfo *folder_info_list, uint16_t num_event_types, UkEventInfo *event_info_list) {
   UkAttrs attrs = {
     .max_event_count = max_events,
     .flush_when_full = flush_when_full,
@@ -48,10 +48,10 @@ void initEventIntrumenting(const char *filename, uint32_t max_events, bool flush
   L_flush_info.append_subsequent_saves = true;
 
   // Create event session
-  G_instance = ukCreate(&attrs, getEventTime, &L_flush_info, prepareFileFlush, fileFlush, finishFileFlush);
+  G_event_recording_session = ukCreate(&attrs, getEventTime, &L_flush_info, prepareFileFlush, fileFlush, finishFileFlush);
 }
 
-void finalizeEventIntrumenting() {
-  ukDestroy(G_instance);
-  G_instance = NULL;
+void finalizeEventRecording() {
+  ukDestroy(G_event_recording_session);
+  G_event_recording_session = NULL;
 }

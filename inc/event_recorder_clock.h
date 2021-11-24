@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _EVENT_CLOCKS_H_
-#define _EVENT_CLOCKS_H_
+#ifndef _EVENT_RECORDER_CLOCK_H_
+#define _EVENT_RECORDER_CLOCK_H_
 
 #include <stdint.h>
 

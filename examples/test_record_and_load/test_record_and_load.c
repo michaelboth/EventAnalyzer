@@ -15,7 +15,7 @@
 #define DEFINE_FOLDERS_AND_EVENTS
 #include "custom_folders_and_events.h"
 #ifdef INSTRUMENT_APP
-  #include "events_loader.h"
+  #include "event_file_loader.h"
 #endif
 #include <math.h>
 #include <stdio.h>
@@ -80,5 +80,8 @@ int main(int argc, char **argv) {
 #ifdef INSTRUMENT_APP
   Events *instance = loadEventsFile(filename);
   freeEvents(instance);
+  printf("Events were recorded to the file '%s'. Use the Unikorn Viewer to view the results.\n", filename);
+#else
+  printf("Event recording is not enabled.\n");
 #endif
 }

@@ -9,7 +9,7 @@ INSTRUMENT_C_OBJS       = event_clocks.obj event_file_flush.obj event_instrument
 INSTRUMENT_PRJ_LIBS     = ../../lib/unikorn.lib -nodefaultlib:MSVCRTD.LIB
 # Define a clock
 CLOCK_CFLAGS = unset
-!  IF "$(CLOCK)" == "QueryPerformanceCounter"
+!  IF "$(CLOCK)" == "queryperformancecounter"
 CLOCK_CFLAGS = -DUSE_QueryPerformanceCounter_CLOCK
 !  ENDIF
 !  IF "$(CLOCK)" == "ftime"

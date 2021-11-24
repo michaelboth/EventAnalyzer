@@ -29,6 +29,7 @@ static int num_elements = 0;
 static volatile bool do_processing = false; // Using volatile to avoid compiler optimizations
 static double **A_list = NULL;
 static double **B_list = NULL;
+
 // Define the event session global variable
 EVENTS_GLOBAL_INSTANCE;
 

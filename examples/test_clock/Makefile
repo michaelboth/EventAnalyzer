@@ -1,23 +1,23 @@
-CFLAGS       := -std=gnu99 -Wall -Werror -pthread -I../../ref
+CFLAGS       := -std=gnu99 -Wall -Werror -pthread -I../../inc
 CFLAGS       += -O2
 #CFLAGS       += -g -O0
-C_OBJS       := test_clock.o event_clocks.o
-HEADER_FILES := event_clocks.h
+C_OBJS       := test_clock.o
+HEADER_FILES := event_recorder_clock.h
 LIBS         := 
 TARGET       := test_clock
 
 ifneq ($(MAKECMDGOALS),clean)
-    ifeq ($(CLOCK),clock_gettime)
-        CFLAGS += -DUSE_clock_gettime_MONOTONIC_CLOCK
+    ifeq ($(CLOCK),gettime)
+	C_OBJS += event_recorder_clock_gettime.o
     else ifeq ($(CLOCK),gettimeofday)
-        CFLAGS += -DUSE_gettimeofday_CLOCK
+	C_OBJS += event_recorder_clock_gettimeofday.o
     else
-        $(error 'ERROR: need to specify one of: CLOCK=clock_gettime, CLOCK=gettimeofday')
+        $(error 'ERROR: need to specify one of: CLOCK=gettime, CLOCK=gettimeofday')
     endif
 endif
 
-vpath %.c ../../ref
-vpath %.h ../../ref
+vpath %.c ../../src
+vpath %.h ../../inc
 
 all: $(TARGET)
 
