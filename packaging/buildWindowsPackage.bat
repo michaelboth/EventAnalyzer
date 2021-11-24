@@ -33,6 +33,13 @@ if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
 mkdir %output_folder%\bin\platforms
 if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
 
+rem Copy the relevant files
+rem + cp ../README.md ${output_folder}
+rem + cp ../LICENSE ${output_folder}
+rem + cp -r ../examples ${output_folder}
+rem + cp -r ../ref ${output_folder}
+rem + cp ../inc/unikorn.h ${output_folder}/inc
+
 rem Build the unikorn library
 cd ..\lib
 nmake -f windows.Makefile clean

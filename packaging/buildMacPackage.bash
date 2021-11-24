@@ -23,6 +23,8 @@ mkdir ${output_folder}/lib
 mkdir ${output_folder}/bin
 
 # Copy the relevant files
+cp ../README.md ${output_folder}
+cp ../LICENSE ${output_folder}
 cp -r ../examples ${output_folder}
 cp -r ../ref ${output_folder}
 cp ../inc/unikorn.h ${output_folder}/inc

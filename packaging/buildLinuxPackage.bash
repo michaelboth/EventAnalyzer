@@ -24,6 +24,8 @@ mkdir ${output_folder}/bin
 mkdir ${output_folder}/bin/platforms
 
 # Copy the relevant files
+cp ../README.md ${output_folder}
+cp ../LICENSE ${output_folder}
 cp -r ../examples ${output_folder}
 cp -r ../ref ${output_folder}
 cp ../inc/unikorn.h ${output_folder}/inc
