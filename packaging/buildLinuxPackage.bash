@@ -19,7 +19,6 @@ echo "qt_folder = ${qt_folder}"
 # Create needed foldeers
 mkdir ${output_folder}
 mkdir ${output_folder}/inc
-mkdir ${output_folder}/lib
 mkdir ${output_folder}/bin
 mkdir ${output_folder}/bin/platforms
 
@@ -27,16 +26,8 @@ mkdir ${output_folder}/bin/platforms
 cp ../README.md ${output_folder}
 cp ../LICENSE ${output_folder}
 cp -r ../examples ${output_folder}
-cp -r ../ref ${output_folder}
-cp ../inc/unikorn.h ${output_folder}/inc
-
-# Build the unikorn library
-cd ../lib
-make clean
-make RELEASE=Yes ALLOW_THREADS=Yes
-cp libunikorn.a ../packaging/${output_folder}/lib
-make clean
-cd ../packaging
+cp -r ../src ${output_folder}
+cp -r ../inc ${output_folder}
 
 # Build the unikorn viewer
 cd ../visualizer
@@ -55,7 +46,7 @@ cp ${qt_folder}/gcc_64/lib/libicuuc.so.56 ${output_folder}/bin
 cp ${qt_folder}/gcc_64/lib/libicudata.so.56 ${output_folder}/bin
 
 # Compress package
-tar cf ${output_folder}-linux-x64.tar ${output_folder}
+tar cvf ${output_folder}-linux-x64.tar ${output_folder}
 gzip ${output_folder}-linux-x64.tar
 #zip -r ${output_folder}-linux-x64.zip ${output_folder}
 
