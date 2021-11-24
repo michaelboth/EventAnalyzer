@@ -36,8 +36,8 @@ The following is the 'hello' example. The source code that is **bold** is the th
 #include "custom_folders_and_events.h"**
 #include <stdio.h>
 
-**// Define the event session global variable
-EVENTS_GLOBAL_INSTANCE;**
+<b>// Define the event session global variable
+EVENTS_GLOBAL_INSTANCE;</b>
 
 int main() {
 **  // Create event session
