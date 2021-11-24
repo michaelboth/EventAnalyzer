@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$#" .ne "2" ]; then
-    echo "Usage: buildMacPackage.bash <Qt_folder> <unikorn_version>"
+    echo "USAGE: buildMacPackage.bash <Qt_folder> <unikorn_version>"
     echo "     > ./buildMacPackage.bash $HOME/Qt/5.15.2 1.0.0"
     exit 0
 fi
@@ -13,6 +13,8 @@ export output_folder="Unikorn-${unikorn_version}"
 echo "unikorn version = ${unikorn_version}"
 echo "output folder = ${output_folder}"
 echo "qt_folder = ${qt_folder}"
+
+[ ! -d ${qt_folder} ] && echo "ERROR: The folder '${qt_folder}' does not exist!" && exit 0
 
 # Create needed foldeers
 mkdir ${output_folder}
@@ -44,7 +46,9 @@ ${qt_folder}/clang_64/bin/macdeployqt UnikornViewer.app
 cd ../..
 
 # Compress package
-zip -r ${output_folder}-mac.zip ${output_folder}
+tar cf ${output_folder}-linux-x64.tar ${output_folder}
+gzip ${output_folder}-linux-x64.tar
+#zip -r ${output_folder}-mac.zip ${output_folder}
 
 echo "Packaging created"
 
