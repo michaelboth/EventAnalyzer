@@ -6,9 +6,9 @@ setlocal EnableDelayedExpansion
 rem count number of args
 set argC=0
 for %%i in (%*) do set /A argC+=1
-if "%argC%" neq "1" (
+if "%argC%" neq "2" (
   echo "Usage: buildWindowsPackage <Qt_folder> <unikorn_version>"
-  echo "     > buildLinuxPackage C:\Qt\5.15.2 1.0.0"
+  echo "     > buildWindowsPackage C:\Qt\5.15.2 1.0.0"
   GOTO:done
 )
 
@@ -20,13 +20,10 @@ set output_folder="Unikorn-%unikorn_version%"
 echo "unikorn version = %unikorn_version%"
 echo "output folder = %output_folder%"
 echo "qt_folder = %qt_folder%"
+echo "vs_folder = %vs_folder%"
 
 rem Create needed foldeers
 mkdir %output_folder%
-if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
-mkdir %output_folder%\inc
-if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
-mkdir %output_folder%\lib
 if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
 mkdir %output_folder%\bin
 if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
@@ -34,23 +31,11 @@ mkdir %output_folder%\bin\platforms
 if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
 
 rem Copy the relevant files
-rem + cp ../README.md ${output_folder}
-rem + cp ../LICENSE ${output_folder}
-rem + cp -r ../examples ${output_folder}
-rem + cp -r ../ref ${output_folder}
-rem + cp ../inc/unikorn.h ${output_folder}/inc
-
-rem Build the unikorn library
-cd ..\lib
-nmake -f windows.Makefile clean
-if %ERRORLEVEL% neq 0 ( echo "Failed to clean library" & GOTO:done )
-nmake -f windows.Makefile RELEASE=Yes ALLOW_THREADS=Yes
-if %ERRORLEVEL% neq 0 ( echo "Failed to build library" & GOTO:done )
-copy unikorn.lib ..\packaging\%output_folder%\lib
-if %ERRORLEVEL% neq 0 ( echo "Failed to copy library" & GOTO:done )
-nmake -f windows.Makefile clean
-if %ERRORLEVEL% neq 0 ( echo "Failed to clean library" & GOTO:done )
-cd ..\packaging
+copy ..\README.md %output_folder%
+copy ..\LICENSE %output_folder%
+xcopy /E/I ..\examples %output_folder%\examples
+xcopy /E/I ..\src %output_folder%\src
+xcopy /E/I ..\inc %output_folder%\inc
 
 rem Build the unikorn viewer
 cd ..\visualizer
@@ -73,14 +58,14 @@ if %ERRORLEVEL% neq 0 ( echo "Failed to copy Qt file" & GOTO:done )
 copy %qt_folder%\msvc2019_64\bin\Qt5Widgets.dll %output_folder%\bin
 if %ERRORLEVEL% neq 0 ( echo "Failed to copy Qt file" & GOTO:done )
 rem Visual Studio files
-copy %vs_folder%\Microsoft.VC142.CRT\concrt140.dll %output_folder%\bin
-if %ERRORLEVEL% neq 0 ( echo "Failed to copy concrt140.dll" & GOTO:done )
-copy %vs_folder%\Microsoft.VC142.CRT\msvcp140.dll %output_folder%\bin
-if %ERRORLEVEL% neq 0 ( echo "Failed to copy msvcp140.dll" & GOTO:done )
-copy %vs_folder%\Microsoft.VC142.CRT\vccorlib140.dll %output_folder%\bin
-if %ERRORLEVEL% neq 0 ( echo "Failed to copy vccorlib140.dll" & GOTO:done )
-copy %vs_folder%\Microsoft.VC142.CRT\vcruntime140.dll %output_folder%\bin
-if %ERRORLEVEL% neq 0 ( echo "Failed to copy vcruntime140.dll" & GOTO:done )
+rem + copy %vs_folder%\Microsoft.VC142.CRT\concrt140.dll %output_folder%\bin
+rem + if %ERRORLEVEL% neq 0 ( echo "Failed to copy concrt140.dll" & GOTO:done )
+rem + copy %vs_folder%\Microsoft.VC142.CRT\msvcp140.dll %output_folder%\bin
+rem + if %ERRORLEVEL% neq 0 ( echo "Failed to copy msvcp140.dll" & GOTO:done )
+rem + copy %vs_folder%\Microsoft.VC142.CRT\vccorlib140.dll %output_folder%\bin
+rem + if %ERRORLEVEL% neq 0 ( echo "Failed to copy vccorlib140.dll" & GOTO:done )
+rem + copy %vs_folder%\Microsoft.VC142.CRT\vcruntime140.dll %output_folder%\bin
+rem + if %ERRORLEVEL% neq 0 ( echo "Failed to copy vcruntime140.dll" & GOTO:done )
 
 rem Compress package
 rem + zip -r %output_folder%-linux-x64.zip %output_folder%
