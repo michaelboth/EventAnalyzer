@@ -30,17 +30,17 @@ You may need Posix threads. Unikorn's API can optionally be thread safe, and if 
 ```
 
 ## Instrumenting Your Application with Events
-The following is the 'hello' example. The source code in <span style="color:blue">blue</span> is the the extra code used for event instrumentation. All of that source code is compiled out if ```INSTRUMENT_APP``` is not defined when compiling.
+The following is the 'hello' example. The source code that is **bold** is the the extra code used for event instrumentation. All of that source code is compiled out if ```INSTRUMENT_APP``` is not defined when compiling.
 ```
-<span style="color:blue">#define DEFINE_FOLDERS_AND_EVENTS
-#include "custom_folders_and_events.h"</span>
+**#define DEFINE_FOLDERS_AND_EVENTS
+#include "custom_folders_and_events.h"**
 #include <stdio.h>
 
-<span style="color:blue">// Define the event session global variable
-EVENTS_GLOBAL_INSTANCE;</span>
+**// Define the event session global variable
+EVENTS_GLOBAL_INSTANCE;**
 
 int main() {
-<span style="color:blue">  // Create event session
+**  // Create event session
 #ifdef INSTRUMENT_APP
   const char *filename = "./hello.events";
   uint32_t max_events = 10000;
@@ -50,25 +50,25 @@ int main() {
   bool record_value = true;
   bool record_location = true;
 #endif
-  EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location);</span>
+  EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location);**
 
   // Do some processing
-  <span style="color:blue">EVENTS_START_FOR_LOOP();</span>
+  **EVENTS_START_FOR_LOOP();**
   for (int j=0; j<10; j++) {
-    <span style="color:blue">EVENTS_START_PRINTF();</span>
+    **EVENTS_START_PRINTF();**
     printf("%d: Hello!\n", j+1);
-    <span style="color:blue">EVENTS_END_PRINTF();</span>
+    **EVENTS_END_PRINTF();**
   }
-  <span style="color:blue">EVENTS_END_FOR_LOOP();</span>
+  **EVENTS_END_FOR_LOOP();**
 
-<span style="color:blue">  // Clean up
+**  // Clean up
   EVENTS_FLUSH();
   EVENTS_FINALIZE();
 #ifdef INSTRUMENT_APP
   printf("Events were recorded to the file '%s'. Use the Unikorn Viewer to view the results.\n", filename);
 #else
   printf("Event recording is not enabled.\n");
-#endif</span>
+#endif**
 
   return 0;
 }
