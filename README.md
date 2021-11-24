@@ -12,16 +12,15 @@ Unikorn is a C API and graphical visualizer (Windows, Mac, and Linux). These are
 
 ## Preparing the Environment
 ### Linux:
-gcc and make<br>
+You'll need gcc and make<br>
 *Tested on Ubuntu 18.04*
 ### Mac
-xCode<br>
+You'll need xCode<br>
 *Tested on OSX 11.6 (Big Sur), using xCode 13.1*
 ### Windows
-Visual Studio (mingw may work also)<br>
+You'll need Visual Studio (mingw may work also)<br>
 *Tested with Visual Studio 2019 64bit console window*<br>
-Posix threads:<br>
-Unikorn's API can optionally be thread safe, and if so requires Posix threads. Visual Studio does not have native support for Posix threads, so you'll need to download and build it:
+You may need Posix threads. Unikorn's API can optionally be thread safe, and if so requires Posix threads. Visual Studio does not have native support for Posix threads, so you'll need to download and build it:
 1. Get the source code from: https://sourceforge.net/projects/pthreads4w/
 2. Unzip, rename to 'pthreads4w' and put in the C:\ folder
 3. Start a Visual Studio x64 native shell
@@ -91,10 +90,10 @@ The example is built with a few other files that can be common to any applicatio
 ```
 src/unikorn.c                                       # The event recording engine
 src/app_event_recording.c                           # A wrapper file to make it easy to compile out event instrumentation
-src/event_recorder_clock_ftime.c                    # A clock for Windows: not high precision
 src/event_recorder_clock_gettime.c                  # A clock for Mac/Linux: high precision on most variations
 src/event_recorder_clock_gettimeofday.c             # A clock for Mac/Linux: good precision and portable
 src/event_recorder_clock_queryperformancecounter.c  # A clock for Windows: high precision
+src/event_recorder_clock_ftime.c                    # A clock for Windows: not high precision
 src/event_recorder_file_flush.c                     # Flush event data to a file
 inc/*.h                                             # Header files
 ```
@@ -104,9 +103,9 @@ To help you get started, some examples are provided
 Example | Description
 --------|------------
 hello | Duh
-memory_contention | A multi-threaded example, with lots of event types and event instances, to show how multi-threaded processing can effect memory.
-test_clock | Determine the overhead and precision of a clock that is used with event recording. Helpful if you need to characterize the behaviour of a clock.
-test_record_and_load | A simple example used to validate the unikorn API and event loading file ```src/event_file_loader.c```
+memory_contention | A simple example show how multi-threaded processing can effect memory.
+test_clock | Helpful if you need to characterize the overhead and precision of a clock.
+test_record_and_load | A simple example used to validate the unikorn API and event loading using ```src/event_file_loader.c```
 
 
 ## Developing a Visualizer or Application to Analyze the Events
@@ -117,7 +116,7 @@ int/event_file_loader.h       # Header file for event_file_loader.c
 ```
 
 ## Visualizing Events with the Unikorn Viewer
-The Unikorn Viewer is written in C++ using the Open Source Qt framework (www.qt.io).
+The Unikorn Viewer is written in C++ using the Open Source Qt framework (www.qt.io).<br>
 *Tested with Qt Qt 5.15.2*<br>
 ### Linux and Mac
 ```
