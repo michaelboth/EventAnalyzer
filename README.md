@@ -31,7 +31,7 @@ You may need Posix threads. Unikorn's API can optionally be thread safe, and if 
 
 ## Instrumenting Your Application with Events
 The following is the 'hello' example. All of the event recording source code is compiled out if ```INSTRUMENT_APP``` is not defined when compiling.
-```
+```c
 #define DEFINE_FOLDERS_AND_EVENTS
 #include "custom_folders_and_events.h"
 #include <stdio.h>
@@ -75,7 +75,7 @@ int main() {
 ```
 
 The custom folders and events are defined in ```custom_folders_and_events.h```. Here is the code snippet that defined the events (names and colors):
-```
+```c
 static UkEventInfo L_events[] = {
   // Name          Start ID              End ID              Color
   { "For Loop",    FOR_LOOP_START_ID,    FOR_LOOP_END_ID,    UK_BLACK},
