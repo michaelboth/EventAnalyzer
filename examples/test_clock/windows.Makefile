@@ -1,17 +1,17 @@
 # Define a clock
-CLOCK_CFLAGS =
-!IF "$(CLOCK)" == "QueryPerformanceCounter"
-CLOCK_CFLAGS = -DUSE_QueryPerformanceCounter_CLOCK
+CLOCK_C_OBJ =
+!IF "$(CLOCK)" == "queryperformancecounter"
+CLOCK_C_OBJ = event_recorder_clock_queryperformancecounter.obj
 !ENDIF
 !IF "$(CLOCK)" == "ftime"
-CLOCK_CFLAGS = -DUSE_ftime_CLOCK
+CLOCK_C_OBJ = event_recorder_clock_ftime.obj
 !ENDIF
 
 OPTIMIZATION_CFLAGS  = -O2 -MD  # Release: -MT means static linking, and -MD means dynamic linking.
 #OPTIMIZATION_CFLAGS  = -Zi -MDd # Debug: -MTd or -MDd
 
-CFLAGS  = $(OPTIMIZATION_CFLAGS) -nologo -WX -W3 -I. -I../../inc -I../../ref $(CLOCK_CFLAGS)
-C_OBJS  = test_clock.obj event_clocks.obj
+CFLAGS  = $(OPTIMIZATION_CFLAGS) -nologo -WX -W3 -I. -I../../inc
+C_OBJS  = test_clock.obj $(CLOCK_C_OBJ)
 LDFLAGS = -nologo -incremental:no -manifest:embed -subsystem:console
 LIBS    = 
 TARGET  = test_clock.exe
@@ -23,7 +23,7 @@ all: $(TARGET)
 {.\}.c{}.obj::
 	cl -c $(CFLAGS) -Fo $<
 
-{..\..\ref}.c{}.obj::
+{..\..\src}.c{}.obj::
 	cl -c $(CFLAGS) -Fo $<
 
 $(TARGET): $(C_OBJS)

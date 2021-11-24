@@ -17,7 +17,7 @@ Linux & Mac:
 Windows:
   Choose one of:
     > nmake -f windows.Makefile CLOCK=ftime
-    > nmake -f windows.Makefile CLOCK=QueryPerformanceCounter
+    > nmake -f windows.Makefile CLOCK=queryperformancecounter
   Run:
     > test_clock
   Clean:
