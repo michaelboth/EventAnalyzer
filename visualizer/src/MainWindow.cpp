@@ -33,7 +33,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->setupUi(this);
 
   // Set title
+  setWindowIcon(QIcon(":/hierarchy_file.png")); // Icon shown at top left, but not file based icon
   setWindowTitle("Unikorn Viewer (version " + QString::number(UK_API_VERSION_MAJOR) + "." + QString::number(UK_API_VERSION_MINOR) + ")");
+
+  // Set the logo
+  QPixmap logo_pixmap = QPixmap(":/unikorn_logo.png");
+  logo_pixmap = logo_pixmap.scaledToHeight(TOOLBAR_BUTTON_SIZE, Qt::SmoothTransformation);
+  ui->logoLabel->setPixmap(logo_pixmap);
 
   // Hide the status bar
   //statusBar()->hide();

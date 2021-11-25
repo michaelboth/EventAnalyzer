@@ -27,6 +27,9 @@ CONFIG += warn_on
 #CONFIG += c99
 CONFIG += c++17
 
+macx:ICON = icons/unikorn_icon.icns
+win32:RC_ICONS = icons/unikorn_icon.ico
+
 HEADERS += src/main.hpp
 HEADERS += src/MainWindow.hpp
 HEADERS += src/EventTree.hpp
