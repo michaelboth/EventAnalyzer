@@ -25,9 +25,9 @@ echo "vs_folder = %vs_folder%"
 rem Create needed foldeers
 mkdir %output_folder%
 if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
-mkdir %output_folder%\bin
+mkdir %output_folder%\visualizer
 if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
-mkdir %output_folder%\bin\platforms
+mkdir %output_folder%\visualizer\platforms
 if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
 
 rem Copy the relevant files
@@ -43,28 +43,28 @@ qmake
 if %ERRORLEVEL% neq 0 ( echo "Failed to qmake visualizer" & GOTO:done )
 nmake
 if %ERRORLEVEL% neq 0 ( echo "Failed to build visualizer" & GOTO:done )
-copy release\UnikornViewer.exe ..\packaging\%output_folder%\bin
+copy release\UnikornViewer.exe ..\packaging\%output_folder%\visualizer
 if %ERRORLEVEL% neq 0 ( echo "Failed to copy visualizer" & GOTO:done )
 nmake distclean
 if %ERRORLEVEL% neq 0 ( echo "Failed to clean visualizer" & GOTO:done )
 cd ..\packaging
 rem Qt files
-copy %qt_folder%\msvc2019_64\plugins\platforms\qwindows.dll %output_folder%\bin\platforms
+copy %qt_folder%\msvc2019_64\plugins\platforms\qwindows.dll %output_folder%\visualizer\platforms
 if %ERRORLEVEL% neq 0 ( echo "Failed to copy Qt file" & GOTO:done )
-copy %qt_folder%\msvc2019_64\bin\Qt5Core.dll %output_folder%\bin
+copy %qt_folder%\msvc2019_64\bin\Qt5Core.dll %output_folder%\visualizer
 if %ERRORLEVEL% neq 0 ( echo "Failed to copy Qt file" & GOTO:done )
-copy %qt_folder%\msvc2019_64\bin\Qt5Gui.dll %output_folder%\bin
+copy %qt_folder%\msvc2019_64\bin\Qt5Gui.dll %output_folder%\visualizer
 if %ERRORLEVEL% neq 0 ( echo "Failed to copy Qt file" & GOTO:done )
-copy %qt_folder%\msvc2019_64\bin\Qt5Widgets.dll %output_folder%\bin
+copy %qt_folder%\msvc2019_64\bin\Qt5Widgets.dll %output_folder%\visualizer
 if %ERRORLEVEL% neq 0 ( echo "Failed to copy Qt file" & GOTO:done )
 rem Visual Studio files
-rem + copy %vs_folder%\Microsoft.VC142.CRT\concrt140.dll %output_folder%\bin
+rem + copy %vs_folder%\Microsoft.VC142.CRT\concrt140.dll %output_folder%\visualizer
 rem + if %ERRORLEVEL% neq 0 ( echo "Failed to copy concrt140.dll" & GOTO:done )
-rem + copy %vs_folder%\Microsoft.VC142.CRT\msvcp140.dll %output_folder%\bin
+rem + copy %vs_folder%\Microsoft.VC142.CRT\msvcp140.dll %output_folder%\visualizer
 rem + if %ERRORLEVEL% neq 0 ( echo "Failed to copy msvcp140.dll" & GOTO:done )
-rem + copy %vs_folder%\Microsoft.VC142.CRT\vccorlib140.dll %output_folder%\bin
+rem + copy %vs_folder%\Microsoft.VC142.CRT\vccorlib140.dll %output_folder%\visualizer
 rem + if %ERRORLEVEL% neq 0 ( echo "Failed to copy vccorlib140.dll" & GOTO:done )
-rem + copy %vs_folder%\Microsoft.VC142.CRT\vcruntime140.dll %output_folder%\bin
+rem + copy %vs_folder%\Microsoft.VC142.CRT\vcruntime140.dll %output_folder%\visualizer
 rem + if %ERRORLEVEL% neq 0 ( echo "Failed to copy vcruntime140.dll" & GOTO:done )
 
 rem Compress package

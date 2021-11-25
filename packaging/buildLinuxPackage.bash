@@ -19,8 +19,8 @@ echo "qt_folder = ${qt_folder}"
 # Create needed foldeers
 mkdir ${output_folder}
 mkdir ${output_folder}/inc
-mkdir ${output_folder}/bin
-mkdir ${output_folder}/bin/platforms
+mkdir ${output_folder}/visualizer
+mkdir ${output_folder}/visualizer/platforms
 
 # Copy the relevant files
 cp ../README.md ${output_folder}
@@ -33,17 +33,17 @@ cp -r ../inc ${output_folder}
 cd ../visualizer
 qmake
 make -j8
-cp UnikornViewer ../packaging/${output_folder}/bin
+cp UnikornViewer ../packaging/${output_folder}/visualizer
 make distclean
 cd ../packaging
-cp UnikornViewer.sh ${output_folder}/bin
-cp ${qt_folder}/gcc_64/plugins/platforms/libqxcb.so ${output_folder}/bin/platforms
-cp ${qt_folder}/gcc_64/lib/libQt5Core.so.5 ${output_folder}/bin
-cp ${qt_folder}/gcc_64/lib/libQt5Gui.so.5 ${output_folder}/bin
-cp ${qt_folder}/gcc_64/lib/libQt5Widgets.so.5 ${output_folder}/bin
-cp ${qt_folder}/gcc_64/lib/libicui18n.so.56 ${output_folder}/bin
-cp ${qt_folder}/gcc_64/lib/libicuuc.so.56 ${output_folder}/bin
-cp ${qt_folder}/gcc_64/lib/libicudata.so.56 ${output_folder}/bin
+cp UnikornViewer.sh ${output_folder}/visualizer
+cp ${qt_folder}/gcc_64/plugins/platforms/libqxcb.so ${output_folder}/visualizer/platforms
+cp ${qt_folder}/gcc_64/lib/libQt5Core.so.5 ${output_folder}/visualizer
+cp ${qt_folder}/gcc_64/lib/libQt5Gui.so.5 ${output_folder}/visualizer
+cp ${qt_folder}/gcc_64/lib/libQt5Widgets.so.5 ${output_folder}/visualizer
+cp ${qt_folder}/gcc_64/lib/libicui18n.so.56 ${output_folder}/visualizer
+cp ${qt_folder}/gcc_64/lib/libicuuc.so.56 ${output_folder}/visualizer
+cp ${qt_folder}/gcc_64/lib/libicudata.so.56 ${output_folder}/visualizer
 
 # Compress package
 tar cvf ${output_folder}-linux-x64.tar ${output_folder}
