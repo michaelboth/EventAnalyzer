@@ -27,8 +27,6 @@ mkdir %output_folder%
 if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
 mkdir %output_folder%\visualizer
 if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
-mkdir %output_folder%\visualizer\platforms
-if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
 
 rem Copy the relevant files
 copy ..\README.md %output_folder%
@@ -48,28 +46,13 @@ if %ERRORLEVEL% neq 0 ( echo "Failed to copy visualizer" & GOTO:done )
 nmake distclean
 if %ERRORLEVEL% neq 0 ( echo "Failed to clean visualizer" & GOTO:done )
 cd ..\packaging
-rem Qt files
-copy %qt_folder%\msvc2019_64\plugins\platforms\qwindows.dll %output_folder%\visualizer\platforms
-if %ERRORLEVEL% neq 0 ( echo "Failed to copy Qt file" & GOTO:done )
-copy %qt_folder%\msvc2019_64\bin\Qt5Core.dll %output_folder%\visualizer
-if %ERRORLEVEL% neq 0 ( echo "Failed to copy Qt file" & GOTO:done )
-copy %qt_folder%\msvc2019_64\bin\Qt5Gui.dll %output_folder%\visualizer
-if %ERRORLEVEL% neq 0 ( echo "Failed to copy Qt file" & GOTO:done )
-copy %qt_folder%\msvc2019_64\bin\Qt5Widgets.dll %output_folder%\visualizer
-if %ERRORLEVEL% neq 0 ( echo "Failed to copy Qt file" & GOTO:done )
-rem Visual Studio files
-rem + copy %vs_folder%\Microsoft.VC142.CRT\concrt140.dll %output_folder%\visualizer
-rem + if %ERRORLEVEL% neq 0 ( echo "Failed to copy concrt140.dll" & GOTO:done )
-rem + copy %vs_folder%\Microsoft.VC142.CRT\msvcp140.dll %output_folder%\visualizer
-rem + if %ERRORLEVEL% neq 0 ( echo "Failed to copy msvcp140.dll" & GOTO:done )
-rem + copy %vs_folder%\Microsoft.VC142.CRT\vccorlib140.dll %output_folder%\visualizer
-rem + if %ERRORLEVEL% neq 0 ( echo "Failed to copy vccorlib140.dll" & GOTO:done )
-rem + copy %vs_folder%\Microsoft.VC142.CRT\vcruntime140.dll %output_folder%\visualizer
-rem + if %ERRORLEVEL% neq 0 ( echo "Failed to copy vcruntime140.dll" & GOTO:done )
+
+rem Add support files for UnikornViewer.exe
+%qt_folder%\msvc2019_64\bin\windeployqt %output_folder%\visualizer
 
 rem Compress package
-rem + zip -r %output_folder%-linux-x64.zip %output_folder%
-rem + if %ERRORLEVEL% neq 0 ( echo "Failed to zip package" & GOTO:done )
+powershell Compress-Archive %output_folder% %output_folder%-win64.zip
+if %ERRORLEVEL% neq 0 ( echo "Failed to zip package" & GOTO:done )
 
 echo "Packaging created"
 
