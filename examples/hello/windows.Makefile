@@ -4,7 +4,7 @@ CLOCK_C_OBJ       =
 
 !IF "$(INSTRUMENT_APP)" == "Yes"
 INSTRUMENT_CFLAGS       = -DINSTRUMENT_APP
-INSTRUMENT_C_OBJS       = unikorn.obj event_recorder_file_flush.obj app_event_recording.obj
+INSTRUMENT_C_OBJS       = unikorn.obj event_recorder_file_flush.obj
 # Define a clock
 CLOCK_C_OBJ = unset
 !  IF "$(CLOCK)" == "queryperformancecounter"

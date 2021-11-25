@@ -74,7 +74,7 @@ int main() {
 }
 ```
 
-The custom folders and events are defined in ```custom_folders_and_events.h```. Here is the code snippet that defined the events (names and colors):
+The custom folders and events are defined in ```custom_folders_and_events.h```. Here is the code snippet that defines the events (names and colors):
 ```c
 static UkEventInfo L_events[] = {
   // Name          Start ID              End ID              Color
@@ -87,7 +87,6 @@ Modify this file for use in your application. You could define any number of fol
 If ```INSTRUMENT_APP``` is defined then example is built with a few other files that can be common to any application you instrument with event recording:
 ```
 src/unikorn.c                                       # The event recording engine
-src/app_event_recording.c                           # A wrapper file to make it easy to compile out event instrumentation
 src/event_recorder_clock_gettime.c                  # A clock for Mac/Linux: high precision on most variations
 src/event_recorder_clock_gettimeofday.c             # A clock for Mac/Linux: good precision and portable
 src/event_recorder_clock_queryperformancecounter.c  # A clock for Windows: high precision

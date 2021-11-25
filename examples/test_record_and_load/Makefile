@@ -10,8 +10,8 @@ ifeq ($(INSTRUMENT_APP),Yes)
     CFLAGS       += -DINSTRUMENT_APP  # Needed to enable event recording
     CFLAGS       += -DALLOW_THREADS   # Needed by unikorn.c if threading needs to be enabled
     CFLAGS       += -DPRINT_LOAD_INFO # Needed by event_file_loader.c to print all the loaded event information
-    C_OBJS       += unikorn.o event_recorder_file_flush.o app_event_recording.o event_file_loader.o
-    HEADER_FILES += unikorn.h event_recorder_clock.h event_recorder_file_flush.h app_event_recording.h event_file_loader.h
+    C_OBJS       += unikorn.o event_recorder_file_flush.o event_file_loader.o
+    HEADER_FILES += unikorn.h event_recorder_clock.h event_recorder_file_flush.h event_file_loader.h
     # Define a clock
     ifeq ($(CLOCK),gettime)
 	C_OBJS += event_recorder_clock_gettime.o
