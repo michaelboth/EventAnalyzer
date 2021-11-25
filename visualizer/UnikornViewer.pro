@@ -28,7 +28,8 @@ CONFIG += warn_on
 CONFIG += c++17
 
 macx:ICON = icons/unikorn_icon.icns
-win32:RC_ICONS = icons/unikorn_icon.ico
+#win32:RC_ICONS = icons/unikorn_icon.ico
+win32:RC_FILE = UnikornViewer.rc
 
 HEADERS += src/main.hpp
 HEADERS += src/MainWindow.hpp
