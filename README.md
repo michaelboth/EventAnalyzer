@@ -33,7 +33,7 @@ You may need Posix threads. Unikorn's API can optionally be thread safe, and if 
 In the 'Releases' section (right panel of the GitHub webpage, near the top), click on 'Latest' to get the latest release. You can download the source code or one of the pre-built packages, which contains the pre-compiled visualizer (a nice convenience):
 - Linux package: built on Ubuntu 18.04
 - Mac OSX package: built on OSX 11.6 (Big Sur), using xCode 13.1
-- Windows package: built on Windows 10
+- Windows package: built on Windows 10<br>
 No matter which package you choose, it comes with the examples and the event recording source code needed by your application.
  
 
