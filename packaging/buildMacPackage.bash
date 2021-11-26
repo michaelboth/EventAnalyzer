@@ -22,7 +22,6 @@ mkdir ${output_folder}/inc
 mkdir ${output_folder}/visualizer
 
 # Copy the relevant files
-cp ../README.md ${output_folder}
 cp ../LICENSE ${output_folder}
 cp -r ../examples ${output_folder}
 cp -r ../src ${output_folder}

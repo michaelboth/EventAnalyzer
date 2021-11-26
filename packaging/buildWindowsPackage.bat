@@ -29,7 +29,6 @@ mkdir %output_folder%\visualizer
 if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
 
 rem Copy the relevant files
-copy ..\README.md %output_folder%
 copy ..\LICENSE %output_folder%
 xcopy /E/I ..\examples %output_folder%\examples
 xcopy /E/I ..\src %output_folder%\src
