@@ -51,14 +51,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   // Get the standard font size
   {
     QFont font = this->font();
-#ifdef WIN32
+    /*+ maybe base on tool button icon size? */
+#ifdef _WIN32
     int point_size = (int)(font.pointSize() * 1.3f);
 #else
-    int point_size = font.pointSize();
+    int point_size = (int)(font.pointSize() * 1.2f);
+    //*+*/int point_size = font.pointSize();
 #endif
     G_min_font_point_size = point_size / 2;
     G_max_font_point_size = point_size * 2;
-    G_font_point_size = G_settings->value("font_point_size", point_size).toInt();
+    //*+*/G_font_point_size = G_settings->value("font_point_size", point_size).toInt();
+    G_font_point_size = point_size;
     if (G_font_point_size < G_min_font_point_size) G_font_point_size = G_min_font_point_size;
     if (G_font_point_size > G_max_font_point_size) G_font_point_size = G_max_font_point_size;
   }
@@ -246,7 +249,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 #ifdef _WIN32
   int toolbar_icon_size = (int)(iconSize().height() * 1.4f);
 #else
-  int toolbar_icon_size = iconSize().height();
+  int toolbar_icon_size = (int)(iconSize().height() * 1.6f);
+  //*+*/int toolbar_icon_size = iconSize().height();
 #endif
   QSize button_size = QSize(toolbar_icon_size, toolbar_icon_size);
   for (auto button: tool_buttons) button->setIconSize(button_size);
