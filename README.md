@@ -34,7 +34,8 @@ In the 'Releases' section (right panel of the GitHub webpage, near the top), cli
 - Linux package: built on Ubuntu 18.04
 - Mac OSX package: built on OSX 11.6 (Big Sur), using xCode 13.1
 - Windows package: built on Windows 10
-
+No matter which package you choose, it comes with the examples and the event recording source code needed by your application.
+ 
 
 ## Instrumenting Your Application with Events
 The following is the 'hello' example. All of the event recording source code is compiled out if ```INSTRUMENT_APP``` is not defined when compiling.
