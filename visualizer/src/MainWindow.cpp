@@ -52,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   {
     QFont font = this->font();
 #if defined(_WIN32)
-    int point_size = (int)(font.pointSize() * 1.3f);
+    int point_size = font.pointSize();
 #elif defined(__APPLE__)
     int point_size = font.pointSize();
 #else
@@ -244,7 +244,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->nextEventButton
   };
 
-  // Set button sizes
+  // Calculate standard tool button icon size
 #if defined(_WIN32)
   int toolbar_icon_size = (int)(iconSize().height() * 1.4f);
 #elif defined(__APPLE__)
@@ -253,6 +253,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   int toolbar_icon_size = (int)(iconSize().height() * 1.6f);
 #endif
   QSize button_size = QSize(toolbar_icon_size, toolbar_icon_size);
+
+  // Set button sizes
   for (auto button: tool_buttons) button->setIconSize(button_size);
 
   // Set the logo
