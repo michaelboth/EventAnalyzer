@@ -60,6 +60,7 @@ TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::
         common_event_names = new_common_event_names;
       }
     }
+    common_event_names.sort();
   }
 
   ui->startFromZeroRadio->setEnabled(one_or_more_files_have_non_zero_start_time);

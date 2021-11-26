@@ -29,8 +29,8 @@ THREAD_CFLAGS =
 THREAD_LIBS   =
 !ENDIF
 
-OPTIMIZATION_CFLAGS  = -O2 -MD  # Release: -MT means static linking, and -MD means dynamic linking.
-#OPTIMIZATION_CFLAGS  = -Zi -MDd # Debug: -MTd or -MDd
+OPTIMIZATION_CFLAGS  = -O2 -MD -DRELEASE_BUILD  # Release: -MT means static linking, and -MD means dynamic linking.
+#OPTIMIZATION_CFLAGS  = -Zi -MDd                # Debug: -MTd or -MDd
 
 CFLAGS  = $(OPTIMIZATION_CFLAGS) -nologo -WX -W3 -I. -I../../inc $(INSTRUMENT_CFLAGS) $(THREAD_CFLAGS)
 LDFLAGS = -nologo -incremental:no -manifest:embed -subsystem:console

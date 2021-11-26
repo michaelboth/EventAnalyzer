@@ -1,5 +1,5 @@
 CFLAGS       := -std=gnu99 -Wall -Werror -pthread -I. -I../../inc
-CFLAGS       += -O2
+CFLAGS       += -O2 -DRELEASE_BUILD
 #CFLAGS       += -g -O0
 C_OBJS       := test_record_and_load.o
 HEADER_FILES := custom_folders_and_events.h

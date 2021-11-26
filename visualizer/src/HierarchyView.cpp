@@ -167,7 +167,7 @@ void HierarchyView::drawHierarchyLine(QPainter *painter, EventTreeNode *parent, 
       x += arrow_w;
     } else {
       // Provide a little margin for an event row
-      x += (int)(line_h * EXTRA_MARGIN_FACTOR);
+      x += (int)(line_h * EXTRA_MARGIN_FACTOR * 2);
     }
 
     // Draw image

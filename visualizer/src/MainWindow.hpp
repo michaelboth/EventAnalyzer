@@ -66,7 +66,7 @@ private slots:
 private:
   Ui::MainWindow *ui;
 
-  QIcon buildIcon(QString filename, bool is_toggle, QColor normal_color, QColor disabled_color, QColor toggle_on_color, QColor toggle_off_color);
+  QIcon buildIcon(QString filename, bool is_toggle, int toolbar_icon_size, QColor normal_color, QColor disabled_color, QColor toggle_on_color, QColor toggle_off_color);
   void updateEventTreeSort();
   void updateEventTreeBuild();
   bool eventFilesHaveFolders();

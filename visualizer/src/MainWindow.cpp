@@ -14,6 +14,7 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QScreen>
 #include "ui_MainWindow.h"
 #include "MainWindow.hpp"
 #include "HelpfulFunctions.hpp"
@@ -27,7 +28,6 @@
 #define DISABLED_COLOR   QColor(200, 200, 200)
 #define TOGGLE_ON_COLOR  QColor(0, 100, 255)
 #define TOGGLE_OFF_COLOR QColor(150, 200, 255)
-#define TOOLBAR_BUTTON_SIZE 32
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
@@ -36,25 +36,35 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   setWindowIcon(QIcon(":/hierarchy_file.png")); // Icon shown at top left, but not file based icon
   setWindowTitle("Unikorn Viewer (version " + QString::number(UK_API_VERSION_MAJOR) + "." + QString::number(UK_API_VERSION_MINOR) + ")");
 
-  // Set the logo
-  QPixmap logo_pixmap = QPixmap(":/unikorn_logo.png");
-  logo_pixmap = logo_pixmap.scaledToHeight(TOOLBAR_BUTTON_SIZE, Qt::SmoothTransformation);
-  ui->logoLabel->setPixmap(logo_pixmap);
-
   // Hide the status bar
   //statusBar()->hide();
   statusBar()->showMessage("Event files loaded: 0, Filters Set: none, Total Events: 0");
 
+  // Define a good window size
+  QSize screen_size = screen()->availableSize();
+  int screen_w = (int)(screen_size.width() * 0.7f);
+  int screen_h = (int)(screen_size.height() * 0.7f);
+  int screen_x = (screen_size.width() - screen_w)/2;
+  int screen_y = (screen_size.height() - screen_h)/2;
+  setGeometry(screen_x, screen_y, screen_w, screen_h);
+
   // Get the standard font size
   {
     QFont font = this->font();
+#ifdef WIN32
+    int point_size = (int)(font.pointSize() * 1.3f);
+#else
     int point_size = font.pointSize();
+#endif
     G_min_font_point_size = point_size / 2;
     G_max_font_point_size = point_size * 2;
     G_font_point_size = G_settings->value("font_point_size", point_size).toInt();
     if (G_font_point_size < G_min_font_point_size) G_font_point_size = G_min_font_point_size;
     if (G_font_point_size > G_max_font_point_size) G_font_point_size = G_max_font_point_size;
   }
+
+  // Set the default time alignment
+  G_settings->setValue("alignment_mode", "Native");  // One of "Native", "TimeZero", "EventId"
 
   // Set the height of the headers to the font size
   ui->hierarchyHeader->updateHeight();
@@ -233,8 +243,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   };
 
   // Set button sizes
-  QSize button_size = QSize(TOOLBAR_BUTTON_SIZE, TOOLBAR_BUTTON_SIZE);
+#ifdef _WIN32
+  int toolbar_icon_size = (int)(iconSize().height() * 1.4f);
+#else
+  int toolbar_icon_size = iconSize().height();
+#endif
+  QSize button_size = QSize(toolbar_icon_size, toolbar_icon_size);
   for (auto button: tool_buttons) button->setIconSize(button_size);
+
+  // Set the logo
+  QPixmap logo_pixmap = QPixmap(":/unikorn_logo.png");
+  logo_pixmap = logo_pixmap.scaledToHeight(toolbar_icon_size, Qt::SmoothTransformation);
+  ui->logoLabel->setPixmap(logo_pixmap);
 
   // Set the toolbar style
   QString tool_button_style =
@@ -249,32 +269,32 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   for (auto button: tool_buttons) button->setStyleSheet(tool_button_style);
 
   // Set hierarchy toolbar button icons
-  ui->loadButton->setIcon(buildIcon(":/load.png",                           false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->closeAllButton->setIcon(buildIcon(":/close.png",                      false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->closeSelectedButton->setIcon(buildIcon(":/close_selected.png",        false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->setFilterButton->setIcon(buildIcon(":/filter.png",                    false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->clearFilterButton->setIcon(buildIcon(":/clear_filter.png",            false, IMPORTANT_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->showFoldersButton->setIcon(buildIcon(":/show_folders.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->openFoldersButton->setIcon(buildIcon(":/open_folders.png",            false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->closeFoldersButton->setIcon(buildIcon(":/close_folders.png",          false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->sortByIdButton->setIcon(buildIcon(":/sort_by_id.png",                 true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->sortByNameButton->setIcon(buildIcon(":/sort_by_name.png",             true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->sortByTimeButton->setIcon(buildIcon(":/sort_by_time.png",             true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->increaseFontSizeButton->setIcon(buildIcon(":/increase_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->decreaseFontSizeButton->setIcon(buildIcon(":/decrease_font_size.png", false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->loadButton->setIcon(buildIcon(":/load.png",                           false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->closeAllButton->setIcon(buildIcon(":/close.png",                      false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->closeSelectedButton->setIcon(buildIcon(":/close_selected.png",        false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->setFilterButton->setIcon(buildIcon(":/filter.png",                    false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->clearFilterButton->setIcon(buildIcon(":/clear_filter.png",            false, toolbar_icon_size, IMPORTANT_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->showFoldersButton->setIcon(buildIcon(":/show_folders.png",            true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png",            true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->openFoldersButton->setIcon(buildIcon(":/open_folders.png",            false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->closeFoldersButton->setIcon(buildIcon(":/close_folders.png",          false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->sortByIdButton->setIcon(buildIcon(":/sort_by_id.png",                 true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->sortByNameButton->setIcon(buildIcon(":/sort_by_name.png",             true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->sortByTimeButton->setIcon(buildIcon(":/sort_by_time.png",             true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->increaseFontSizeButton->setIcon(buildIcon(":/increase_font_size.png", false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->decreaseFontSizeButton->setIcon(buildIcon(":/decrease_font_size.png", false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
 
   // Set events toolbar button icons
-  ui->timeAlignButton->setIcon(buildIcon(":/time_align.png",                     false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->mouseModeInfoButton->setIcon(buildIcon(":/mouse_mode_info.png",            true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->mouseModeHistogramButton->setIcon(buildIcon(":/mouse_mode_histogram.png",  true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->mouseModeTimeShiftButton->setIcon(buildIcon(":/mouse_mode_time_shift.png", true,  NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->zoomToAllButton->setIcon(buildIcon(":/zoom_to_all.png",                    false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->zoomInButton->setIcon(buildIcon(":/zoom_in.png",                           false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->zoomOutButton->setIcon(buildIcon(":/zoom_out.png",                         false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->zoomToSelectedButton->setIcon(buildIcon(":/zoom_to_selected.png",          false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->prevEventButton->setIcon(buildIcon(":/prev_event.png",                     false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->nextEventButton->setIcon(buildIcon(":/next_event.png",                     false, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->timeAlignButton->setIcon(buildIcon(":/time_align.png",                     false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->mouseModeInfoButton->setIcon(buildIcon(":/mouse_mode_info.png",            true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->mouseModeHistogramButton->setIcon(buildIcon(":/mouse_mode_histogram.png",  true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->mouseModeTimeShiftButton->setIcon(buildIcon(":/mouse_mode_time_shift.png", true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomToAllButton->setIcon(buildIcon(":/zoom_to_all.png",                    false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomInButton->setIcon(buildIcon(":/zoom_in.png",                           false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomOutButton->setIcon(buildIcon(":/zoom_out.png",                         false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->zoomToSelectedButton->setIcon(buildIcon(":/zoom_to_selected.png",          false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->prevEventButton->setIcon(buildIcon(":/prev_event.png",                     false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->nextEventButton->setIcon(buildIcon(":/next_event.png",                     false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
 
   // Make sure events window stretches
   ui->viewSplitter->setStretchFactor(0, 0);
@@ -358,10 +378,10 @@ static QPixmap recolorImageAndConvertToPixmap(QImage &image, QColor color) {
   return QPixmap::fromImage(image);
 }
 
-QIcon MainWindow::buildIcon(QString filename, bool is_toggle, QColor normal_color, QColor disabled_color, QColor toggle_on_color, QColor toggle_off_color) {
+QIcon MainWindow::buildIcon(QString filename, bool is_toggle, int toolbar_icon_size, QColor normal_color, QColor disabled_color, QColor toggle_on_color, QColor toggle_off_color) {
   // Load image
   QImage image = QImage(filename);
-  int tool_button_size = (int)(TOOLBAR_BUTTON_SIZE * G_pixels_per_point);
+  int tool_button_size = (int)(toolbar_icon_size * G_pixels_per_point);
   // Resize to tool button size
   image = image.scaled(QSize(tool_button_size,tool_button_size), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
   // Build icon
@@ -433,7 +453,18 @@ void MainWindow::setWidgetUsability() {
   QString alignment_mode = G_settings->value("alignment_mode", "Native").toString();  // One of "Native", "TimeZero", "EventId"
   QString message = "Event files loaded: " + QString::number(G_event_tree_map.count());
   message += "          Total Events: " + QString::number(totalEventInstances());
-  message += "          Alignment: " + alignment_mode;
+  if (alignment_mode == "Native") {
+    message += "          Time Alignment: unmodified";
+  } else if (alignment_mode == "TimeZero") {
+    message += "          Time Alignment: start at zero";
+  } else { // "EventId"
+    bool is_start = G_settings->value("alignment_event_is_start", false).toBool();
+    QString event_name = G_settings->value("alignment_event_name", "unset").toString();
+    uint32_t instance_index = (uint32_t)G_settings->value("alignment_instance_index", 0).toInt();
+    message += "          Time Alignment: '" + event_name + "' ";
+    message += is_start ? "start ID, " : "end ID, ";
+    message += "instance " + QString::number(instance_index);
+  }
   if (num_events_filtered == 0) {
     message += "          Filters Set: none";
   } else if (num_events_filtered == 1) {
