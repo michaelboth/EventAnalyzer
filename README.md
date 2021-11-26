@@ -1,7 +1,7 @@
 <img src="visualizer/icons/unikorn_logo.png" alt="Logo" style="width:400px;"/>
 
 # Unikorn Software Event Analyzer
-With the increased complexity of modern hardware and software, optimizing an application for performance is sometimes like trying to find a **unicorn**. Going green is more important than ever. Stop accepting poor performing software or using more hardware to fix bad performance. Unikorn is easy to use, and should be part of daily development from the application's inception to distribution.
+With the increased complexity of modern hardware and software, optimizing an application for performance is sometimes like trying to find a **unicorn**. Going green is more important than ever. Stop accepting poor performing software or using extra hardware to fix bad performance. Unikorn is easy to use, and should be part of daily development from the application's inception to distribution.
 <br><br>
 Unikorn is a C API and graphical visualizer (Windows, Mac, and Linux). These are the simple steps to discovering the behaviour of your application:
 1. Instrument your application with custom events (names and colors), a clock, and output stream to flush the events
@@ -28,6 +28,13 @@ You may need Posix threads. Unikorn's API can optionally be thread safe, and if 
 > cd c:\pthreads4w
 > nmake VC VC-debug VC-static VC-static-debug install DESTROOT=.\install
 ```
+
+## Downloading Unikorn
+In the 'Releases' section (right panel), click on 'Latest' to get the latest release. You can download the source code or one of the pre-built packages, which contains the pre-compiled visualizer (a nice convenience):
+- Linux package: built on Ubuntu 18.04
+- Mac OSX package: built on OSX 11.6 (Big Sur), using xCode 13.1
+- Windows package: built on Windows 10
+
 
 ## Instrumenting Your Application with Events
 The following is the 'hello' example. All of the event recording source code is compiled out if ```INSTRUMENT_APP``` is not defined when compiling.
