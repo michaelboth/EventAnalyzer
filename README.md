@@ -31,9 +31,9 @@ You may need Posix threads. Unikorn's API can optionally be thread safe, and if 
 
 ## Downloading Unikorn
 In the 'Releases' section (right panel of the GitHub webpage, near the top), click on 'Latest' to get the latest release. You can download the source code or one of the pre-built packages, which contains the pre-compiled visualizer (a nice convenience):
-- Linux package: built on Ubuntu 18.04
-- Mac OSX package: built on OSX 11.6 (Big Sur), using xCode 13.1
-- Windows package: built on Windows 10
+- Linux package: built on Ubuntu 18.04. To run UnikornViewer from the command line: ```prompt> Unikorn-1.0.0/visualizer/UnikornViewer.sh```.
+- Mac OSX package: built on OSX 11.6 (Big Sur), using xCode 13.1. To run UnikornViewer, double click on app icon ```Unikorn-1.0.0/visualizer/UnikornViewer```.
+- Windows package: built on Windows 10. To run UnikornViewer, double click on the app icon ```Unikorn-1.0.0\visualizer\UnikornViewer.exe```. If UnikornViewer fails to run you may need to install the Visual Studio redistribution package ```vc_redist.x64.exe```, which is also in ```Unikorn-1.0.0\visualizer\```.
 
 No matter which package you choose, it comes with the examples and the event recording source code needed by your application.
  
