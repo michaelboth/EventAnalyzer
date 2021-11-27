@@ -40,6 +40,8 @@ cp ${qt_folder}/gcc_64/plugins/platforms/libqxcb.so ${output_folder}/visualizer/
 cp ${qt_folder}/gcc_64/lib/libQt5Core.so.5 ${output_folder}/visualizer
 cp ${qt_folder}/gcc_64/lib/libQt5Gui.so.5 ${output_folder}/visualizer
 cp ${qt_folder}/gcc_64/lib/libQt5Widgets.so.5 ${output_folder}/visualizer
+cp ${qt_folder}/gcc_64/lib/libQt5XcbQpa.so.5 ${output_folder}/visualizer
+cp ${qt_folder}/gcc_64/lib/libQt5DBus.so.5 ${output_folder}/visualizer
 cp ${qt_folder}/gcc_64/lib/libicui18n.so.56 ${output_folder}/visualizer
 cp ${qt_folder}/gcc_64/lib/libicuuc.so.56 ${output_folder}/visualizer
 cp ${qt_folder}/gcc_64/lib/libicudata.so.56 ${output_folder}/visualizer
