@@ -2,7 +2,7 @@
 
 if [ "$#" -ne "2" ]; then
     echo "USAGE: buildLinuxPackage.bash <Qt_folder> <unikorn_version>"
-    echo "     > ./buildLinuxPackage.bash $HOME/Qt-5-15-2/5.15.2 1.0.0"
+    echo "     > ./buildLinuxPackage.bash $HOME/Qt/5.15.2 1.0.0"
     exit 0
 fi
 
