@@ -813,7 +813,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
 
     // Prev/Next Locations
     if (has_prev_event) {
-      QString text = " -";
+      QString text = " -";   /*+ maybe use "Location not recorded" instead */
       if (events->includes_file_location) {
         text = " " + QString(events->file_name_list[prev_event->file_name_index]);
         text += "," + QString(events->function_name_list[prev_event->function_name_index]);
@@ -1111,7 +1111,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       // Get old tree info
       i.next();
       EventTree *event_tree = i.value();
-      node_with_mouse = mouseOnEventsLine(event_tree->tree);
+      node_with_mouse = mouseOnEventsLine(event_tree->tree); /*+ this is not correct if some folders collapsed */
       if (node_with_mouse != NULL) {
         events_with_mouse = event_tree->events;
         break;
