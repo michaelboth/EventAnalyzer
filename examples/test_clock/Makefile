@@ -1,4 +1,4 @@
-CFLAGS       := -std=gnu99 -Wall -Werror -pthread -I../../inc
+CFLAGS       := -std=gnu99 -Wall -Werror -Wextra -pthread -I../../inc
 CFLAGS       += -O2
 #CFLAGS       += -g -O0
 C_OBJS       := test_clock.o

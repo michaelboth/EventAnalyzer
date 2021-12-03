@@ -1,4 +1,4 @@
-CFLAGS       := -std=gnu99 -Wall -Werror -pthread -I. -I../../inc
+CFLAGS       := -std=gnu99 -Wall -Werror -Wextra -pthread -I. -I../../inc
 CFLAGS       += -O2 -DRELEASE_BUILD
 #CFLAGS       += -g -O0
 C_OBJS       := memory_contention.o

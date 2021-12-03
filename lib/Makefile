@@ -1,4 +1,4 @@
-CFLAGS       := -std=gnu99 -Wall -Werror -I../inc
+CFLAGS       := -std=gnu99 -Wall -Werror -Wextra -fPIC -I../inc
 C_OBJS       := unikorn.o
 HEADER_FILES := unikorn.h
 LIBRARY      := libunikorn.a
