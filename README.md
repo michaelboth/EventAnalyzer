@@ -12,14 +12,11 @@ Unikorn is a C API and graphical visualizer (Windows, Mac, and Linux). These are
 
 ## Preparing the Environment
 ### Linux:
-You'll need gcc and make<br>
-*Tested on Ubuntu 18.04*
+You'll need gcc and make
 ### Mac
-You'll need xCode<br>
-*Tested on OSX 11.6 (Big Sur), using xCode 13.1*
+You'll need xCode
 ### Windows
-You'll need Visual Studio (mingw may work also)<br>
-*Tested with Visual Studio 2019 64bit console window*<br>
+You'll need Visual Studio<br>
 You may need Posix threads. Unikorn's API can optionally be thread safe, and if so requires Posix threads. Visual Studio does not have native support for Posix threads, so you'll need to download and build it:
 1. Get the source code from: https://sourceforge.net/projects/pthreads4w/
 2. Unzip, rename to 'pthreads4w' and put in the C:\ folder
