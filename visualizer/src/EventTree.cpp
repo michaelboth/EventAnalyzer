@@ -238,7 +238,7 @@ void EventTree::closeAllFolders() {
 }
 
 void EventTree::setFoldersExpanded(EventTreeNode *parent, bool is_expanded) {
-  parent->is_open = is_expanded;
+  if (parent->children.size() > 0) parent->is_open = is_expanded;
   for (auto child: parent->children) {
     setFoldersExpanded(child, is_expanded);
   }

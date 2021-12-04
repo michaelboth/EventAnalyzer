@@ -60,12 +60,16 @@ static uint32_t findEventIndexAtTime(Events *events, EventTreeNode *node, uint64
   // See if before first event
   uint32_t first_event_index = node->event_indices[first];
   Event *first_event = &events->event_buffer[first_event_index];
-  if (time <= first_event->time) return first;
+  if (time <= first_event->time) {
+    return first;
+  }
 
   // See if after last event
   uint32_t last_event_index = node->event_indices[last];
   Event *last_event = &events->event_buffer[last_event_index];
-  if (time > last_event->time) return last+1;
+  if (time > last_event->time) {
+    return last+1;
+  }
 
   // Binary search
   while ((last-first) > 1) {
@@ -813,7 +817,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
 
     // Prev/Next Locations
     if (has_prev_event) {
-      QString text = " -";   /*+ maybe use "Location not recorded" instead */
+      QString text = "Location not recorded";
       if (events->includes_file_location) {
         text = " " + QString(events->file_name_list[prev_event->file_name_index]);
         text += "," + QString(events->function_name_list[prev_event->function_name_index]);
@@ -823,7 +827,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     }
     dialog_y += th;
     if (has_next_event) {
-      QString text = " -";
+      QString text = "Location not recorded";
       if (events->includes_file_location) {
         text = " " + QString(events->file_name_list[next_event->file_name_index]);
         text += "," + QString(events->function_name_list[next_event->function_name_index]);
@@ -1036,9 +1040,8 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   end_time = full_end_time;
   if (percent_visible < 1.0) {
     uint64_t elapsed_nanoseconds = end_time - start_time;
-    uint64_t visible_nanoseconds = (uint64_t)(elapsed_nanoseconds * percent_visible);
-    start_time = (uint64_t)(elapsed_nanoseconds * percent_offset);
-    end_time = start_time + visible_nanoseconds;
+    start_time = full_start_time + (uint64_t)(elapsed_nanoseconds * percent_offset);
+    end_time = start_time + (uint64_t)(elapsed_nanoseconds * percent_visible);
   }
   time_range = (double)(end_time - start_time);
 
@@ -1111,7 +1114,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       // Get old tree info
       i.next();
       EventTree *event_tree = i.value();
-      node_with_mouse = mouseOnEventsLine(event_tree->tree); /*+ this is not correct if some folders collapsed */
+      node_with_mouse = mouseOnEventsLine(event_tree->tree);
       if (node_with_mouse != NULL) {
         events_with_mouse = event_tree->events;
         break;
