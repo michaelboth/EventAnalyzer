@@ -115,6 +115,8 @@ int/event_file_loader.h       # Header file for event_file_loader.c
 ## Visualizing Events with the Unikorn Viewer
 The Unikorn Viewer is written in C++ using the Open Source Qt framework (www.qt.io).<br>
 *Tested with Qt Qt 5.15.2*<br>
+Get the pre-built viewers from the 'Releases' section (right panel of the GitHub webpage, near the top), click on 'Latest' to get the latest release.<br>
+To manualy build it yourself, do the following:
 ### Linux and Mac
 ```
 > cd unikorn/visualizer
