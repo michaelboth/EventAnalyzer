@@ -74,6 +74,21 @@ void recolorImage(QImage &image, QColor color) {
   }
 }
 
+QString niceValueText(double value) {
+  // Don't show too much of the fraction if the integer part is big
+  char val_text[40];
+  if (value >= 100) {
+    sprintf(val_text, "%d", (int)value);
+  } else if (value >= 10) {
+    sprintf(val_text, "%0.1f", value);
+  } else if (value >= 1) {
+    sprintf(val_text, "%0.2f", value);
+  } else {
+    sprintf(val_text, "%0.3f", value);
+  }
+  return QString(val_text);
+}
+
 QString getTimeUnitsAndFactor(uint64_t nsecs, uint64_t max_times_to_display, uint64_t *units_factor_ret) {
   uint64_t usecs = nsecs / 1000;
   uint64_t msecs = nsecs / 1000000;

@@ -74,20 +74,20 @@ void *G_event_recording_session = NULL;
 static FileFlushInfo L_flush_info;
 
 // Init the event session
-#define EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location) { \
+#define EVENTS_INIT(_filename, _max_events, _flush_when_full, _is_threaded, _record_instance, _record_value, _record_location) { \
   UkAttrs attrs = { \
-    .max_event_count = max_events, \
-    .flush_when_full = flush_when_full, \
-    .is_threaded = is_threaded, \
-    .record_instance = record_instance, \
-    .record_value = record_value, \
-    .record_file_location = record_location, \
+    .max_event_count = _max_events, \
+    .flush_when_full = _flush_when_full, \
+    .is_threaded = _is_threaded, \
+    .record_instance = _record_instance, \
+    .record_value = _record_value, \
+    .record_file_location = _record_location, \
     .folder_info_count = NUM_FOLDERS, \
     .folder_info_list = L_folders, \
     .event_info_count = NUM_EVENT_TYPES, \
     .event_info_list = L_events \
   }; \
-  L_flush_info.filename = filename; \
+  L_flush_info.filename = _filename; \
   L_flush_info.file = NULL; \
   L_flush_info.events_saved = false; \
   L_flush_info.append_subsequent_saves = true; \

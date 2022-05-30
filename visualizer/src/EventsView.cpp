@@ -413,7 +413,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
 
       // Draw events
       int prev_x = 0;
-      int prev_prev_x = 0;
+      int prev_prev_x = -1;
       uint64_t prev_time = 0;
       bool prev_is_start = false;
       EventInfo *event_info = &events->event_info_list[parent->event_info_index];
@@ -674,7 +674,8 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   QFontMetrics fm = painter.fontMetrics();
   int th = fm.height();
   int m = th / 2;
-  int num_lines = 8;
+  //* OLD */int num_lines = 8;
+  int num_lines = 6;
   int instance_w = fm.horizontalAdvance("  Instance  ");
   int dialog_w = fm.horizontalAdvance(" xxxfilename::function_name::line_numberxxx ");
   int dialog_h = th*num_lines;
@@ -689,7 +690,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   painter.drawRect(dialog_x, dialog_y, dialog_w, dialog_h);
   painter.setPen(QPen(ROLLOVER_SEPARATOR_COLOR, 1, Qt::SolidLine));
   // Horizontal lines
-  int num_lines_to_draw = ancestor_collapsed ? 3 : num_lines;
+  int num_lines_to_draw = ancestor_collapsed ? 2/* OLD 3*/ : num_lines;
   for (int i=1; i<num_lines_to_draw; i++) {
     int line_y = i*th;
     painter.drawLine(dialog_x+1, dialog_y+line_y, dialog_x+dialog_w-1, dialog_y+line_y);
@@ -699,22 +700,32 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   int col2_x = col1_x + instance_w;
   // Veritical lines
   if (!ancestor_collapsed) {
+    /* OLD
     painter.drawLine(dialog_x+mid_x, dialog_y+th*1, dialog_x+mid_x, dialog_y+th*3);
     painter.drawLine(dialog_x+col1_x, dialog_y+th*3, dialog_x+col1_x, dialog_y+th*6);
     painter.drawLine(dialog_x+col2_x, dialog_y+th*3, dialog_x+col2_x, dialog_y+th*6);
+    */
+    painter.drawLine(dialog_x+mid_x, dialog_y+th*1, dialog_x+mid_x, dialog_y+th*2);
+    painter.drawLine(dialog_x+col1_x, dialog_y+th*2, dialog_x+col1_x, dialog_y+th*4);
+    painter.drawLine(dialog_x+col2_x, dialog_y+th*2, dialog_x+col2_x, dialog_y+th*4);
   }
   // Titles
   painter.setPen(QPen(ROLLOVER_TITLE_COLOR, 1, Qt::SolidLine));
-  painter.drawText(dialog_x, dialog_y+th*1, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Mouse Over Time ");
+  //* OLD */painter.drawText(dialog_x, dialog_y+th*1, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Mouse Over Time ");
   if (!ancestor_collapsed) {
+    /* OLD
     painter.drawText(dialog_x, dialog_y+th*2, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Duration/Gap ");
     painter.drawText(dialog_x+col1_x, dialog_y+th*3, col2_x-col1_x, th, Qt::AlignCenter, "Time");
     painter.drawText(dialog_x+col1_x, dialog_y+th*4, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
     painter.drawText(dialog_x+col1_x, dialog_y+th*5, col2_x-col1_x, th, Qt::AlignCenter, "Value");
+    */
+    painter.drawText(dialog_x,        dialog_y+th*1, mid_x,         th, Qt::AlignRight | Qt::AlignVCenter, "Duration/Gap ");
+    painter.drawText(dialog_x+col1_x, dialog_y+th*2, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
+    painter.drawText(dialog_x+col1_x, dialog_y+th*3, col2_x-col1_x, th, Qt::AlignCenter, "Value");
   }
   painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
 
-  // Draw icon
+  // Draw icon (top left)
   QPixmap image_icon;
   if (node->tree_node_type == TREE_NODE_IS_FILE) {
     image_icon = icon_map["hierarchy_file.png"];
@@ -734,25 +745,28 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
   }
 
-  // Draw name
+  // Draw name (top right)
   QString name_text = " " + node->name;
   painter.drawText(dialog_x+icon_offset, dialog_y, dialog_w-icon_offset, th, Qt::AlignLeft | Qt::AlignVCenter, name_text);
   dialog_y += th;
 
+  /* OLD
   // Draw mouse time
+  char val_text[40];
   uint64_t mouse_time_units_factor;
   QString mouse_time_units = getTimeUnitsAndFactor(time_at_mouse, 1, &mouse_time_units_factor);
   double adjusted_mouse_time = time_at_mouse / (double)mouse_time_units_factor;
-  char val_text[40];
   sprintf(val_text, "%0.3f", adjusted_mouse_time);
   QString mouse_time_text = " " + QString(val_text) + " " + mouse_time_units;
   painter.drawText(dialog_x+mid_x, dialog_y, dialog_w-mid_x, th, Qt::AlignLeft | Qt::AlignVCenter, mouse_time_text);
   dialog_y += th;
+  */
 
   if (ancestor_collapsed) {
     // Nothing to show
     QString message = "Open this item in left\npanel to see event details";
-    painter.drawText(dialog_x, dialog_y, dialog_w, th*(num_lines-3), Qt::AlignCenter, message);
+    //* OLD */painter.drawText(dialog_x, dialog_y, dialog_w, th*(num_lines-3), Qt::AlignCenter, message);
+    painter.drawText(dialog_x, dialog_y, dialog_w, th*(num_lines-1), Qt::AlignCenter, message);
   } else if (node->tree_node_type == TREE_NODE_IS_EVENT) {
     // Show event info
     uint32_t event_index_to_right_of_mouse = findEventIndexAtTime(events, node, time_at_mouse, 0);
@@ -768,30 +782,32 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
       uint64_t units_factor;
       QString time_units = getTimeUnitsAndFactor(duration, 1, &units_factor);
       double adjusted_duration = duration / (double)units_factor;
-      sprintf(val_text, "%0.3f", adjusted_duration);
-      QString text = " " + QString(val_text) + " " + time_units;
+      QString val_text = niceValueText(adjusted_duration);
+      QString text = " " + val_text + " " + time_units;
       painter.drawText(dialog_x+mid_x, dialog_y, dialog_w-mid_x, th, Qt::AlignLeft | Qt::AlignVCenter, text);
     }
     dialog_y += th;
 
+    /* OLD
     // Prev/Next Times
     if (has_prev_event) {
       uint64_t units_factor;
       QString time_units = getTimeUnitsAndFactor(prev_event->time, 1, &units_factor);
       double adjusted_time = prev_event->time / (double)units_factor;
-      sprintf(val_text, "%0.3f", adjusted_time);
-      QString text = QString(val_text) + " " + time_units + " ";
+      QString val_text = niceValueText(adjusted_time);
+      QString text = val_text + " " + time_units + " ";
       painter.drawText(dialog_x, dialog_y, col1_x, th, Qt::AlignRight | Qt::AlignVCenter, text);
     }
     if (has_next_event) {
       uint64_t units_factor;
       QString time_units = getTimeUnitsAndFactor(next_event->time, 1, &units_factor);
       double adjusted_time = next_event->time / (double)units_factor;
-      sprintf(val_text, "%0.3f", adjusted_time);
-      QString text = " " + QString(val_text) + " " + time_units;
+      QString val_text = niceValueText(adjusted_time);
+      QString text = " " + val_text + " " + time_units;
       painter.drawText(dialog_x+col2_x, dialog_y, col1_x, th, Qt::AlignLeft | Qt::AlignVCenter, text);
     }
     dialog_y += th;
+    */
 
     // Prev/Next Instances
     if (has_prev_event) {

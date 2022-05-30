@@ -86,11 +86,13 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
     double offset_factor = x / (double)w;
     double time = start_time / (double)units_factor + (offset_factor * nsecs) / units_factor;
     if (i == 0) {
-      // Time
+      // Starting Time
       painter.setPen(QPen(HEADER_TEXT_COLOR, 1, Qt::SolidLine));
-      char val_text[40];
-      sprintf(val_text, "%0.1f", time);
-      QString text = QString(val_text) + " " + units;
+      uint64_t starting_units_factor;
+      QString time_units = getTimeUnitsAndFactor(start_time, 1, &starting_units_factor);
+      double adjusted_duration = start_time / (double)starting_units_factor;
+      QString val_text = niceValueText(adjusted_duration);
+      QString text = " " + val_text + " " + time_units;
       painter.drawText(x+1, 0, w, h, Qt::AlignLeft | Qt::AlignBottom, text);
     } else {
       // Tick mark
@@ -99,9 +101,8 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
       // Additional time
       painter.setPen(QPen(HEADER_TEXT_COLOR, 1, Qt::SolidLine));
       double diff = time - start_time / (double)units_factor;
-      char val_text[40];
-      sprintf(val_text, "%0.1f", diff);
-      QString text = "+" + QString(val_text) + " " + units;
+      QString val_text = niceValueText(diff);
+      QString text = "+" + val_text + " " + units;
       painter.drawText(x+1, 0, w, h, Qt::AlignLeft | Qt::AlignBottom, text);
     }
   }

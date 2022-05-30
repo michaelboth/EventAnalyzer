@@ -246,6 +246,42 @@ static void loadEventsHeader(FILE *file, bool first_time_loaded, bool swap_endia
   }
 }
 
+#ifdef PRINT_LOAD_INFO
+static const char *getEventName(Events *object, uint16_t event_id) {
+  if (event_id < object->folder_info_count) {
+    return object->folder_info_list[event_id].name;
+  } else {
+    event_id -= object->folder_info_count;
+    if (object->folder_info_count == 0) event_id--;
+    uint16_t array_index = event_id/2;
+    bool is_start = (object->event_info_list[array_index].start_id == event_id);
+    static char name[1000];
+    sprintf(name, "%s: %s", is_start ? "Start" : "End", object->event_info_list[array_index].name);
+    return name;
+  }
+}
+#endif
+
+#ifdef PRINT_LOAD_INFO
+static const char *elapsedTimeText(uint64_t diff_time) {
+  static char text[100];
+  if (diff_time < 1000) { sprintf(text, "+%"UINT64_FORMAT" ns", diff_time); return text; }
+  diff_time /= 1000;
+  if (diff_time < 1000) { sprintf(text, "+%"UINT64_FORMAT" us", diff_time); return text; }
+  diff_time /= 1000;
+  if (diff_time < 1000) { sprintf(text, "+%"UINT64_FORMAT" ms", diff_time); return text; }
+  diff_time /= 1000;
+  if (diff_time < 60) { sprintf(text, "+%"UINT64_FORMAT" seconds", diff_time); return text; }
+  diff_time /= 60;
+  if (diff_time < 60) { sprintf(text, "+%"UINT64_FORMAT" minutes", diff_time); return text; }
+  diff_time /= 60;
+  if (diff_time < 24) { sprintf(text, "+%"UINT64_FORMAT" hours", diff_time); return text; }
+  diff_time /= 24;
+  sprintf(text, "+%"UINT64_FORMAT" days", diff_time);
+  return text;
+}
+#endif
+
 static void loadEventsData(FILE *file, bool swap_endian, Events *object) {
 #ifdef PRINT_LOAD_INFO
   printf("\n");
@@ -444,6 +480,9 @@ static void loadEventsData(FILE *file, bool swap_endian, Events *object) {
   // Load events
   uint64_t time_adjustment = 0;
   Event *first_loaded_event = NULL;
+#ifdef PRINT_LOAD_INFO
+  double prev_time = 0;
+#endif
   for (uint32_t i=0; i<event_count; i++) {
     Event *event = &object->event_buffer[event_index];
     if (first_loaded_event == NULL) {
@@ -460,24 +499,26 @@ static void loadEventsData(FILE *file, bool swap_endian, Events *object) {
     prev_event = event;
     event->event_id = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-    printf("    time = %"UINT64_FORMAT", ID = %d\n", event->time, event->event_id);
+    printf("    ID = %d \"%s\"\n", event->event_id, getEventName(object, event->event_id));
+    printf("      time = %"UINT64_FORMAT"  %s\n", event->time, elapsedTimeText(event->time - prev_time));
+    prev_time = event->time;
 #endif
     if (object->includes_instance) {
       event->instance = readUint64(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-      printf("    instance = %"UINT64_FORMAT"\n", event->instance);
+      printf("      instance = %"UINT64_FORMAT"\n", event->instance);
 #endif
     }
     if (object->includes_value) {
       event->value = readDouble(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-      printf("    value = %f\n", event->value);
+      printf("      value = %f\n", event->value);
 #endif
     }
     if (object->is_threaded) {
       event->thread_index = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-      printf("    thread index = %d\n", event->thread_index);
+      printf("      thread index = %d\n", event->thread_index);
 #endif
     }
     if (object->includes_file_location) {
@@ -485,7 +526,7 @@ static void loadEventsData(FILE *file, bool swap_endian, Events *object) {
       event->function_name_index = readUint16(swap_endian, file);
       event->line_number = readUint16(swap_endian, file);
 #ifdef PRINT_LOAD_INFO
-      printf("    file = '%s', function = '%s', line = %d\n", object->file_name_list[event->file_name_index], object->function_name_list[event->function_name_index], event->line_number);
+      printf("      file = '%s', function = '%s', line = %d\n", object->file_name_list[event->file_name_index], object->function_name_list[event->function_name_index], event->line_number);
 #endif
     }
     event_index++;

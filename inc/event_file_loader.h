@@ -32,8 +32,8 @@ typedef struct {
 } EventInfo;
 
 typedef struct {
-  uint64_t time;
-  uint16_t event_id;
+  uint64_t time;     // Nanoseconds since clock started (each clock has a different base time)
+  uint16_t event_id; // Could also be a folder ID
   uint64_t instance;
   double value;
   uint16_t thread_index;
