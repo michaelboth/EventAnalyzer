@@ -721,7 +721,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     int line_y = i*th;
     painter.drawLine(dialog_x+1, dialog_y+line_y, dialog_x+dialog_w-1, dialog_y+line_y);
   }
-  int mid_x = dialog_w/2;
+  //int mid_x = dialog_w/2;
   int col1_x = dialog_w * 0.333f;
   int col2_x = dialog_w * 0.667f;
 
@@ -735,7 +735,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     painter.drawLine(dialog_x+col1_x, dialog_y+th*1, dialog_x+col1_x, dialog_y+th*2);
     painter.drawLine(dialog_x+col2_x, dialog_y+th*1, dialog_x+col2_x, dialog_y+th*2);
     //* OLD */painter.drawLine(dialog_x+mid_x, dialog_y+th*1, dialog_x+mid_x, dialog_y+th*2);
-    painter.drawLine(dialog_x+mid_x, dialog_y+th*2, dialog_x+mid_x, dialog_y+th*3);
+    //* OLD */painter.drawLine(dialog_x+mid_x, dialog_y+th*2, dialog_x+mid_x, dialog_y+th*3);
     painter.drawLine(dialog_x+col1_x, dialog_y+th*3, dialog_x+col1_x, dialog_y+th*5);
     painter.drawLine(dialog_x+col2_x, dialog_y+th*3, dialog_x+col2_x, dialog_y+th*5);
   }
@@ -752,7 +752,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     painter.drawText(dialog_x+col1_x, dialog_y+th*5, col2_x-col1_x, th, Qt::AlignCenter, "Value");
     */
     //* OLD */painter.drawText(dialog_x,        dialog_y+th*1, mid_x,         th, Qt::AlignRight | Qt::AlignVCenter, "Duration/Gap ");
-    painter.drawText(dialog_x,        dialog_y+th*2, mid_x,         th, Qt::AlignRight | Qt::AlignVCenter, "Ave ");
+    //* OLD */painter.drawText(dialog_x,        dialog_y+th*2, mid_x,         th, Qt::AlignRight | Qt::AlignVCenter, "Ave ");
     painter.drawText(dialog_x+col1_x, dialog_y+th*3, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
     painter.drawText(dialog_x+col1_x, dialog_y+th*4, col2_x-col1_x, th, Qt::AlignCenter, "Value");
   }
@@ -857,9 +857,9 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
         QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
         double adjusted_ave = ave / (double)units_factor;
         QString val_text = niceValueText(adjusted_ave);
-        QString text = " " + val_text + " " + time_units;
-        if (is_on_duration) text += " (gap)";
-        painter.drawText(dialog_x+mid_x, dialog_y, dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+        QString text = is_on_duration ? " Durations: " : "Gaps: ";
+	text += QString::number(num_durations) + ",   Ave " + val_text + " " + time_units;
+        painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, text);
       }
     }
     dialog_y += th;
