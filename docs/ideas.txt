@@ -4,6 +4,8 @@ API:
 
 
 Visualizer:
+ - Remember the window size from run to run
+ - Allow the files to also be sorted by time & event ID, not just alphabetical
  - From the time align dialog:
        - Allow clock drift correction between files via scaling first and last event instances
  - Search for largest duration/gap (similar to prev/next event)
