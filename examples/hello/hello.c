@@ -16,9 +16,6 @@
 #include "custom_folders_and_events.h"
 #include <stdio.h>
 
-// Define the event session global variable
-EVENTS_GLOBAL_INSTANCE;
-
 int main() {
   // Create event session
 #ifdef INSTRUMENT_APP
@@ -29,21 +26,22 @@ int main() {
   bool record_instance = true;
   bool record_value = true;
   bool record_location = true;
+  FileFlushInfo flush_info;
+  void *session = EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, &flush_info);
 #endif
-  EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location);
 
   // Do some processing
-  EVENTS_START_FOR_LOOP();
+  EVENTS_START_FOR_LOOP(session, 0);
   for (int j=0; j<10; j++) {
-    EVENTS_START_PRINTF();
+    EVENTS_START_PRINTF(session, j);
     printf("%d: Hello!\n", j+1);
-    EVENTS_END_PRINTF();
+    EVENTS_END_PRINTF(session, j);
   }
-  EVENTS_END_FOR_LOOP();
+  EVENTS_END_FOR_LOOP(session, 0);
 
   // Clean up
-  EVENTS_FLUSH();
-  EVENTS_FINALIZE();
+  EVENTS_FLUSH(session);
+  EVENTS_FINALIZE(session);
 #ifdef INSTRUMENT_APP
   printf("Events were recorded to the file '%s'. Use the Unikorn Viewer to view the results.\n", filename);
 #else

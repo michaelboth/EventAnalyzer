@@ -23,16 +23,18 @@
 #include <stdlib.h>
 #include <assert.h>
 
-EVENTS_GLOBAL_INSTANCE;
+#ifdef INSTRUMENT_APP
+static void *session = NULL;
+#endif
 
 static void doStuff() {
   double a = 4.0;
-  EVENTS_START_SQRT();
+  EVENTS_START_SQRT(session, a);
   double b = sqrt(a);
-  EVENTS_END_SQRT();
-  EVENTS_START_PRINT();
+  EVENTS_END_SQRT(session, b);
+  EVENTS_START_PRINT(session, 0);
   printf("The square root of %f is %f\n", a, b);
-  EVENTS_END_PRINT();
+  EVENTS_END_PRINT(session, 0);
 }
 
 int main(int argc, char **argv) {
@@ -41,7 +43,7 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  // Record and save events
+  // Create event session
 #ifdef INSTRUMENT_APP
   const char *filename = argv[1];
   uint32_t max_events = (uint32_t)atoi(argv[2]);
@@ -56,25 +58,27 @@ int main(int argc, char **argv) {
   bool record_instance = strcmp(argv[5], "instance=yes")==0;
   bool record_value = strcmp(argv[6], "value=yes")==0;
   bool record_location = strcmp(argv[7], "location=yes")==0;
+  FileFlushInfo flush_info;
+  session = EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, &flush_info);
 #endif
-  // Init
-  EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location);
+
   // Record
   doStuff();
-  EVENTS_FOLDER1();
+  EVENTS_FOLDER1(session);
   doStuff();
-  EVENTS_FOLDER2();
+  EVENTS_FOLDER2(session);
   doStuff();
-  EVENTS_CLOSE_FOLDER();
-  EVENTS_CLOSE_FOLDER();
+  EVENTS_CLOSE_FOLDER(session);
+  EVENTS_CLOSE_FOLDER(session);
   doStuff();
-  EVENTS_FOLDER2();
+  EVENTS_FOLDER2(session);
   doStuff();
-  EVENTS_CLOSE_FOLDER();
+  EVENTS_CLOSE_FOLDER(session);
   doStuff();
+
   // Save and finalize
-  EVENTS_FLUSH();
-  EVENTS_FINALIZE();
+  EVENTS_FLUSH(session);
+  EVENTS_FINALIZE(session);
 
   // Load the events
 #ifdef INSTRUMENT_APP

@@ -92,7 +92,7 @@ private:
   EventTreeNode *mouseOnEventsLine(EventTreeNode *parent);
   void drawEventInfo(QPainter &painter, EventTreeNode *node, Events *events);
   void drawEventHistogram(QPainter &painter, EventTreeNode *node, Events *events);
-  uint32_t calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, Events *events, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret);
+  uint32_t calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, Events *events, bool get_gap_durations, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret);
 };
 
 #endif

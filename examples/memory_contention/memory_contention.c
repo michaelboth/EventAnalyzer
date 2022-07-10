@@ -29,9 +29,9 @@ static int num_elements = 0;
 static volatile bool do_processing = false; // Using volatile to avoid compiler optimizations
 static double **A_list = NULL;
 static double **B_list = NULL;
-
-// Define the event session global variable
-EVENTS_GLOBAL_INSTANCE;
+#ifdef INSTRUMENT_APP
+static void *session = NULL;
+#endif
 
 static void *thread(void *user_data) {
   uint16_t index = (uint16_t)((uint64_t)user_data);
@@ -43,11 +43,11 @@ static void *thread(void *user_data) {
 
   // Do the processing
   for (int i=0; i<NUM_ITERATIONS; i++) {
-    EVENTS_START_SQRT();
+    EVENTS_START_SQRT(session, i);
     for (int i=0; i<num_elements; i++) {
       B[i] = sqrt(A[i]);
     }
-    EVENTS_END_SQRT();
+    EVENTS_END_SQRT(session, i);
   }
 
   return NULL;
@@ -73,11 +73,12 @@ int main(int argc, char **argv) {
     bool record_instance = true;
     bool record_value = false;
     bool record_location = false;
+    FileFlushInfo flush_info;
+    session = EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, &flush_info);
 #endif
-    EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location);
 
     // Allocate math resources
-    EVENTS_START_ALLOC();
+    EVENTS_START_ALLOC(session, 0);
     A_list = malloc(max_threads*sizeof(double*));
     for (int i=0; i<max_threads; i++) {
       A_list[i] = malloc(num_elements*sizeof(double));
@@ -89,31 +90,31 @@ int main(int argc, char **argv) {
     for (int i=0; i<max_threads; i++) {
       B_list[i] = malloc(num_elements*sizeof(double));
     }
-    EVENTS_END_ALLOC();
+    EVENTS_END_ALLOC(session, 0);
 
     // Start threads
     do_processing = false;
-    EVENTS_START_INIT_THREADS();
+    EVENTS_START_INIT_THREADS(session, 0);
     pthread_t *thread_ids = malloc(num_concurrent_threads*sizeof(pthread_t));
     for (uint16_t i=0; i<num_concurrent_threads; i++) {
       pthread_create(&thread_ids[i], NULL, thread, (void *)((uint64_t)i));
     }
-    EVENTS_END_INIT_THREADS();
+    EVENTS_END_INIT_THREADS(session, 0);
 
     // Allow the threads to start processing
-    EVENTS_START_BARRIER();
+    EVENTS_START_BARRIER(session, 0);
     do_processing = true;
-    EVENTS_END_BARRIER();
+    EVENTS_END_BARRIER(session, 0);
 
     // Wait for threads to complete processing
-    EVENTS_START_JOIN_THREADS();
+    EVENTS_START_JOIN_THREADS(session, 0);
     for (int i=0; i<num_concurrent_threads; i++) {
       pthread_join(thread_ids[i], NULL);
     }
-    EVENTS_END_JOIN_THREADS();
+    EVENTS_END_JOIN_THREADS(session, 0);
 
     // Clean up math resources
-    EVENTS_START_FREE();
+    EVENTS_START_FREE(session, 0);
     free(thread_ids);
     for (int i=0; i<max_threads; i++) {
       free(A_list[i]);
@@ -121,11 +122,11 @@ int main(int argc, char **argv) {
     }
     free(A_list);
     free(B_list);
-    EVENTS_END_FREE();
+    EVENTS_END_FREE(session, 0);
 
     // Finish the event session
-    EVENTS_FLUSH();
-    EVENTS_FINALIZE();
+    EVENTS_FLUSH(session);
+    EVENTS_FINALIZE(session);
   }
 
 #ifdef INSTRUMENT_APP

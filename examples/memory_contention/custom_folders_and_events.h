@@ -67,83 +67,74 @@ static UkEventInfo L_events[] = {
 };
 #define NUM_EVENT_TYPES (sizeof(L_events) / sizeof(UkEventInfo))
 
-// Define the global event session
-void *G_event_recording_session = NULL;
-
-// Define a private handle to flushing events to a file
-static FileFlushInfo L_flush_info;
-
 // Init the event session
-#define EVENTS_INIT(_filename, _max_events, _flush_when_full, _is_threaded, _record_instance, _record_value, _record_location) { \
-  UkAttrs attrs = { \
-    .max_event_count = _max_events, \
-    .flush_when_full = _flush_when_full, \
-    .is_threaded = _is_threaded, \
-    .record_instance = _record_instance, \
-    .record_value = _record_value, \
-    .record_file_location = _record_location, \
-    .folder_info_count = NUM_FOLDERS, \
-    .folder_info_list = L_folders, \
-    .event_info_count = NUM_EVENT_TYPES, \
-    .event_info_list = L_events \
-  }; \
-  L_flush_info.filename = _filename; \
-  L_flush_info.file = NULL; \
-  L_flush_info.events_saved = false; \
-  L_flush_info.append_subsequent_saves = true; \
-  G_event_recording_session = ukCreate(&attrs, getEventTime, &L_flush_info, prepareFileFlush, fileFlush, finishFileFlush); \
+void *EVENTS_INIT(const char *_filename, uint32_t _max_events, bool _flush_when_full, bool _is_threaded, bool _record_instance, bool _record_value, bool _record_location, FileFlushInfo *_flush_info) {
+  UkAttrs attrs = {
+    .max_event_count = _max_events,
+    .flush_when_full = _flush_when_full,
+    .is_threaded = _is_threaded,
+    .record_instance = _record_instance,
+    .record_value = _record_value,
+    .record_file_location = _record_location,
+    .folder_info_count = NUM_FOLDERS,
+    .folder_info_list = L_folders,
+    .event_info_count = NUM_EVENT_TYPES,
+    .event_info_list = L_events
+  };
+  _flush_info->filename = _filename;
+  _flush_info->file = NULL;
+  _flush_info->events_saved = false;
+  _flush_info->append_subsequent_saves = true;
+  void *session = ukCreate(&attrs, getEventTime, _flush_info, prepareFileFlush, fileFlush, finishFileFlush);
+  return session;
 }
 
 #endif  // DEFINE_FOLDERS_AND_EVENTS
 
-// Macro for the event session: Use this in every file that needs to record events
-#define EVENTS_GLOBAL_INSTANCE extern void *G_event_recording_session
 // Macro to flush events
-#define EVENTS_FLUSH() ukFlush(G_event_recording_session)
+#define EVENTS_FLUSH(_session) ukFlush(_session)
 // Macro to finalize event recording
-#define EVENTS_FINALIZE() ukDestroy(G_event_recording_session); G_event_recording_session = NULL;
+#define EVENTS_FINALIZE(_session) ukDestroy(_session)
 
 // Folder recording macros
-//#define EVENTS_FOLDER1() ukRecordFolder(G_event_recording_session, FOLDER1_ID)
-//#define EVENTS_FOLDER2() ukRecordFolder(G_event_recording_session, FOLDER2_ID)
-//#define EVENTS_CLOSE_FOLDER() ukCloseFolder(G_event_recording_session)
+//#define EVENTS_FOLDER1(_session) ukRecordFolder(_session, FOLDER1_ID)
+//#define EVENTS_FOLDER2(_session) ukRecordFolder(_session, FOLDER2_ID)
+//#define EVENTS_CLOSE_FOLDER(_session) ukCloseFolder(_session)
 
 // Events recording macros
-#define EVENTS_START_ALLOC()        ukRecordEvent(G_event_recording_session, ALLOC_START_ID,        0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_END_ALLOC()          ukRecordEvent(G_event_recording_session, ALLOC_END_ID,          0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_START_FREE()         ukRecordEvent(G_event_recording_session, FREE_START_ID,         0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_END_FREE()           ukRecordEvent(G_event_recording_session, FREE_END_ID,           0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_START_INIT_THREADS() ukRecordEvent(G_event_recording_session, INIT_THREADS_START_ID, 0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_END_INIT_THREADS()   ukRecordEvent(G_event_recording_session, INIT_THREADS_END_ID,   0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_START_JOIN_THREADS() ukRecordEvent(G_event_recording_session, JOIN_THREADS_START_ID, 0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_END_JOIN_THREADS()   ukRecordEvent(G_event_recording_session, JOIN_THREADS_END_ID,   0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_START_BARRIER()      ukRecordEvent(G_event_recording_session, BARRIER_START_ID,      0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_END_BARRIER()        ukRecordEvent(G_event_recording_session, BARRIER_END_ID,        0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_START_SQRT()         ukRecordEvent(G_event_recording_session, SQRT_START_ID,         0.0, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_END_SQRT()           ukRecordEvent(G_event_recording_session, SQRT_END_ID,           0.0, __FILE__, __FUNCTION__, __LINE__)
+#define EVENTS_START_ALLOC(_session, _value)        ukRecordEvent(_session, ALLOC_START_ID,        _value, __FILE__, __FUNCTION__, __LINE__)
+#define EVENTS_END_ALLOC(_session, _value)          ukRecordEvent(_session, ALLOC_END_ID,          _value, __FILE__, __FUNCTION__, __LINE__)
+#define EVENTS_START_FREE(_session, _value)         ukRecordEvent(_session, FREE_START_ID,         _value, __FILE__, __FUNCTION__, __LINE__)
+#define EVENTS_END_FREE(_session, _value)           ukRecordEvent(_session, FREE_END_ID,           _value, __FILE__, __FUNCTION__, __LINE__)
+#define EVENTS_START_INIT_THREADS(_session, _value) ukRecordEvent(_session, INIT_THREADS_START_ID, _value, __FILE__, __FUNCTION__, __LINE__)
+#define EVENTS_END_INIT_THREADS(_session, _value)   ukRecordEvent(_session, INIT_THREADS_END_ID,   _value, __FILE__, __FUNCTION__, __LINE__)
+#define EVENTS_START_JOIN_THREADS(_session, _value) ukRecordEvent(_session, JOIN_THREADS_START_ID, _value, __FILE__, __FUNCTION__, __LINE__)
+#define EVENTS_END_JOIN_THREADS(_session, _value)   ukRecordEvent(_session, JOIN_THREADS_END_ID,   _value, __FILE__, __FUNCTION__, __LINE__)
+#define EVENTS_START_BARRIER(_session, _value)      ukRecordEvent(_session, BARRIER_START_ID,      _value, __FILE__, __FUNCTION__, __LINE__)
+#define EVENTS_END_BARRIER(_session, _value)        ukRecordEvent(_session, BARRIER_END_ID,        _value, __FILE__, __FUNCTION__, __LINE__)
+#define EVENTS_START_SQRT(_session, _value)         ukRecordEvent(_session, SQRT_START_ID,         _value, __FILE__, __FUNCTION__, __LINE__)
+#define EVENTS_END_SQRT(_session, _value)           ukRecordEvent(_session, SQRT_END_ID,           _value, __FILE__, __FUNCTION__, __LINE__)
 
 #else
 
 // Compile out all event recording macros
-#define EVENTS_GLOBAL_INSTANCE
-#define EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location)
-#define EVENTS_FLUSH()
-#define EVENTS_FINALIZE()
-//#define EVENTS_FOLDER1()
-//#define EVENTS_FOLDER2()
-//#define EVENTS_CLOSE_FOLDER()
-#define EVENTS_START_ALLOC()
-#define EVENTS_END_ALLOC()
-#define EVENTS_START_FREE()
-#define EVENTS_END_FREE()
-#define EVENTS_START_INIT_THREADS()
-#define EVENTS_END_INIT_THREADS()
-#define EVENTS_START_JOIN_THREADS()
-#define EVENTS_END_JOIN_THREADS()
-#define EVENTS_START_BARRIER()
-#define EVENTS_END_BARRIER()
-#define EVENTS_START_SQRT()
-#define EVENTS_END_SQRT()
+#define EVENTS_FLUSH(_session)
+#define EVENTS_FINALIZE(_session)
+//#define EVENTS_FOLDER1(_session)
+//#define EVENTS_FOLDER2(_session)
+//#define EVENTS_CLOSE_FOLDER(_session)
+#define EVENTS_START_ALLOC(_session, _value)
+#define EVENTS_END_ALLOC(_session, _value)
+#define EVENTS_START_FREE(_session, _value)
+#define EVENTS_END_FREE(_session, _value)
+#define EVENTS_START_INIT_THREADS(_session, _value)
+#define EVENTS_END_INIT_THREADS(_session, _value)
+#define EVENTS_START_JOIN_THREADS(_session, _value)
+#define EVENTS_END_JOIN_THREADS(_session, _value)
+#define EVENTS_START_BARRIER(_session, _value)
+#define EVENTS_END_BARRIER(_session, _value)
+#define EVENTS_START_SQRT(_session, _value)
+#define EVENTS_END_SQRT(_session, _value)
 
 #endif
 #endif

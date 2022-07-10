@@ -22,10 +22,10 @@
 
 #define MIN_SELECTION_PIXEL_DIFF 5
 #define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
-#define ROLLOVER_BG_COLOR QColor(200, 200, 200, 220)
-#define ROLLOVER_TEXT_COLOR QColor(50, 50, 50)
-#define ROLLOVER_TITLE_COLOR QColor(125, 125, 125)
-#define ROLLOVER_SEPARATOR_COLOR QColor(175, 175, 175)
+#define ROLLOVER_BG_COLOR QColor(200, 200, 200, 230)
+#define ROLLOVER_TEXT_COLOR QColor(0, 0, 0)
+#define ROLLOVER_TITLE_COLOR QColor(0, 50, 255)
+#define ROLLOVER_SEPARATOR_COLOR QColor(0, 0, 0, 100)
 #define ROW_HIGHLIGHT_COLOR2 QColor(0, 0, 0, 15)
 #define HISTOGRAM_BAR_BG_COLOR QColor(230,230,230)
 #define ALIGNMENT_COLOR QColor(150, 150, 150)
@@ -418,10 +418,10 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
       bool prev_is_start = false;
       EventInfo *event_info = &events->event_info_list[parent->event_info_index];
       painter->setPen(QPen(parent->color, 1, Qt::SolidLine));
-      int y2 = y + (int)(line_h * 0.2f);
-      int y3 = y + (int)(line_h * 0.4f);
-      int y4 = y + (int)(line_h * 0.6f);
-      int y5 = y + (int)(line_h * 0.8f);
+      int y2 = y + (int)(line_h * 0.15f); // Top if not overlapped
+      int y3 = y + (int)(line_h * 0.35f); // Top of range
+      int y4 = y + (int)(line_h * 0.65f); // Bottom of range
+      int y5 = y + (int)(line_h * 0.85f); // Bottom if not overlapped
       int range_h = y4 - y3 + 1;
       uint64_t total_time_usage = 0;
       for (uint32_t i=first_visible_event_index; i<=last_visible_event_index; i++) {
@@ -440,7 +440,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
         int x = (int)(x_percent * (w-1));
         if (x == prev_prev_x) {
           // Overlapped with other events, so draw tall event
-          painter->drawLine(x, y+1, x, y+line_h-2);
+          painter->drawLine(x, y, x, y+line_h-1);
         } else {
           int top_y = is_start ? y2 : y3;
           int bottom_y = is_start ? y4 : y5;
@@ -483,13 +483,13 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
   }
 }
 
-uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, Events *events, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret) {
+uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, Events *events, bool get_gap_durations, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret) {
   EventInfo *event_info = &events->event_info_list[node->event_info_index];
 
   // Get the first visible event
   uint32_t first_event_index = findEventIndexAtTime(events, node, start_time, 0); // NOTE: gets the first index to the right of the start time
 
-  // Determine the min and max durations to know how to divy out the buckets
+  // Determine the min and max durations to know how to divey out the buckets
   Event *prev_event = NULL;
   uint64_t min_duration = 0;
   uint64_t max_duration = 0;
@@ -499,13 +499,26 @@ uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, Even
   while (event_index < node->num_event_instances) {
     Event *event = &events->event_buffer[node->event_indices[event_index]];
     if (event->time > end_time) break; // Out of visible range
-    if (prev_event != NULL && prev_event->event_id == event_info->start_id && event->event_id == event_info->end_id) {
-      // Found a duration
-      uint64_t duration = event->time - prev_event->time;
-      total_duration += duration;
-      if (num_durations == 0 || duration < min_duration) min_duration = duration;
-      if (num_durations == 0 || duration > max_duration) max_duration = duration;
-      num_durations++;
+    if (prev_event != NULL) {
+      if (prev_event->event_id == event_info->start_id && event->event_id == event_info->end_id) {
+        // Found a duration
+        if (!get_gap_durations) {
+          uint64_t duration = event->time - prev_event->time;
+          total_duration += duration;
+          if (num_durations == 0 || duration < min_duration) min_duration = duration;
+          if (num_durations == 0 || duration > max_duration) max_duration = duration;
+          num_durations++;
+        }
+      } else {
+        // It's a trap... I mean gap
+        if (get_gap_durations) {
+          uint64_t duration = event->time - prev_event->time;
+          total_duration += duration;
+          if (num_durations == 0 || duration < min_duration) min_duration = duration;
+          if (num_durations == 0 || duration > max_duration) max_duration = duration;
+          num_durations++;
+        }
+      }
     }
     prev_event = event;
     event_index++;
@@ -518,13 +531,26 @@ uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, Even
   while (event_index < node->num_event_instances) {
     Event *event = &events->event_buffer[node->event_indices[event_index]];
     if (event->time > end_time) break; // Out of visible range
-    if (prev_event != NULL && prev_event->event_id == event_info->start_id && event->event_id == event_info->end_id) {
-      // Found a duration
-      uint64_t duration = event->time - prev_event->time;
-      double factor = (duration - min_duration) / (double)duration_range;
-      int bucket_index = factor * (num_buckets-1);
-      bucket_index = std::clamp(bucket_index, 0, num_buckets-1);
-      buckets[bucket_index]++;
+    if (prev_event != NULL) {
+      if (prev_event->event_id == event_info->start_id && event->event_id == event_info->end_id) {
+        // Found a duration
+        if (!get_gap_durations) {
+          uint64_t duration = event->time - prev_event->time;
+          double factor = (duration - min_duration) / (double)duration_range;
+          int bucket_index = factor * (num_buckets-1);
+          bucket_index = std::clamp(bucket_index, 0, num_buckets-1);
+          buckets[bucket_index]++;
+        }
+      } else {
+        // It's a trap... I mean gap
+        if (get_gap_durations) {
+          uint64_t duration = event->time - prev_event->time;
+          double factor = (duration - min_duration) / (double)duration_range;
+          int bucket_index = factor * (num_buckets-1);
+          bucket_index = std::clamp(bucket_index, 0, num_buckets-1);
+          buckets[bucket_index]++;
+        }
+      }
     }
     prev_event = event;
     event_index++;
@@ -545,8 +571,8 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
 
   // Determine dialog geometry
   QFontMetrics fm = painter.fontMetrics();
-  int th = fm.height();
-  int m = th / 2;
+  int th = fm.height() * 1.3f;
+  int m = th * 0.25f;
   int num_lines = 14;
   int dialog_w = fm.horizontalAdvance("9999.999 usecs      9999.999 usecs      9999.999 usecs");
   int dialog_h = th*num_lines;
@@ -606,7 +632,7 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
   uint32_t *buckets = (uint32_t *)malloc(num_buckets*sizeof(uint32_t));
   for (int i=0; i<num_buckets; i++) buckets[i] = 0;
   uint64_t min, ave, max;
-  uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, &min, &ave, &max);
+  uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, false, &min, &ave, &max);
 
   // Draw number of durations
   QString suffix = (num_durations == 1) ? " duration " : " durations ";
@@ -672,11 +698,10 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
 
   // Determine dialog geometry
   QFontMetrics fm = painter.fontMetrics();
-  int th = fm.height();
-  int m = th / 2;
+  int th = fm.height() * 1.3f;
+  int m = th * 0.25f;
   //* OLD */int num_lines = 8;
-  int num_lines = 6;
-  int instance_w = fm.horizontalAdvance("  Instance  ");
+  int num_lines = 7;
   int dialog_w = fm.horizontalAdvance(" xxxfilename::function_name::line_numberxxx ");
   int dialog_h = th*num_lines;
   int dialog_x = mouse_location.x() + m;
@@ -689,6 +714,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   painter.setBrush(ROLLOVER_BG_COLOR);
   painter.drawRect(dialog_x, dialog_y, dialog_w, dialog_h);
   painter.setPen(QPen(ROLLOVER_SEPARATOR_COLOR, 1, Qt::SolidLine));
+
   // Horizontal lines
   int num_lines_to_draw = ancestor_collapsed ? 2/* OLD 3*/ : num_lines;
   for (int i=1; i<num_lines_to_draw; i++) {
@@ -696,8 +722,9 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     painter.drawLine(dialog_x+1, dialog_y+line_y, dialog_x+dialog_w-1, dialog_y+line_y);
   }
   int mid_x = dialog_w/2;
-  int col1_x = (dialog_w - instance_w)/2;
-  int col2_x = col1_x + instance_w;
+  int col1_x = dialog_w * 0.333f;
+  int col2_x = dialog_w * 0.667f;
+
   // Veritical lines
   if (!ancestor_collapsed) {
     /* OLD
@@ -705,12 +732,17 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     painter.drawLine(dialog_x+col1_x, dialog_y+th*3, dialog_x+col1_x, dialog_y+th*6);
     painter.drawLine(dialog_x+col2_x, dialog_y+th*3, dialog_x+col2_x, dialog_y+th*6);
     */
-    painter.drawLine(dialog_x+mid_x, dialog_y+th*1, dialog_x+mid_x, dialog_y+th*2);
-    painter.drawLine(dialog_x+col1_x, dialog_y+th*2, dialog_x+col1_x, dialog_y+th*4);
-    painter.drawLine(dialog_x+col2_x, dialog_y+th*2, dialog_x+col2_x, dialog_y+th*4);
+    painter.drawLine(dialog_x+col1_x, dialog_y+th*1, dialog_x+col1_x, dialog_y+th*2);
+    painter.drawLine(dialog_x+col2_x, dialog_y+th*1, dialog_x+col2_x, dialog_y+th*2);
+    //* OLD */painter.drawLine(dialog_x+mid_x, dialog_y+th*1, dialog_x+mid_x, dialog_y+th*2);
+    painter.drawLine(dialog_x+mid_x, dialog_y+th*2, dialog_x+mid_x, dialog_y+th*3);
+    painter.drawLine(dialog_x+col1_x, dialog_y+th*3, dialog_x+col1_x, dialog_y+th*5);
+    painter.drawLine(dialog_x+col2_x, dialog_y+th*3, dialog_x+col2_x, dialog_y+th*5);
   }
+
   // Titles
-  painter.setPen(QPen(ROLLOVER_TITLE_COLOR, 1, Qt::SolidLine));
+  QColor text_color = (node->tree_node_type == TREE_NODE_IS_EVENT) ? node->color : ROLLOVER_TITLE_COLOR;
+  painter.setPen(QPen(text_color, 1, Qt::SolidLine));
   //* OLD */painter.drawText(dialog_x, dialog_y+th*1, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Mouse Over Time ");
   if (!ancestor_collapsed) {
     /* OLD
@@ -719,9 +751,10 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     painter.drawText(dialog_x+col1_x, dialog_y+th*4, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
     painter.drawText(dialog_x+col1_x, dialog_y+th*5, col2_x-col1_x, th, Qt::AlignCenter, "Value");
     */
-    painter.drawText(dialog_x,        dialog_y+th*1, mid_x,         th, Qt::AlignRight | Qt::AlignVCenter, "Duration/Gap ");
-    painter.drawText(dialog_x+col1_x, dialog_y+th*2, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
-    painter.drawText(dialog_x+col1_x, dialog_y+th*3, col2_x-col1_x, th, Qt::AlignCenter, "Value");
+    //* OLD */painter.drawText(dialog_x,        dialog_y+th*1, mid_x,         th, Qt::AlignRight | Qt::AlignVCenter, "Duration/Gap ");
+    painter.drawText(dialog_x,        dialog_y+th*2, mid_x,         th, Qt::AlignRight | Qt::AlignVCenter, "Ave ");
+    painter.drawText(dialog_x+col1_x, dialog_y+th*3, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
+    painter.drawText(dialog_x+col1_x, dialog_y+th*4, col2_x-col1_x, th, Qt::AlignCenter, "Value");
   }
   painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
 
@@ -784,7 +817,50 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
       double adjusted_duration = duration / (double)units_factor;
       QString val_text = niceValueText(adjusted_duration);
       QString text = " " + val_text + " " + time_units;
-      painter.drawText(dialog_x+mid_x, dialog_y, dialog_w-mid_x, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+      painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter | Qt::AlignVCenter, text);
+    }
+    if (has_prev_event && event_index_to_left_of_mouse > 0) {
+      // Prev-prev exist. show that duration
+      Event *prev_prev_event = &events->event_buffer[node->event_indices[event_index_to_left_of_mouse-1]];
+      uint64_t duration = prev_event->time - prev_prev_event->time;
+      uint64_t units_factor;
+      QString time_units = getTimeUnitsAndFactor(duration, 1, &units_factor);
+      double adjusted_duration = duration / (double)units_factor;
+      QString val_text = niceValueText(adjusted_duration);
+      QString text = " " + val_text + " " + time_units;
+      painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+    }
+    if (has_next_event && (event_index_to_right_of_mouse+1) < node->num_event_instances) {
+      // Next-next exist. show that duration
+      Event *next_next_event = &events->event_buffer[node->event_indices[event_index_to_right_of_mouse+1]];
+      uint64_t duration = next_next_event->time - next_event->time;
+      uint64_t units_factor;
+      QString time_units = getTimeUnitsAndFactor(duration, 1, &units_factor);
+      double adjusted_duration = duration / (double)units_factor;
+      QString val_text = niceValueText(adjusted_duration);
+      QString text = val_text + " " + time_units + " ";
+      painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, text);
+    }
+    dialog_y += th;
+
+    // Average duration in visible area
+    if (has_prev_event && has_next_event) {
+      EventInfo *event_info = &events->event_info_list[node->event_info_index];
+      bool is_on_duration = (prev_event->event_id == event_info->start_id && next_event->event_id == event_info->end_id);
+      int num_buckets = 2;
+      uint32_t buckets[2] = { 0, 0 };
+      uint64_t min, ave, max;
+      bool get_gap_durations = !is_on_duration;
+      uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &ave, &max);
+      if (num_durations > 1) {
+        uint64_t units_factor;
+        QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
+        double adjusted_ave = ave / (double)units_factor;
+        QString val_text = niceValueText(adjusted_ave);
+        QString text = " " + val_text + " " + time_units;
+        if (is_on_duration) text += " (gap)";
+        painter.drawText(dialog_x+mid_x, dialog_y, dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+      }
     }
     dialog_y += th;
 

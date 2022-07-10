@@ -22,7 +22,7 @@
 uint64_t getEventTime() {
 #ifdef USE_ZERO_BASE_TIME
   static uint64_t base_time;
-  static bool got_base_time = 0;
+  static bool got_base_time = false;
 #endif
 
   // clock_gettime() with CLOCK_MONOTONIC has nanosecond precision and is always increasing
@@ -33,7 +33,7 @@ uint64_t getEventTime() {
 #ifdef USE_ZERO_BASE_TIME
   if (!got_base_time) {
     base_time = total_nanoseconds;
-    got_base_time = 1;
+    got_base_time = true;
   }
   total_nanoseconds -= base_time;
 #endif
