@@ -42,9 +42,9 @@ public:
   uint16_t ID = 0;
   QColor color;
   uint64_t row_start_time = 0; // A convenince here for sorting. This not the first time for the whole file, but the first time for the row. This is just a relative time and doesn't need to be modified of the events file is time shifted.
-  QString name; // A convenince here for sorting
-  uint32_t max_event_instances = 0;
-  uint32_t num_event_instances = 0;
+  QString name; // A convenince here for sorting; full filename, or thread ID, folder name, event name
+  uint32_t max_event_instances = 0; // Used when building the tree. Estimates max events. Gets double in size if exceed actual events
+  uint32_t num_event_instances = 0; // This is the actual number of events in this tree node
   uint32_t *event_indices = NULL; // Ordered list of indices into the events
   QRect events_row_rect;
   QRect hierarchy_row_rect;
@@ -53,14 +53,16 @@ public:
   double utilization = 0.0;
   QList<EventTreeNode*> children;
   EventTreeNode *parent = NULL;
+
   bool isAncestorCollapsed();
+  uint32_t filteredEventInstanceCount();
 };
 
 class EventTree {
 public:
   Events *events = NULL;
   uint64_t native_start_time = 0;
-  QString name;
+  QString name; // Filename (not including folder or .event suffix)
   QString folder;
   EventTreeNode *tree = NULL;
 
@@ -69,13 +71,13 @@ public:
   void sortTree(SortType sort_type);
   void openAllFolders();
   void closeAllFolders();
+  void printTree(EventTreeNode *parent, const char *title, int level);
 
 private:
   void buildTree(EventTreeNode *node, uint32_t &event_index, bool show_folders, bool show_threads);
   void deleteTree(EventTreeNode *node);
   EventTreeNode *getChildWithEventInfoIndex(EventTreeNode *parent, uint16_t event_info_index);
   EventTreeNode *getThreadFolder(EventTreeNode *parent, uint16_t thread_index);
-  void printTree(EventTreeNode *parent, const char *title, int level);
   void sortNode(EventTreeNode *parent, SortType sort_type);
   void setFoldersExpanded(EventTreeNode *parent, bool is_expanded);
 };

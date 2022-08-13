@@ -75,6 +75,7 @@ private:
   EventTreeNode *eventRowSelected(Events **selected_events_ret);
   EventTreeNode *eventRowSelected(EventTreeNode *parent);
   uint32_t totalEventInstances();
+  uint32_t totalFilteredEventInstances();
   void freeAllEventFiles();
   void updateViews();
 };

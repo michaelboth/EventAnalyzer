@@ -38,7 +38,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   // Hide the status bar
   //statusBar()->hide();
-  statusBar()->showMessage("Event files loaded: 0, Filters Set: none, Total Events: 0");
+  statusBar()->showMessage("-");
 
   // Define a good window size
   QSize screen_size = screen()->availableSize();
@@ -421,7 +421,7 @@ void MainWindow::setWidgetUsability() {
   }
   bool folders_exist = eventFilesHaveFolders();
   bool threads_exist = eventFilesHaveThreads();
-  int num_events_filtered = G_event_filters.count();
+  int num_event_types_filtered = G_event_filters.count();
   bool font_size_can_grow = (G_font_point_size < G_max_font_point_size);
   bool font_size_can_shrink = (G_font_point_size > G_min_font_point_size);
   double percent_visible, percent_offset;
@@ -432,7 +432,7 @@ void MainWindow::setWidgetUsability() {
   ui->closeAllButton->setEnabled(event_files_loaded);
   ui->closeSelectedButton->setEnabled(event_file_selected);
   ui->setFilterButton->setEnabled(event_files_loaded);
-  ui->clearFilterButton->setEnabled(num_events_filtered > 0);
+  ui->clearFilterButton->setEnabled(num_event_types_filtered > 0);
   ui->showFoldersButton->setEnabled(folders_exist);
   ui->showThreadsButton->setEnabled(threads_exist);
   ui->openFoldersButton->setEnabled(event_files_loaded);
@@ -457,8 +457,9 @@ void MainWindow::setWidgetUsability() {
 
   // Update status bar
   QString alignment_mode = G_settings->value("alignment_mode", "Native").toString();  // One of "Native", "TimeZero", "EventId"
-  QString message = "Event files loaded: " + QString::number(G_event_tree_map.count());
-  message += "          Total Events: " + QString::number(totalEventInstances());
+  QString message = "Event Files: " + QString::number(G_event_tree_map.count());
+  uint32_t total_event_instances = totalEventInstances();
+  message += "          Total Events: " + QString::number(total_event_instances);
   if (alignment_mode == "Native") {
     message += "          Time Alignment: unmodified";
   } else if (alignment_mode == "TimeZero") {
@@ -471,12 +472,12 @@ void MainWindow::setWidgetUsability() {
     message += is_start ? "start ID, " : "end ID, ";
     message += "instance " + QString::number(instance_index);
   }
-  if (num_events_filtered == 0) {
-    message += "          Filters Set: none";
-  } else if (num_events_filtered == 1) {
-    message += "          Filters Set: " + QString::number(num_events_filtered) + " event";
-  } else if (num_events_filtered > 1) {
-    message += "          Filters Set: " + QString::number(num_events_filtered) + " events";
+  if (num_event_types_filtered == 0) {
+    message += "          Filters: none";
+  } else {
+    uint32_t total_filtered = totalFilteredEventInstances();
+    uint32_t total_unfiltered = total_event_instances - total_filtered;
+    message += "          Filters: " + QString::number(num_event_types_filtered) + " (" + QString::number(total_filtered) + " events hidden, " + QString::number(total_unfiltered) + " visible)";
   }
   statusBar()->showMessage(message);
 }
@@ -630,11 +631,21 @@ void MainWindow::freeAllEventFiles() {
   G_event_tree_map.clear();
 }
 
+uint32_t MainWindow::totalFilteredEventInstances() {
+  uint32_t count = 0;
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  while (i.hasNext()) {
+    i.next();
+    EventTree *tree = i.value();
+    count += tree->tree->filteredEventInstanceCount();
+  }
+  return count;
+}
+
 uint32_t MainWindow::totalEventInstances() {
   uint32_t count = 0;
   QMapIterator<QString, EventTree*> i(G_event_tree_map);
   while (i.hasNext()) {
-    // Get old tree info
     i.next();
     EventTree *tree = i.value();
     Events *events = tree->events;

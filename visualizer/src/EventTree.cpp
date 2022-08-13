@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "EventTree.hpp"
+#include "main.hpp" // Needed for G_event_filters
 
 #ifdef __APPLE__
   #define UINT64_FORMAT "llu"
@@ -160,6 +161,15 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
       event_index++;
     }
   }
+}
+
+uint32_t EventTreeNode::filteredEventInstanceCount() {
+  if (tree_node_type == TREE_NODE_IS_EVENT && G_event_filters.contains(name)) return num_event_instances;
+  uint32_t count = 0;
+  for (auto child: children) {
+    count += child->filteredEventInstanceCount();
+  }
+  return count;
 }
 
 void EventTree::printTree(EventTreeNode *parent, const char *title, int level) {
