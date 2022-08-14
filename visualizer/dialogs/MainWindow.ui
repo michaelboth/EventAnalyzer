@@ -564,7 +564,7 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QLabel" name="label_4">
+             <widget class="QLabel" name="timeTitle">
               <property name="styleSheet">
                <string notr="true">QLabel {
   background: rgb(200,200,200)
@@ -612,7 +612,7 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QLabel" name="label_3">
+             <widget class="QLabel" name="mouseTitle">
               <property name="styleSheet">
                <string notr="true">QLabel {
   background: rgb(200,200,200)
@@ -712,7 +712,7 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QLabel" name="label">
+             <widget class="QLabel" name="zoomTitle">
               <property name="styleSheet">
                <string notr="true">QLabel {
   background: rgb(200,200,200)
@@ -797,7 +797,7 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QLabel" name="label_2">
+             <widget class="QLabel" name="searchTitle">
               <property name="styleSheet">
                <string notr="true">QLabel {
   background: rgb(200,200,200)

@@ -245,11 +245,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->nextEventButton
   };
 
-  /*+ tool bar titles
-    G_min_font_point_size
-    gradient
-  */
-
   // Calculate standard tool button icon size
 #if defined(_WIN32)
   int toolbar_icon_size = (int)(iconSize().height() * 1.4f);
@@ -262,6 +257,25 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   // Set button sizes
   for (auto button: tool_buttons) button->setIconSize(button_size);
+
+  // Create the list of horizontal toolbar title
+  QList<QLabel *> horizontal_titles = {
+    // Hierarcy toolbar
+    ui->timeTitle,
+    ui->mouseTitle,
+    ui->zoomTitle,
+    ui->searchTitle
+  };
+  QString title_style =
+    "QLabel {"
+    "  background: rgb(200, 200, 200);"
+    //*+*/"  background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 white, stop:1 gray);"
+    //*+*/"  background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0.2 rgba(180,180,180,0), stop:1 rgb(180,180,180));"
+    //*+*/"  font: bold " + QString::number(G_font_point_size) + "px;"
+    //*+*/"  font: " + QString::number(G_font_point_size) + "px;"
+    //*+*/"  font: " + QString::number(G_min_font_point_size + (G_max_font_point_size - G_min_font_point_size)/2) + "px;"
+    "}";
+  for (auto label: horizontal_titles) label->setStyleSheet(title_style);
 
   // Set the logo
   QPixmap logo_pixmap = QPixmap(":/unikorn_logo.png");

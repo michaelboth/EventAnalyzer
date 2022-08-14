@@ -9,15 +9,8 @@ API:
     - const char *end_value_name;
 
 Visualizer:
- - A vertical names to each group in left tool bar
  - A names to each group in bottom tool bar
- - Change icons:
-   - Load file
-   - Open folder (use plus symbol)
-   - Close folder (use minus symbol)
- - New icons:
-   - No mouse info
- - Allow mouse over info to be disabled
+ - A vertical names to each group in left tool bar
  - Mouse info rollover
    - Center title name (and remove event icon)
    - Put event or gap icon above durations
