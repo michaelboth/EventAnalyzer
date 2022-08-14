@@ -268,12 +268,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   };
   QString title_style =
     "QLabel {"
-    "  background: rgb(200, 200, 200);"
-    //*+*/"  background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 white, stop:1 gray);"
-    //*+*/"  background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0.2 rgba(180,180,180,0), stop:1 rgb(180,180,180));"
-    //*+*/"  font: bold " + QString::number(G_font_point_size) + "px;"
-    //*+*/"  font: " + QString::number(G_font_point_size) + "px;"
-    //*+*/"  font: " + QString::number(G_min_font_point_size + (G_max_font_point_size - G_min_font_point_size)/2) + "px;"
+    "  background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgba(180,180,180,50), stop:1 rgb(180,180,180));"
     "  font: " + QString::number(G_min_font_point_size + (G_max_font_point_size - G_min_font_point_size)/3) + "px;"
     "}";
   for (auto label: horizontal_titles) label->setStyleSheet(title_style);
