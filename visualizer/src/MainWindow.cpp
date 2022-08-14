@@ -266,16 +266,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->zoomTitle,
     ui->searchTitle
   };
+  int title_h = G_min_font_point_size + (G_max_font_point_size - G_min_font_point_size)/3;
   QString title_style =
     "QLabel {"
     "  background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgba(180,180,180,50), stop:1 rgb(180,180,180));"
-    "  font: " + QString::number(G_min_font_point_size + (G_max_font_point_size - G_min_font_point_size)/3) + "px;"
+    "  font: " + QString::number(title_h) + "px;"
     "}";
   for (auto label: horizontal_titles) label->setStyleSheet(title_style);
 
   // Set the logo
   QPixmap logo_pixmap = QPixmap(":/unikorn_logo.png");
-  logo_pixmap = logo_pixmap.scaledToHeight(toolbar_icon_size, Qt::SmoothTransformation);
+  logo_pixmap = logo_pixmap.scaledToHeight(toolbar_icon_size + title_h, Qt::SmoothTransformation);
   ui->logoLabel->setPixmap(logo_pixmap);
 
   // Set the toolbar style
