@@ -1093,7 +1093,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     percent_visible = 1.0;
     percent_offset = 0.0;
     emit visibleTimeRangeChanged(0, 0); // Signal to the header
-    emit selectionTimeRangeChanged(0);  // Signal to the header
+    emit selectionTimeRangeChanged(0, 0, 0);  // Signal to the header
     emit timeRangeSelectionChanged();   // Signal to the toolbar widgets
     emit utilizationRecalculated();     // Signal to utilization column
     return;
@@ -1138,7 +1138,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   time_range = (double)(end_time - start_time);
 
   // Update units header
-  emit visibleTimeRangeChanged(start_time, end_time);
+  emit visibleTimeRangeChanged(start_time-full_start_time, end_time-full_start_time);
 
   // Make sure the frame buffer is the correct size
   if (frame_buffer.width() != w || frame_buffer.height() != h) {
@@ -1190,9 +1190,9 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     painter.fillRect(QRect(x1,0,x2-x1+1,h), time_selection_color);
     double time_range_factor = (x2 - x1)/(double)w;
     uint64_t selected_time_range = (uint64_t)(time_range_factor * time_range);
-    emit selectionTimeRangeChanged(selected_time_range);
+    emit selectionTimeRangeChanged(x1, x2, selected_time_range);
   } else {
-    emit selectionTimeRangeChanged(0);
+    emit selectionTimeRangeChanged(0, 0, 0);
   }
 
   if (mouse_button_pressed) return;

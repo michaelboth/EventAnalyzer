@@ -18,6 +18,8 @@
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
 
+#define STARTING_TIME_COLOR QColor(0,100,255,50)
+
 EventsHeader::EventsHeader(QWidget *parent) : QWidget(parent) {
   // Nothing to do
 }
@@ -34,7 +36,9 @@ void EventsHeader::updateUnits(uint64_t _start_time, uint64_t _end_time) {
   }
 }
 
-void EventsHeader::updateSelectionRange(uint64_t _selected_time_range) {
+void EventsHeader::updateSelectionRange(int x1, int x2, uint64_t _selected_time_range) {
+  selected_x1 = x1;
+  selected_x2 = x2;
   selected_time_range = _selected_time_range;
   update();
 }
@@ -87,7 +91,8 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
     double time = start_time / (double)units_factor + (offset_factor * nsecs) / units_factor;
     if (i == 0) {
       // Starting Time
-      painter.setPen(QPen(HEADER_TEXT_COLOR, 1, Qt::SolidLine));
+      painter.fillRect(QRect(x, 0, ref_w, h-1), STARTING_TIME_COLOR);
+      painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
       uint64_t starting_units_factor;
       QString time_units = getTimeUnitsAndFactor(start_time, 1, &starting_units_factor);
       double adjusted_duration = start_time / (double)starting_units_factor;
@@ -107,6 +112,25 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
     }
   }
 
+  // Draw full range time on right side
+  {
+    // Background
+    QRect rect = QRect(w-ref_w, 0, ref_w, h-1);
+    painter.fillRect(rect, HIERARCHY_PROFILING_BG_COLOR);
+    painter.fillRect(rect, STARTING_TIME_COLOR);
+    // Tick mark
+    painter.setPen(QPen(HEADER_TEXT_COLOR, 1, Qt::SolidLine));
+    painter.drawLine(w-ref_w, 0, w-ref_w, h);
+    // Time text
+    painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
+    uint64_t range_units_factor;
+    QString time_units = getTimeUnitsAndFactor(nsecs, 1, &range_units_factor);
+    double adjusted_duration = nsecs / (double)range_units_factor;
+    QString val_text = niceValueText(adjusted_duration);
+    QString text = "<->  " + val_text + " " + time_units + " ";
+    painter.drawText(rect, Qt::AlignRight | Qt::AlignBottom, text);
+  }
+
   // Draw selected range (only report elasped time)
   if (selected_time_range > 0) {
     int selection_times_to_display = 1;
@@ -115,17 +139,24 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
     // Highlight the background
     QColor time_selection_color = TIME_SELECTION_COLOR;
     time_selection_color.setAlpha(175);
-    painter.fillRect(QRect(0,0,w,h), time_selection_color);
+    painter.fillRect(QRect(selected_x1,0,selected_x2-selected_x1+1,h), time_selection_color);
     // Draw the time
     QFont font = painter.font();
     font.setBold(true);
     painter.setFont(font);
-    painter.setPen(QPen(Qt::white, 1, Qt::SolidLine));
     double adjusted_selection_time = selected_time_range / (double)selection_units_factor;
     char val_text[40];
     sprintf(val_text, "%0.1f", adjusted_selection_time);
     QString text = QString(val_text) + " " + selection_units;
-    painter.drawText(0, 0, w, h, Qt::AlignCenter, text);
+    int tw = fm.horizontalAdvance(text);
+    int tx = selected_x1 + (selected_x2-selected_x1)/2 - tw/2;
+    painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
+    painter.drawText(tx-1,-1, tw, h, Qt::AlignCenter, text);
+    painter.drawText(tx+1,-1, tw, h, Qt::AlignCenter, text);
+    painter.drawText(tx+1, 1, tw, h, Qt::AlignCenter, text);
+    painter.drawText(tx-1, 1, tw, h, Qt::AlignCenter, text);
+    painter.setPen(QPen(Qt::white, 1, Qt::SolidLine));
+    painter.drawText(tx, 0, tw, h, Qt::AlignCenter, text);
     return;
   }
 }

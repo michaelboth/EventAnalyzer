@@ -54,7 +54,7 @@ signals:
   void timeRangeChanged();           // Just and percentage showing how much is visible and offset
   void timeRangeSelectionChanged();
   void visibleTimeRangeChanged(uint64_t start_time, uint64_t end_time); // Used to update the time units
-  void selectionTimeRangeChanged(uint64_t elapsed_time); // Used to update the header's selection range
+  void selectionTimeRangeChanged(int x1, int x2, uint64_t elapsed_time); // Used to update the header's selection range
   void utilizationRecalculated();
 
 public slots:

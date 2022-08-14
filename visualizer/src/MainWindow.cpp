@@ -387,7 +387,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   this->connect(ui->eventsView, SIGNAL(timeRangeChanged()), this, SLOT(updateEventsScrollRange()));
   this->connect(ui->eventsView, SIGNAL(timeRangeSelectionChanged()), this, SLOT(setWidgetUsability()));
   this->connect(ui->eventsView, SIGNAL(visibleTimeRangeChanged(uint64_t,uint64_t)), ui->eventsHeader, SLOT(updateUnits(uint64_t,uint64_t)));
-  this->connect(ui->eventsView, SIGNAL(selectionTimeRangeChanged(uint64_t)), ui->eventsHeader, SLOT(updateSelectionRange(uint64_t)));
+  this->connect(ui->eventsView, SIGNAL(selectionTimeRangeChanged(int,int,uint64_t)), ui->eventsHeader, SLOT(updateSelectionRange(int,int,uint64_t)));
   this->connect(ui->eventsView, SIGNAL(utilizationRecalculated()), ui->profilingView, SLOT(update()));
   this->connect(ui->eventsView, SIGNAL(utilizationRecalculated()), this, SLOT(setWidgetUsability()));
   this->connect(ui->zoomToAllButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomToAll()));

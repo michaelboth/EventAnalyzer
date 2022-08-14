@@ -33,11 +33,13 @@ signals:
 
 public slots:
   void updateUnits(uint64_t start_time, uint64_t end_time);
-  void updateSelectionRange(uint64_t selected_time_range);
+  void updateSelectionRange(int x1, int x2, uint64_t selected_time_range);
 
 private:
   uint64_t start_time = 0;
   uint64_t end_time = 0;
+  int selected_x1 = 0;
+  int selected_x2 = 0;
   uint64_t selected_time_range = 0;
 };
 
