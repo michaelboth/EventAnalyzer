@@ -17,7 +17,6 @@ Visualizer:
    - Use independnt lines for
       - <N> Idle Gaps: ave time <time>
       - <N> Durations: ave time <time>
- - Search for largest duration/gap (similar to prev/next event). Maybe allow dialog to select Nth largest gap
 
  - Add optional gridlines (via toggle button)
  - Remember the window size from run to run
