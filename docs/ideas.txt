@@ -1,11 +1,39 @@
-API:
- - Allow folders to also contain instance, locations, and value? Any benefit with this?
- - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
+Tutorial/Demo:
+  - Slide deck plus examples to show off general usage
+  - Compare vector multiply via IPP, CUDA, and OpenCL?
 
+API:
+ - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
+ - Add two fields to UkEventInfo:
+    - const char *start_value_name;
+    - const char *end_value_name;
 
 Visualizer:
+ - A vertical names to each group in left tool bar
+ - A names to each group in bottom tool bar
+ - Change icons:
+   - Load file
+   - Open folder (use plus symbol)
+   - Close folder (use minus symbol)
+ - New icons:
+   - No mouse info
+ - Allow mouse over info to be disabled
+ - Mouse info rollover
+   - Center title name (and remove event icon)
+   - Put event or gap icon above durations
+   - Avoid colored text
+   - Use whiter background to bring out dark text
+   - Use independnt lines for
+      - <N> Idle Gaps: ave time <time>
+      - <N> Durations: ave time <time>
+ - Add optional gridlines (via toggle button)
+ - Time bar should be from zero. Then no need for "+" on remaining deltas.
+ - Show selected duration somewhere else
+ - Show visible duration somewhere
+ - If no file loaded, show visible hints?
+
  - Remember the window size from run to run
  - Allow the files to also be sorted by time & event ID, not just alphabetical
  - From the time align dialog:
        - Allow clock drift correction between files via scaling first and last event instances
- - Search for largest duration/gap (similar to prev/next event)
+ - Search for largest duration/gap (similar to prev/next event). Maybe allow dialog to select Nth largest gap

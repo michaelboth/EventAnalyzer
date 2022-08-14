@@ -49,6 +49,7 @@ private slots:
   void on_increaseFontSizeButton_clicked();
   void on_decreaseFontSizeButton_clicked();
   // Events toolbar
+  void on_mouseModeNoneButton_clicked();
   void on_mouseModeInfoButton_clicked();
   void on_mouseModeHistogramButton_clicked();
   void on_mouseModeTimeShiftButton_clicked();

@@ -26,6 +26,7 @@ class EventsView : public QWidget
 
 public:
   enum MouseMode {
+    MOUSE_MODE_EVENT_NONE,
     MOUSE_MODE_EVENT_INFO,
     MOUSE_MODE_EVENT_HISTOGRAM,
     MOUSE_MODE_TIME_SHIFT,

@@ -1198,7 +1198,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   if (mouse_button_pressed) return;
 
   // Draw rollover info or histogram
-  if (mouse_location.x() >= 0 && mouse_location.y() >= 0) {
+  if ((mouse_mode == MOUSE_MODE_EVENT_INFO || mouse_mode == MOUSE_MODE_EVENT_HISTOGRAM) && mouse_location.x() >= 0 && mouse_location.y() >= 0) {
     EventTreeNode *node_with_mouse = NULL;
     Events *events_with_mouse = NULL;
     QMapIterator<QString, EventTree*> i(G_event_tree_map);

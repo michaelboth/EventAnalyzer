@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   // Set title
   setWindowIcon(QIcon(":/hierarchy_file.png")); // Icon shown at top left, but not file based icon
-  setWindowTitle("Unikorn Viewer (version " + QString::number(UK_API_VERSION_MAJOR) + "." + QString::number(UK_API_VERSION_MINOR) + ")");
+  setWindowTitle("Unikorn Viewer v" + QString::number(UK_API_VERSION_MAJOR) + "." + QString::number(UK_API_VERSION_MINOR));
 
   // Hide the status bar
   //statusBar()->hide();
@@ -233,6 +233,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->decreaseFontSizeButton,
     // Events toolbar
     ui->timeAlignButton,
+    ui->mouseModeNoneButton,
     ui->mouseModeInfoButton,
     ui->mouseModeHistogramButton,
     ui->mouseModeTimeShiftButton,
@@ -243,6 +244,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->prevEventButton,
     ui->nextEventButton
   };
+
+  /*+ tool bar titles
+    G_min_font_point_size
+    gradient
+  */
 
   // Calculate standard tool button icon size
 #if defined(_WIN32)
@@ -278,12 +284,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->loadButton->setIcon(buildIcon(":/load.png",                           false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->closeAllButton->setIcon(buildIcon(":/close.png",                      false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->closeSelectedButton->setIcon(buildIcon(":/close_selected.png",        false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->setFilterButton->setIcon(buildIcon(":/filter.png",                    false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->clearFilterButton->setIcon(buildIcon(":/clear_filter.png",            false, toolbar_icon_size, IMPORTANT_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->showFoldersButton->setIcon(buildIcon(":/show_folders.png",            true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->showThreadsButton->setIcon(buildIcon(":/show_threads.png",            true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->openFoldersButton->setIcon(buildIcon(":/open_folders.png",            false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
-  ui->closeFoldersButton->setIcon(buildIcon(":/close_folders.png",          false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->openFoldersButton->setIcon(buildIcon(":/expand.png",                  false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->closeFoldersButton->setIcon(buildIcon(":/collapse.png",               false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->setFilterButton->setIcon(buildIcon(":/filter.png",                    false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->clearFilterButton->setIcon(buildIcon(":/clear_filter.png",            false, toolbar_icon_size, IMPORTANT_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->sortByIdButton->setIcon(buildIcon(":/sort_by_id.png",                 true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->sortByNameButton->setIcon(buildIcon(":/sort_by_name.png",             true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->sortByTimeButton->setIcon(buildIcon(":/sort_by_time.png",             true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
@@ -292,6 +298,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   // Set events toolbar button icons
   ui->timeAlignButton->setIcon(buildIcon(":/time_align.png",                     false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->mouseModeNoneButton->setIcon(buildIcon(":/mouse_mode_none.png",            true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->mouseModeInfoButton->setIcon(buildIcon(":/mouse_mode_info.png",            true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->mouseModeHistogramButton->setIcon(buildIcon(":/mouse_mode_histogram.png",  true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->mouseModeTimeShiftButton->setIcon(buildIcon(":/mouse_mode_time_shift.png", true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
@@ -445,6 +452,7 @@ void MainWindow::setWidgetUsability() {
 
   // Events toolbar
   ui->timeAlignButton->setEnabled(event_files_loaded && num_files_loaded > 1);
+  ui->mouseModeNoneButton->setEnabled(event_files_loaded);
   ui->mouseModeInfoButton->setEnabled(event_files_loaded);
   ui->mouseModeHistogramButton->setEnabled(event_files_loaded);
   ui->mouseModeTimeShiftButton->setEnabled(event_files_loaded);
@@ -456,10 +464,9 @@ void MainWindow::setWidgetUsability() {
   ui->nextEventButton->setEnabled(event_files_loaded && events_to_the_right);
 
   // Update status bar
-  QString alignment_mode = G_settings->value("alignment_mode", "Native").toString();  // One of "Native", "TimeZero", "EventId"
   QString message = "Event Files: " + QString::number(G_event_tree_map.count());
-  uint32_t total_event_instances = totalEventInstances();
-  message += "          Total Events: " + QString::number(total_event_instances);
+  // Time alignment
+  QString alignment_mode = G_settings->value("alignment_mode", "Native").toString();  // One of "Native", "TimeZero", "EventId"
   if (alignment_mode == "Native") {
     message += "          Time Alignment: unmodified";
   } else if (alignment_mode == "TimeZero") {
@@ -472,6 +479,10 @@ void MainWindow::setWidgetUsability() {
     message += is_start ? "start ID, " : "end ID, ";
     message += "instance " + QString::number(instance_index);
   }
+  // Total event
+  uint32_t total_event_instances = totalEventInstances();
+  message += "          Total Events: " + QString::number(total_event_instances);
+  // Filters
   if (num_event_types_filtered == 0) {
     message += "          Filters: none";
   } else {
@@ -798,11 +809,25 @@ void MainWindow::on_sortByTimeButton_clicked() {
   }
 }
 
+void MainWindow::on_mouseModeNoneButton_clicked() {
+  bool is_checked = ui->mouseModeNoneButton->isChecked();
+  if (!is_checked) {
+    ui->mouseModeNoneButton->setChecked(true);
+  }
+  ui->mouseModeInfoButton->setChecked(false);
+  ui->mouseModeHistogramButton->setChecked(false);
+  ui->mouseModeTimeShiftButton->setChecked(false);
+  if (is_checked) {
+    ui->eventsView->setMouseMode(EventsView::MOUSE_MODE_EVENT_NONE);
+  }
+}
+
 void MainWindow::on_mouseModeInfoButton_clicked() {
   bool is_checked = ui->mouseModeInfoButton->isChecked();
   if (!is_checked) {
     ui->mouseModeInfoButton->setChecked(true);
   }
+  ui->mouseModeNoneButton->setChecked(false);
   ui->mouseModeHistogramButton->setChecked(false);
   ui->mouseModeTimeShiftButton->setChecked(false);
   if (is_checked) {
@@ -815,6 +840,7 @@ void MainWindow::on_mouseModeHistogramButton_clicked() {
   if (!is_checked) {
     ui->mouseModeHistogramButton->setChecked(true);
   }
+  ui->mouseModeNoneButton->setChecked(false);
   ui->mouseModeInfoButton->setChecked(false);
   ui->mouseModeTimeShiftButton->setChecked(false);
   if (is_checked) {
@@ -827,6 +853,7 @@ void MainWindow::on_mouseModeTimeShiftButton_clicked() {
   if (!is_checked) {
     ui->mouseModeTimeShiftButton->setChecked(true);
   }
+  ui->mouseModeNoneButton->setChecked(false);
   ui->mouseModeInfoButton->setChecked(false);
   ui->mouseModeHistogramButton->setChecked(false);
   if (is_checked) {
