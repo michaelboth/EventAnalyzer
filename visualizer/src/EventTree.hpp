@@ -45,7 +45,8 @@ public:
   QString name; // A convenince here for sorting; full filename, or thread ID, folder name, event name
   uint32_t max_event_instances = 0; // Used when building the tree. Estimates max events. Gets double in size if exceed actual events
   uint32_t num_event_instances = 0; // This is the actual number of events in this tree node
-  uint32_t *event_indices = NULL; // Ordered list of indices into the events
+  uint32_t *event_indices = NULL; // Ordered list of indices into the events file
+  uint32_t end_event_index_of_largest_duration = 0;
   QRect events_row_rect;
   QRect hierarchy_row_rect;
   QRect folder_rect;

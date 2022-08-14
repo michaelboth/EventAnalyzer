@@ -49,13 +49,14 @@ private slots:
   void on_increaseFontSizeButton_clicked();
   void on_decreaseFontSizeButton_clicked();
   // Events toolbar
+  void on_timeAlignButton_clicked();
   void on_mouseModeNoneButton_clicked();
   void on_mouseModeInfoButton_clicked();
   void on_mouseModeHistogramButton_clicked();
   void on_mouseModeTimeShiftButton_clicked();
   void on_prevEventButton_clicked();
   void on_nextEventButton_clicked();
-  void on_timeAlignButton_clicked();
+  void on_largestEventButton_clicked();
   // Custom
   void updateColumnWidths(int pos, int index);
   void setWidgetUsability();

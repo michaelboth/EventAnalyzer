@@ -37,6 +37,7 @@
         <file alias="zoom_to_selected.png">icons/zoom_to_selected.png</file>
         <file alias="prev_event.png">icons/prev_event.png</file>
         <file alias="next_event.png">icons/next_event.png</file>
+        <file alias="largest_event.png">icons/largest_event.png</file>
 
     </qresource>
 </RCC>

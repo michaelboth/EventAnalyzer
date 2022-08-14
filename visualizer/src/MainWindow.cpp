@@ -242,7 +242,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->zoomOutButton,
     ui->zoomToSelectedButton,
     ui->prevEventButton,
-    ui->nextEventButton
+    ui->nextEventButton,
+    ui->largestEventButton
   };
 
   // Calculate standard tool button icon size
@@ -347,6 +348,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->zoomToSelectedButton->setIcon(buildIcon(":/zoom_to_selected.png",          false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->prevEventButton->setIcon(buildIcon(":/prev_event.png",                     false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->nextEventButton->setIcon(buildIcon(":/next_event.png",                     false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->largestEventButton->setIcon(buildIcon(":/largest_event.png",               false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
 
   // Make sure events window stretches
   ui->viewSplitter->setStretchFactor(0, 0);
@@ -501,6 +503,7 @@ void MainWindow::setWidgetUsability() {
   ui->zoomToSelectedButton->setEnabled(event_files_loaded && ui->eventsView->timeRangeSelected());
   ui->prevEventButton->setEnabled(event_files_loaded && events_to_the_left);
   ui->nextEventButton->setEnabled(event_files_loaded && events_to_the_right);
+  ui->largestEventButton->setEnabled(event_files_loaded && events_row != NULL && events_row->end_event_index_of_largest_duration > 0);
 
   // Update status bar
   QString message = "Event Files: " + QString::number(G_event_tree_map.count());
@@ -1024,6 +1027,12 @@ void MainWindow::on_nextEventButton_clicked() {
   Events *selected_events = NULL;
   EventTreeNode *events_row = eventRowSelected(&selected_events);
   ui->eventsView->centerNextEvent(selected_events, events_row);
+}
+
+void MainWindow::on_largestEventButton_clicked() {
+  Events *selected_events = NULL;
+  EventTreeNode *events_row = eventRowSelected(&selected_events);
+  ui->eventsView->centerLargestEvent(selected_events, events_row);
 }
 
 void MainWindow::updateViews() {

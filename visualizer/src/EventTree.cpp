@@ -157,6 +157,33 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
         child->event_indices = (uint32_t *)realloc(child->event_indices, child->max_event_instances * sizeof(uint32_t));
       }
       child->event_indices[child->num_event_instances] = event_index;
+
+      // See if this is the largest duration
+      if (child->num_event_instances > 0 && event->event_id == event_info->end_id) {
+        // This is an end event, and a prev event exists. See if the prev event is a start event
+        uint16_t prev_event_index = child->event_indices[child->num_event_instances-1];
+        Event *prev_event = &events->event_buffer[prev_event_index];
+        if (prev_event->event_id == event_info->start_id) {
+          // Prev event is the start. See if the duration is the largest
+          uint64_t duration = event->time - prev_event->time;
+          if (child->end_event_index_of_largest_duration == 0) {
+            // This is the first duration
+            child->end_event_index_of_largest_duration = child->num_event_instances;
+          } else {
+            // Subsequent duration
+            uint16_t largest_start_event_index = child->event_indices[child->end_event_index_of_largest_duration-1];
+            uint16_t largest_end_event_index = child->event_indices[child->end_event_index_of_largest_duration];
+            Event *largest_start_event = &events->event_buffer[largest_start_event_index];
+            Event *largest_end_event = &events->event_buffer[largest_end_event_index];
+            uint64_t largest_duration = largest_end_event->time - largest_start_event->time;
+            if (duration > largest_duration) {
+              // This is larger
+              child->end_event_index_of_largest_duration = child->num_event_instances;
+            }
+          }
+        }
+      }
+
       child->num_event_instances++;
       event_index++;
     }

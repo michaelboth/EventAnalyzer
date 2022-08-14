@@ -317,6 +317,28 @@ void EventsView::centerNextEvent(Events *events, EventTreeNode *events_row) {
   }
 }
 
+void EventsView::centerLargestEvent(Events *events, EventTreeNode *events_row) {
+  // Check if zoomed in, otherwise all events are visible
+  if (percent_visible < 1.0 && events_row->end_event_index_of_largest_duration > 0) {
+    // IMPORTANT: Using time range that was last calculated from the paintEvent()
+
+    // Get center time of largest duration
+    uint32_t start_event_index = events_row->event_indices[events_row->end_event_index_of_largest_duration-1];
+    uint32_t end_event_index = events_row->event_indices[events_row->end_event_index_of_largest_duration];
+    Event *start_event = &events->event_buffer[start_event_index];
+    Event *end_event = &events->event_buffer[end_event_index];
+    uint64_t center_of_duration = start_event->time + (end_event->time - start_event->time)/2;
+
+    // Shift to the duration center if can scroll that far
+    double center_percent = (center_of_duration - full_start_time) / (double)(full_end_time - full_start_time);
+    percent_offset = std::max(center_percent - percent_visible/2.0, 0.0);
+    selected_time_range_x1 = -1;
+    selected_time_range_x2 = -1;
+    emit timeRangeChanged();
+    rebuildAndUpdate();
+  }
+}
+
 void EventsView::mousePressEvent(QMouseEvent *event) {
   if (G_event_tree_map.count() == 0) return;
   if (event->button() == Qt::LeftButton) {
