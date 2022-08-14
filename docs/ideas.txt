@@ -4,20 +4,11 @@ Tutorial/Demo:
 
 API:
  - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
- - Add two fields to UkEventInfo:
+ - Add two fields to UkEventInfo (would need to increase API version):
     - const char *start_value_name;
     - const char *end_value_name;
 
 Visualizer:
- - Mouse info rollover
-   - Center title name (and remove event icon)
-   - Put event or gap icon above durations
-   - Avoid colored text
-   - Use whiter background to bring out dark text
-   - Use independnt lines for
-      - <N> Idle Gaps: ave time <time>
-      - <N> Durations: ave time <time>
-
  - Add optional gridlines (via toggle button)
  - Remember the window size from run to run
  - Allow the files to also be sorted by time & event ID, not just alphabetical

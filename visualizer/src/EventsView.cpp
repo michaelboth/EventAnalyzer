@@ -22,9 +22,9 @@
 
 #define MIN_SELECTION_PIXEL_DIFF 5
 #define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
-#define ROLLOVER_BG_COLOR QColor(200, 200, 200, 230)
+#define ROLLOVER_BG_COLOR QColor(225, 225, 225, 230)
 #define ROLLOVER_TEXT_COLOR QColor(0, 0, 0)
-#define ROLLOVER_TITLE_COLOR QColor(0, 50, 255)
+#define ROLLOVER_UNUNSED_TEXT_COLOR QColor(0, 0, 0, 125)
 #define ROLLOVER_SEPARATOR_COLOR QColor(0, 0, 0, 100)
 #define ROW_HIGHLIGHT_COLOR2 QColor(0, 0, 0, 15)
 #define HISTOGRAM_BAR_BG_COLOR QColor(230,230,230)
@@ -683,8 +683,10 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
     char val_text[40];
     sprintf(val_text, "%0.3f", adjusted_time);
     QString text = " " + QString(val_text) + " " + time_units;
+    painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
     painter.drawText(dialog_x, dialog_y+th*(num_lines-2), dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, text);
-    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, " min");
+    painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, " Min");
   }
   { // Ave
     uint64_t units_factor;
@@ -693,8 +695,10 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
     char val_text[40];
     sprintf(val_text, "%0.3f", adjusted_time);
     QString text = QString(val_text) + " " + time_units;
+    painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
     painter.drawText(dialog_x, dialog_y+th*(num_lines-2), dialog_w, th, Qt::AlignCenter, text);
-    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignCenter, "average");
+    painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignCenter, "Ave");
   }
   { // Max
     uint64_t units_factor;
@@ -703,8 +707,10 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
     char val_text[40];
     sprintf(val_text, "%0.3f", adjusted_time);
     QString text = QString(val_text) + " " + time_units + " ";
+    painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
     painter.drawText(dialog_x, dialog_y+th*(num_lines-2), dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, text);
-    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, "max ");
+    painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, "Max ");
   }
 
   free(buckets);
@@ -722,8 +728,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   QFontMetrics fm = painter.fontMetrics();
   int th = fm.height() * 1.3f;
   int m = th * 0.25f;
-  //* OLD */int num_lines = 8;
-  int num_lines = 7;
+  int num_lines = 9;
   int dialog_w = fm.horizontalAdvance(" xxxfilename::function_name::line_numberxxx ");
   int dialog_h = th*num_lines;
   int dialog_x = mouse_location.x() + m;
@@ -738,10 +743,10 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
   painter.setPen(QPen(ROLLOVER_SEPARATOR_COLOR, 1, Qt::SolidLine));
 
   // Horizontal lines
-  int num_lines_to_draw = ancestor_collapsed ? 2/* OLD 3*/ : num_lines;
+  int num_lines_to_draw = ancestor_collapsed ? 2 : num_lines;
   for (int i=1; i<num_lines_to_draw; i++) {
     int line_y = i*th;
-    painter.drawLine(dialog_x+1, dialog_y+line_y, dialog_x+dialog_w-1, dialog_y+line_y);
+    if (i != 2) painter.drawLine(dialog_x+1, dialog_y+line_y, dialog_x+dialog_w-1, dialog_y+line_y);
   }
   //int mid_x = dialog_w/2;
   int col1_x = dialog_w * 0.333f;
@@ -749,32 +754,13 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
 
   // Veritical lines
   if (!ancestor_collapsed) {
-    /* OLD
-    painter.drawLine(dialog_x+mid_x, dialog_y+th*1, dialog_x+mid_x, dialog_y+th*3);
-    painter.drawLine(dialog_x+col1_x, dialog_y+th*3, dialog_x+col1_x, dialog_y+th*6);
-    painter.drawLine(dialog_x+col2_x, dialog_y+th*3, dialog_x+col2_x, dialog_y+th*6);
-    */
-    painter.drawLine(dialog_x+col1_x, dialog_y+th*1, dialog_x+col1_x, dialog_y+th*2);
-    painter.drawLine(dialog_x+col2_x, dialog_y+th*1, dialog_x+col2_x, dialog_y+th*2);
-    //* OLD */painter.drawLine(dialog_x+mid_x, dialog_y+th*1, dialog_x+mid_x, dialog_y+th*2);
-    //* OLD */painter.drawLine(dialog_x+mid_x, dialog_y+th*2, dialog_x+mid_x, dialog_y+th*3);
     painter.drawLine(dialog_x+col1_x, dialog_y+th*3, dialog_x+col1_x, dialog_y+th*5);
     painter.drawLine(dialog_x+col2_x, dialog_y+th*3, dialog_x+col2_x, dialog_y+th*5);
   }
 
   // Titles
-  QColor text_color = (node->tree_node_type == TREE_NODE_IS_EVENT) ? node->color : ROLLOVER_TITLE_COLOR;
-  painter.setPen(QPen(text_color, 1, Qt::SolidLine));
-  //* OLD */painter.drawText(dialog_x, dialog_y+th*1, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Mouse Over Time ");
+  painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
   if (!ancestor_collapsed) {
-    /* OLD
-    painter.drawText(dialog_x, dialog_y+th*2, mid_x, th, Qt::AlignRight | Qt::AlignVCenter, "Duration/Gap ");
-    painter.drawText(dialog_x+col1_x, dialog_y+th*3, col2_x-col1_x, th, Qt::AlignCenter, "Time");
-    painter.drawText(dialog_x+col1_x, dialog_y+th*4, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
-    painter.drawText(dialog_x+col1_x, dialog_y+th*5, col2_x-col1_x, th, Qt::AlignCenter, "Value");
-    */
-    //* OLD */painter.drawText(dialog_x,        dialog_y+th*1, mid_x,         th, Qt::AlignRight | Qt::AlignVCenter, "Duration/Gap ");
-    //* OLD */painter.drawText(dialog_x,        dialog_y+th*2, mid_x,         th, Qt::AlignRight | Qt::AlignVCenter, "Ave ");
     painter.drawText(dialog_x+col1_x, dialog_y+th*3, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
     painter.drawText(dialog_x+col1_x, dialog_y+th*4, col2_x-col1_x, th, Qt::AlignCenter, "Value");
   }
@@ -788,13 +774,11 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     image_icon = node->is_open ? icon_map["hierarchy_opened_folder.png"] : icon_map["hierarchy_closed_folder.png"];
   } else if (node->tree_node_type == TREE_NODE_IS_THREAD) {
     image_icon = node->is_open ? icon_map["hierarchy_opened_thread.png"] : icon_map["hierarchy_closed_thread.png"];
-  } else {
-    image_icon = drawEventIcon(th, node->color);
   }
   int icon_offset = 0;
   if (!image_icon.isNull()) {
     painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
-    icon_offset = m + image_icon.width() / G_pixels_per_point;
+    icon_offset = m + image_icon.width() / G_pixels_per_point + m;
     int image_w = th * image_icon.width() / (float)image_icon.height();
     painter.drawPixmap(dialog_x+m, dialog_y, image_w, th, image_icon);
     painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
@@ -802,26 +786,18 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
 
   // Draw name (top right)
   QString name_text = " " + node->name;
-  painter.drawText(dialog_x+icon_offset, dialog_y, dialog_w-icon_offset, th, Qt::AlignLeft | Qt::AlignVCenter, name_text);
+  if (!image_icon.isNull()) {
+    painter.drawText(dialog_x+icon_offset, dialog_y, dialog_w-icon_offset, th, Qt::AlignLeft | Qt::AlignVCenter, name_text);
+  } else {
+    painter.drawText(dialog_x+icon_offset, dialog_y, dialog_w-icon_offset, th, Qt::AlignCenter, name_text);
+  }
   dialog_y += th;
-
-  /* OLD
-  // Draw mouse time
-  char val_text[40];
-  uint64_t mouse_time_units_factor;
-  QString mouse_time_units = getTimeUnitsAndFactor(time_at_mouse, 1, &mouse_time_units_factor);
-  double adjusted_mouse_time = time_at_mouse / (double)mouse_time_units_factor;
-  sprintf(val_text, "%0.3f", adjusted_mouse_time);
-  QString mouse_time_text = " " + QString(val_text) + " " + mouse_time_units;
-  painter.drawText(dialog_x+mid_x, dialog_y, dialog_w-mid_x, th, Qt::AlignLeft | Qt::AlignVCenter, mouse_time_text);
-  dialog_y += th;
-  */
 
   if (ancestor_collapsed) {
     // Nothing to show
     QString message = "Open this item in left\npanel to see event details";
-    //* OLD */painter.drawText(dialog_x, dialog_y, dialog_w, th*(num_lines-3), Qt::AlignCenter, message);
     painter.drawText(dialog_x, dialog_y, dialog_w, th*(num_lines-1), Qt::AlignCenter, message);
+
   } else if (node->tree_node_type == TREE_NODE_IS_EVENT) {
     // Show event info
     uint32_t event_index_to_right_of_mouse = findEventIndexAtTime(events, node, time_at_mouse, 0);
@@ -831,6 +807,24 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     Event *prev_event = has_prev_event ? &events->event_buffer[node->event_indices[event_index_to_left_of_mouse]] : NULL;
     Event *next_event = has_next_event ? &events->event_buffer[node->event_indices[event_index_to_right_of_mouse]] : NULL;
 
+    // Draw event icon or "GAP"
+    if (has_prev_event && has_next_event && node->tree_node_type == TREE_NODE_IS_EVENT) {
+      EventInfo *event_info = &events->event_info_list[node->event_info_index];
+      bool is_on_duration = (prev_event->event_id == event_info->start_id && next_event->event_id == event_info->end_id);
+      if (is_on_duration) {
+        int mini_icon_h = th * 1.2;
+        image_icon = drawEventIcon(th, node->color);
+        int image_w = mini_icon_h * image_icon.width() / (float)image_icon.height();
+        painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
+        painter.drawPixmap(dialog_x+(dialog_w-image_w)/2, dialog_y, image_w, mini_icon_h, image_icon);
+        painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+      } else {
+        QString text = "|------ GAP ------|";
+        painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
+      }
+    }
+    dialog_y += th;
+
     // Duration
     if (has_prev_event && has_next_event) {
       uint64_t duration = next_event->time - prev_event->time;
@@ -839,75 +833,17 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
       double adjusted_duration = duration / (double)units_factor;
       QString val_text = niceValueText(adjusted_duration);
       QString text = " " + val_text + " " + time_units;
-      painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter | Qt::AlignVCenter, text);
-    }
-    if (has_prev_event && event_index_to_left_of_mouse > 0) {
-      // Prev-prev exist. show that duration
-      Event *prev_prev_event = &events->event_buffer[node->event_indices[event_index_to_left_of_mouse-1]];
-      uint64_t duration = prev_event->time - prev_prev_event->time;
-      uint64_t units_factor;
-      QString time_units = getTimeUnitsAndFactor(duration, 1, &units_factor);
-      double adjusted_duration = duration / (double)units_factor;
-      QString val_text = niceValueText(adjusted_duration);
-      QString text = " " + val_text + " " + time_units;
-      painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, text);
-    }
-    if (has_next_event && (event_index_to_right_of_mouse+1) < node->num_event_instances) {
-      // Next-next exist. show that duration
-      Event *next_next_event = &events->event_buffer[node->event_indices[event_index_to_right_of_mouse+1]];
-      uint64_t duration = next_next_event->time - next_event->time;
-      uint64_t units_factor;
-      QString time_units = getTimeUnitsAndFactor(duration, 1, &units_factor);
-      double adjusted_duration = duration / (double)units_factor;
-      QString val_text = niceValueText(adjusted_duration);
-      QString text = val_text + " " + time_units + " ";
-      painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, text);
+      painter.save();
+      QFont font = painter.font();
+      font.setPointSize(font.pointSize()*1.5);
+      painter.setFont(font);
+      int extra_th = th * 0.3f;
+      painter.drawText(dialog_x, dialog_y-extra_th, dialog_w, th+extra_th, Qt::AlignCenter | Qt::AlignVCenter, text);
+      painter.restore();
     }
     dialog_y += th;
 
-    // Average duration in visible area
-    if (has_prev_event && has_next_event) {
-      EventInfo *event_info = &events->event_info_list[node->event_info_index];
-      bool is_on_duration = (prev_event->event_id == event_info->start_id && next_event->event_id == event_info->end_id);
-      int num_buckets = 2;
-      uint32_t buckets[2] = { 0, 0 };
-      uint64_t min, ave, max;
-      bool get_gap_durations = !is_on_duration;
-      uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &ave, &max);
-      if (num_durations > 1) {
-        uint64_t units_factor;
-        QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
-        double adjusted_ave = ave / (double)units_factor;
-        QString val_text = niceValueText(adjusted_ave);
-        QString text = is_on_duration ? " Durations: " : "Gaps: ";
-	text += QString::number(num_durations) + ",   Ave " + val_text + " " + time_units;
-        painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, text);
-      }
-    }
-    dialog_y += th;
-
-    /* OLD
-    // Prev/Next Times
-    if (has_prev_event) {
-      uint64_t units_factor;
-      QString time_units = getTimeUnitsAndFactor(prev_event->time, 1, &units_factor);
-      double adjusted_time = prev_event->time / (double)units_factor;
-      QString val_text = niceValueText(adjusted_time);
-      QString text = val_text + " " + time_units + " ";
-      painter.drawText(dialog_x, dialog_y, col1_x, th, Qt::AlignRight | Qt::AlignVCenter, text);
-    }
-    if (has_next_event) {
-      uint64_t units_factor;
-      QString time_units = getTimeUnitsAndFactor(next_event->time, 1, &units_factor);
-      double adjusted_time = next_event->time / (double)units_factor;
-      QString val_text = niceValueText(adjusted_time);
-      QString text = " " + val_text + " " + time_units;
-      painter.drawText(dialog_x+col2_x, dialog_y, col1_x, th, Qt::AlignLeft | Qt::AlignVCenter, text);
-    }
-    dialog_y += th;
-    */
-
-    // Prev/Next Instances
+    // Prev/Next event instances
     if (has_prev_event) {
       QString text = events->includes_instance ? QString::number(prev_event->instance) + " " : "- ";
       painter.drawText(dialog_x, dialog_y, col1_x, th, Qt::AlignRight | Qt::AlignVCenter, text);
@@ -918,7 +854,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     }
     dialog_y += th;
 
-    // Prev/Next Values
+    // Prev/Next user defined event values
     if (has_prev_event) {
       QString text = events->includes_value ? QString::number(prev_event->value) + " " : "- ";
       painter.drawText(dialog_x, dialog_y, col1_x, th, Qt::AlignRight | Qt::AlignVCenter, text);
@@ -931,23 +867,84 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
 
     // Prev/Next Locations
     if (has_prev_event) {
-      QString text = "Location not recorded";
       if (events->includes_file_location) {
-        text = " " + QString(events->file_name_list[prev_event->file_name_index]);
+        QString text = " " + QString(events->file_name_list[prev_event->file_name_index]);
         text += "," + QString(events->function_name_list[prev_event->function_name_index]);
         text += "():" + QString::number(prev_event->line_number);
+        painter.drawText(dialog_x, dialog_y, dialog_w-m, th, Qt::AlignRight | Qt::AlignVCenter, text);
+      } else {
+        QString text = "Location not recorded";
+        painter.save();
+        painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+        painter.drawText(dialog_x, dialog_y, dialog_w-m, th, Qt::AlignCenter, text);
+        painter.restore();
       }
-      painter.drawText(dialog_x, dialog_y, dialog_w-m, th, Qt::AlignRight | Qt::AlignVCenter, text);
     }
     dialog_y += th;
     if (has_next_event) {
-      QString text = "Location not recorded";
       if (events->includes_file_location) {
-        text = " " + QString(events->file_name_list[next_event->file_name_index]);
+        QString text = " " + QString(events->file_name_list[next_event->file_name_index]);
         text += "," + QString(events->function_name_list[next_event->function_name_index]);
         text += "():" + QString::number(next_event->line_number);
+        painter.drawText(dialog_x, dialog_y, dialog_w-m, th, Qt::AlignRight | Qt::AlignVCenter, text);
+      } else {
+        QString text = "Location not recorded";
+        painter.save();
+        painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+        painter.drawText(dialog_x, dialog_y, dialog_w-m, th, Qt::AlignCenter, text);
+        painter.restore();
       }
-      painter.drawText(dialog_x, dialog_y, dialog_w-m, th, Qt::AlignRight | Qt::AlignVCenter, text);
+    }
+    dialog_y += th;
+
+    // Average durations and gaps in visible area
+    if (has_prev_event && has_next_event) {
+      // Durations
+      {
+        int num_buckets = 2;
+        uint32_t buckets[2] = { 0, 0 };
+        uint64_t min, ave, max;
+        bool get_gap_durations = false;
+        uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &ave, &max);
+        if (num_durations > 1) {
+          uint64_t units_factor;
+          QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
+          double adjusted_ave = ave / (double)units_factor;
+          QString val_text = niceValueText(adjusted_ave);
+          QString text = "Ave of " + QString::number(num_durations) + " durations: " + val_text + " " + time_units;
+          painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
+        } else {
+          QString text = "No multi duration stats";
+          painter.save();
+          painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+          painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
+          painter.restore();
+        }
+      }
+      dialog_y += th;
+
+      // Gaps
+      {
+        int num_buckets = 2;
+        uint32_t buckets[2] = { 0, 0 };
+        uint64_t min, ave, max;
+        bool get_gap_durations = true;
+        uint32_t num_gaps = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &ave, &max);
+        if (num_gaps > 1) {
+          uint64_t units_factor;
+          QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
+          double adjusted_ave = ave / (double)units_factor;
+          QString val_text = niceValueText(adjusted_ave);
+          QString text = "Ave of " + QString::number(num_gaps) + " gaps: " + val_text + " " + time_units;
+          painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
+        } else {
+          QString text = "No multi gaps stats";
+          painter.save();
+          painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+          painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
+          painter.restore();
+        }
+      }
     }
   }
 }
