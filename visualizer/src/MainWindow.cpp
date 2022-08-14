@@ -267,12 +267,40 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->searchTitle
   };
   int title_h = G_min_font_point_size + (G_max_font_point_size - G_min_font_point_size)/3;
-  QString title_style =
+  QString horizontal_title_style =
     "QLabel {"
-    "  background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgba(180,180,180,50), stop:1 rgb(180,180,180));"
+    "  background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgba(180,180,180,75), stop:1 rgb(180,180,180));"
     "  font: " + QString::number(title_h) + "px;"
     "}";
-  for (auto label: horizontal_titles) label->setStyleSheet(title_style);
+  for (auto label: horizontal_titles) {
+    label->setStyleSheet(horizontal_title_style);
+    label->adjustSize();
+  }
+
+  // Create the list of vertical toolbar title
+  ui->filesTitle->setText("FILES");
+  ui->hierarchyTitle->setText("HIERARCHY");
+  ui->filtersTitle->setText("FILTERS");
+  ui->sortTitle->setText("SORT");
+  ui->fontTitle->setText("FONT");
+  QList<VerticalLabel *> vertical_titles = {
+    // Hierarcy toolbar
+    ui->filesTitle,
+    ui->hierarchyTitle,
+    ui->filtersTitle,
+    ui->sortTitle,
+    ui->fontTitle
+  };
+  QString vertical_title_style =
+    "QWidget {"
+    //* not working, need to do in QPainter */"  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgb(180,180,180), stop:1 rgba(180,180,180,75));"
+    "  font: " + QString::number(title_h) + "px;"
+    "}";
+  for (auto label: vertical_titles) {
+    label->setFixedWidth(ui->mouseTitle->height());
+    label->adjustSize();
+    label->setStyleSheet(vertical_title_style);
+  }
 
   // Set the logo
   QPixmap logo_pixmap = QPixmap(":/unikorn_logo.png");

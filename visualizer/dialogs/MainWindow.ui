@@ -14,9 +14,9 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_6">
+   <layout class="QVBoxLayout" name="verticalLayout_12">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <layout class="QHBoxLayout" name="horizontalLayout_9">
       <item>
        <layout class="QVBoxLayout" name="hierarchyVLayout">
         <property name="spacing">
@@ -32,41 +32,76 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>10</width>
+            <width>13</width>
             <height>20</height>
            </size>
           </property>
          </spacer>
         </item>
         <item>
-         <widget class="QToolButton" name="loadButton">
-          <property name="toolTip">
-           <string>Load one or more event files</string>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <property name="spacing">
+           <number>0</number>
           </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="closeAllButton">
-          <property name="toolTip">
-           <string>Close all loaded event files</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="closeSelectedButton">
-          <property name="toolTip">
-           <string>Close selected event file</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
+          <item>
+           <widget class="VerticalLabel" name="filesTitle" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QWidget {
+  background: rgb(30, 164, 0)
+}</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_6">
+            <property name="spacing">
+             <number>5</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="loadButton">
+              <property name="toolTip">
+               <string>Load one or more event files</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="closeAllButton">
+              <property name="toolTip">
+               <string>Close all loaded event files</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="closeSelectedButton">
+              <property name="toolTip">
+               <string>Close selected event file</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </item>
         <item>
          <spacer name="verticalSpacer">
@@ -78,63 +113,98 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>10</width>
+            <width>13</width>
             <height>20</height>
            </size>
           </property>
          </spacer>
         </item>
         <item>
-         <widget class="QToolButton" name="showFoldersButton">
-          <property name="toolTip">
-           <string>Show folders that were recorded</string>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <property name="spacing">
+           <number>0</number>
           </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="showThreadsButton">
-          <property name="toolTip">
-           <string>Group events by the thread it was recorded in</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="openFoldersButton">
-          <property name="toolTip">
-           <string>Expand all levels of the hierarchy</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="closeFoldersButton">
-          <property name="toolTip">
-           <string>Collapse all levels of the hierarchy</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
+          <item>
+           <widget class="VerticalLabel" name="hierarchyTitle" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QWidget {
+  background: rgb(30, 164, 0)
+}</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_7">
+            <property name="spacing">
+             <number>5</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="showFoldersButton">
+              <property name="toolTip">
+               <string>Show folders that were recorded</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="showThreadsButton">
+              <property name="toolTip">
+               <string>Group events by the thread it was recorded in</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="openFoldersButton">
+              <property name="toolTip">
+               <string>Expand all levels of the hierarchy</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="closeFoldersButton">
+              <property name="toolTip">
+               <string>Collapse all levels of the hierarchy</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </item>
         <item>
          <spacer name="filterSpacer">
@@ -146,31 +216,66 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>10</width>
+            <width>13</width>
             <height>20</height>
            </size>
           </property>
          </spacer>
         </item>
         <item>
-         <widget class="QToolButton" name="setFilterButton">
-          <property name="toolTip">
-           <string>Filter out specified events</string>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <property name="spacing">
+           <number>0</number>
           </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="clearFilterButton">
-          <property name="toolTip">
-           <string>Clear event filters</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
+          <item>
+           <widget class="VerticalLabel" name="filtersTitle" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QWidget {
+  background: rgb(30, 164, 0)
+}</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_8">
+            <property name="spacing">
+             <number>5</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="setFilterButton">
+              <property name="toolTip">
+               <string>Filter out specified events</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="clearFilterButton">
+              <property name="toolTip">
+               <string>Clear event filters</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </item>
         <item>
          <spacer name="verticalSpacer_3">
@@ -182,53 +287,88 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>10</width>
+            <width>13</width>
             <height>20</height>
            </size>
           </property>
          </spacer>
         </item>
         <item>
-         <widget class="QToolButton" name="sortByIdButton">
-          <property name="toolTip">
-           <string>Sort events by the event ID. Files are always sorted by name.</string>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <property name="spacing">
+           <number>0</number>
           </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="sortByNameButton">
-          <property name="toolTip">
-           <string>Sort events by event name. Files are always sorted by name.</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="sortByTimeButton">
-          <property name="toolTip">
-           <string>Sort events by recorded time. Files are always sorted by name.</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
+          <item>
+           <widget class="VerticalLabel" name="sortTitle" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QWidget {
+  background: rgb(30, 164, 0)
+}</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_9">
+            <property name="spacing">
+             <number>5</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="sortByIdButton">
+              <property name="toolTip">
+               <string>Sort events by the event ID. Files are always sorted by name.</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="sortByNameButton">
+              <property name="toolTip">
+               <string>Sort events by event name. Files are always sorted by name.</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="sortByTimeButton">
+              <property name="toolTip">
+               <string>Sort events by recorded time. Files are always sorted by name.</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </item>
         <item>
          <spacer name="verticalSpacer_4">
@@ -240,31 +380,66 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>10</width>
+            <width>13</width>
             <height>20</height>
            </size>
           </property>
          </spacer>
         </item>
         <item>
-         <widget class="QToolButton" name="increaseFontSizeButton">
-          <property name="toolTip">
-           <string>Increase the font size</string>
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <property name="spacing">
+           <number>0</number>
           </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="decreaseFontSizeButton">
-          <property name="toolTip">
-           <string>Decrease the font size</string>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
+          <item>
+           <widget class="VerticalLabel" name="fontTitle" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QWidget {
+  background: rgb(30, 164, 0)
+}</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_10">
+            <property name="spacing">
+             <number>5</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="increaseFontSizeButton">
+              <property name="toolTip">
+               <string>Increase the font size</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="decreaseFontSizeButton">
+              <property name="toolTip">
+               <string>Decrease the font size</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </item>
         <item>
          <spacer name="verticalSpacer_5">
@@ -564,6 +739,16 @@
              <number>0</number>
             </property>
             <item>
+             <widget class="QToolButton" name="timeAlignButton">
+              <property name="toolTip">
+               <string>Multi file time alignment options</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QLabel" name="timeTitle">
               <property name="styleSheet">
                <string notr="true">QLabel {
@@ -575,16 +760,6 @@
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="timeAlignButton">
-              <property name="toolTip">
-               <string>Multi file time alignment options</string>
-              </property>
-              <property name="text">
-               <string>...</string>
               </property>
              </widget>
             </item>
@@ -612,21 +787,6 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QLabel" name="mouseTitle">
-              <property name="styleSheet">
-               <string notr="true">QLabel {
-  background: rgb(200,200,200)
-}</string>
-              </property>
-              <property name="text">
-               <string>MOUSE</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
              <layout class="QHBoxLayout" name="horizontalLayout_3">
               <property name="spacing">
                <number>5</number>
@@ -634,7 +794,7 @@
               <item>
                <widget class="QToolButton" name="mouseModeNoneButton">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disable event info under mouse&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>Disable event info under mouse</string>
                 </property>
                 <property name="text">
                  <string>...</string>
@@ -688,6 +848,21 @@
               </item>
              </layout>
             </item>
+            <item>
+             <widget class="QLabel" name="mouseTitle">
+              <property name="styleSheet">
+               <string notr="true">QLabel {
+  background: rgb(200,200,200)
+}</string>
+              </property>
+              <property name="text">
+               <string>MOUSE</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
@@ -711,21 +886,6 @@
             <property name="spacing">
              <number>0</number>
             </property>
-            <item>
-             <widget class="QLabel" name="zoomTitle">
-              <property name="styleSheet">
-               <string notr="true">QLabel {
-  background: rgb(200,200,200)
-}</string>
-              </property>
-              <property name="text">
-               <string>ZOOM</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout">
               <property name="spacing">
@@ -773,6 +933,21 @@
               </item>
              </layout>
             </item>
+            <item>
+             <widget class="QLabel" name="zoomTitle">
+              <property name="styleSheet">
+               <string notr="true">QLabel {
+  background: rgb(200,200,200)
+}</string>
+              </property>
+              <property name="text">
+               <string>ZOOM</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
@@ -796,21 +971,6 @@
             <property name="spacing">
              <number>0</number>
             </property>
-            <item>
-             <widget class="QLabel" name="searchTitle">
-              <property name="styleSheet">
-               <string notr="true">QLabel {
-  background: rgb(200,200,200)
-}</string>
-              </property>
-              <property name="text">
-               <string>SEARCH</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_2">
               <property name="spacing">
@@ -837,6 +997,21 @@
                </widget>
               </item>
              </layout>
+            </item>
+            <item>
+             <widget class="QLabel" name="searchTitle">
+              <property name="styleSheet">
+               <string notr="true">QLabel {
+  background: rgb(200,200,200)
+}</string>
+              </property>
+              <property name="text">
+               <string>SEARCH</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -955,6 +1130,12 @@
    <class>UtilizationView</class>
    <extends>QWidget</extends>
    <header>UtilizationView.hpp</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>VerticalLabel</class>
+   <extends>QWidget</extends>
+   <header>VerticalLabel.hpp</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

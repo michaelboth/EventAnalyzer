@@ -9,8 +9,7 @@ API:
     - const char *end_value_name;
 
 Visualizer:
- - A names to each group in bottom tool bar
- - A vertical names to each group in left tool bar
+ - Add vertical names to each group in left tool bar
  - Mouse info rollover
    - Center title name (and remove event icon)
    - Put event or gap icon above durations
@@ -30,3 +29,4 @@ Visualizer:
  - From the time align dialog:
        - Allow clock drift correction between files via scaling first and last event instances
  - Search for largest duration/gap (similar to prev/next event). Maybe allow dialog to select Nth largest gap
+ - Unhide button to manually shift event file time
