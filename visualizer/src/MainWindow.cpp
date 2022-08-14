@@ -274,6 +274,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     //*+*/"  font: bold " + QString::number(G_font_point_size) + "px;"
     //*+*/"  font: " + QString::number(G_font_point_size) + "px;"
     //*+*/"  font: " + QString::number(G_min_font_point_size + (G_max_font_point_size - G_min_font_point_size)/2) + "px;"
+    "  font: " + QString::number(G_min_font_point_size + (G_max_font_point_size - G_min_font_point_size)/3) + "px;"
     "}";
   for (auto label: horizontal_titles) label->setStyleSheet(title_style);
 
