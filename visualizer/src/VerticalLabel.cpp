@@ -40,8 +40,8 @@ void VerticalLabel::paintEvent(QPaintEvent* /*event*/) {
   // Mimic the gradient of the harizontal titles
   //  "  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgb(180,180,180), stop:1 rgba(180,180,180,75));"
   QLinearGradient linearGrad(QPointF(0, 0), QPointF(w, 0));
-  linearGrad.setColorAt(0, QColor(180,180,180));
-  linearGrad.setColorAt(1, QColor(180,180,180,75));
+  linearGrad.setColorAt(0, QColor(180,180,180,75));
+  linearGrad.setColorAt(1, QColor(180,180,180));
   painter.setPen(Qt::NoPen);
   painter.setBrush(linearGrad);
   painter.drawRect(QRect(0,0,w,h));

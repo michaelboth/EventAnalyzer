@@ -144,11 +144,12 @@ void EventsHeader::paintEvent(QPaintEvent* /*event*/) {
     QFont font = painter.font();
     font.setBold(true);
     painter.setFont(font);
+    QFontMetrics fm2 = painter.fontMetrics();
     double adjusted_selection_time = selected_time_range / (double)selection_units_factor;
     char val_text[40];
     sprintf(val_text, "%0.1f", adjusted_selection_time);
     QString text = QString(val_text) + " " + selection_units;
-    int tw = fm.horizontalAdvance(text);
+    int tw = fm2.horizontalAdvance(text);
     int tx = selected_x1 + (selected_x2-selected_x1)/2 - tw/2;
     painter.setPen(QPen(Qt::black, 1, Qt::SolidLine));
     painter.drawText(tx-1,-1, tw, h, Qt::AlignCenter, text);

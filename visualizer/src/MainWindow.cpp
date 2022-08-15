@@ -267,10 +267,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->zoomTitle,
     ui->searchTitle
   };
-  int title_h = G_min_font_point_size + (G_max_font_point_size - G_min_font_point_size)/3;
+  int title_h = toolbar_icon_size * 0.35;
   QString horizontal_title_style =
     "QLabel {"
-    "  background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgba(180,180,180,75), stop:1 rgb(180,180,180));"
+    "  background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(180,180,180), stop:1 rgba(180,180,180,75));"
     "  font: " + QString::number(title_h) + "px;"
     "}";
   for (auto label: horizontal_titles) {
