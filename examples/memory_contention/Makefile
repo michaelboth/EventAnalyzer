@@ -3,7 +3,7 @@ CFLAGS       += -O2 -DUNIKORN_RELEASE_BUILD
 #CFLAGS       += -g -O0
 C_OBJS       := memory_contention.o
 HEADER_FILES := unikorn_instrumentation.h
-LIBS         := -pthread
+LIBS         := -pthread -lm
 TARGET       := memory_contention
 
 ifeq ($(INSTRUMENT_APP),Yes)
