@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _CUSTOM_FOLDERS_AND_EVENTS_H_
-#define _CUSTOM_FOLDERS_AND_EVENTS_H_
+#ifndef _UNIKORN_INSTRUMENTATION_H_
+#define _UNIKORN_INSTRUMENTATION_H_
 
-#ifdef INSTRUMENT_APP
+#ifdef ENABLE_UNIKORN_RECORDING
 
 #include "unikorn.h"
-#include "event_recorder_clock.h"
-#include "event_recorder_file_flush.h"
+#include "unikorn_clock.h"
+#include "unikorn_file_flush.h"
 #include <stdlib.h>
 
 // Define the unique IDs for the folders and events
-enum {  // IMPORTANT, IDs must start with 1 since 0 is reserved for 'close_folder'
+enum {  // IMPORTANT, IDs must start with 1 since 0 is reserved for 'close folder'
   // Folders
   //  FOLDER1_ID=1,
   //  FOLDER2_ID,
@@ -34,8 +34,8 @@ enum {  // IMPORTANT, IDs must start with 1 since 0 is reserved for 'close_folde
   PRINTF_END_ID
 };
 
-// IMPORTANT: Call #define DEFINE_FOLDERS_AND_EVENTS, just before #include "custom_folders_and_events.h", in the file that calls EVENTS_INIT()
-#ifdef DEFINE_FOLDERS_AND_EVENTS
+// IMPORTANT: Call #define ENABLE_UNIKORN_SESSION_CREATION, just before #include "unikorn_instrumentation.h", in the file that calls UNIKORN_INIT()
+#ifdef ENABLE_UNIKORN_SESSION_CREATION
 
 // Define custom folders
 //static UkFolderInfo L_folders[] = {
@@ -56,7 +56,7 @@ static UkEventInfo L_events[] = {
 #define NUM_EVENT_TYPES (sizeof(L_events) / sizeof(UkEventInfo))
 
 // Init the event session
-void *EVENTS_INIT(const char *_filename, uint32_t _max_events, bool _flush_when_full, bool _is_threaded, bool _record_instance, bool _record_value, bool _record_location, FileFlushInfo *_flush_info) {
+void *UNIKORN_INIT(const char *_filename, uint32_t _max_events, bool _flush_when_full, bool _is_threaded, bool _record_instance, bool _record_value, bool _record_location, UkFileFlushInfo *_flush_info) {
   UkAttrs attrs = {
     .max_event_count = _max_events,
     .flush_when_full = _flush_when_full,
@@ -73,40 +73,42 @@ void *EVENTS_INIT(const char *_filename, uint32_t _max_events, bool _flush_when_
   _flush_info->file = NULL;
   _flush_info->events_saved = false;
   _flush_info->append_subsequent_saves = true;
-  void *session = ukCreate(&attrs, getEventTime, _flush_info, prepareFileFlush, fileFlush, finishFileFlush);
+  void *session = ukCreate(&attrs, ukGetTime, _flush_info, ukPrepareFileFlush, ukFileFlush, ukFinishFileFlush);
   return session;
 }
 
-#endif  // DEFINE_FOLDERS_AND_EVENTS
+#endif  // ENABLE_UNIKORN_SESSION_CREATION
 
-// Macro to flush events
-#define EVENTS_FLUSH(_session) ukFlush(_session)
-// Macro to finalize event recording
-#define EVENTS_FINALIZE(_session) ukDestroy(_session)
+
+// Cleanup functions
+#define UNIKORN_FLUSH(_session) ukFlush(_session)
+#define UNIKORN_FINALIZE(_session) ukDestroy(_session)
 
 // Folder recording macros
-//#define EVENTS_FOLDER1(_session) ukRecordFolder(_session, FOLDER1_ID)
-//#define EVENTS_FOLDER2(_session) ukRecordFolder(_session, FOLDER2_ID)
-//#define EVENTS_CLOSE_FOLDER(_session) ukCloseFolder(_session)
+//#define UNIKORN_OPEN_FOLDER1(_session) ukRecordFolder(_session, FOLDER1_ID)
+//#define UNIKORN_OPEN_FOLDER2(_session) ukRecordFolder(_session, FOLDER2_ID)
+//#define UNIKORN_CLOSE_FOLDER(_session) ukCloseFolder(_session)
 
 // Events recording macros
-#define EVENTS_START_FOR_LOOP(_session, _value) ukRecordEvent(_session, FOR_LOOP_START_ID, _value, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_END_FOR_LOOP(_session, _value)   ukRecordEvent(_session, FOR_LOOP_END_ID,   _value, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_START_PRINTF(_session, _value)   ukRecordEvent(_session, PRINTF_START_ID,   _value, __FILE__, __FUNCTION__, __LINE__)
-#define EVENTS_END_PRINTF(_session, _value)     ukRecordEvent(_session, PRINTF_END_ID,     _value, __FILE__, __FUNCTION__, __LINE__)
+#define UNIKORN_START_FOR_LOOP(_session, _value) ukRecordEvent(_session, FOR_LOOP_START_ID, _value, __FILE__, __FUNCTION__, __LINE__)
+#define UNIKORN_END_FOR_LOOP(_session, _value)   ukRecordEvent(_session, FOR_LOOP_END_ID,   _value, __FILE__, __FUNCTION__, __LINE__)
+#define UNIKORN_START_PRINTF(_session, _value)   ukRecordEvent(_session, PRINTF_START_ID,   _value, __FILE__, __FUNCTION__, __LINE__)
+#define UNIKORN_END_PRINTF(_session, _value)     ukRecordEvent(_session, PRINTF_END_ID,     _value, __FILE__, __FUNCTION__, __LINE__)
+
 
 #else
 
+
 // Compile out all event recording macros
-#define EVENTS_FLUSH(_session)
-#define EVENTS_FINALIZE(_session)
-//#define EVENTS_FOLDER1(_session)
-//#define EVENTS_FOLDER2(_session)
-//#define EVENTS_CLOSE_FOLDER(_session)
-#define EVENTS_START_FOR_LOOP(_session, _value)
-#define EVENTS_END_FOR_LOOP(_session, _value)
-#define EVENTS_START_PRINTF(_session, _value)
-#define EVENTS_END_PRINTF(_session, _value)
+#define UNIKORN_FLUSH(_session)
+#define UNIKORN_FINALIZE(_session)
+//#define UNIKORN_OPEN_FOLDER1(_session)
+//#define UNIKORN_OPEN_FOLDER2(_session)
+//#define UNIKORN_CLOSE_FOLDER(_session)
+#define UNIKORN_START_FOR_LOOP(_session, _value)
+#define UNIKORN_END_FOR_LOOP(_session, _value)
+#define UNIKORN_START_PRINTF(_session, _value)
+#define UNIKORN_END_PRINTF(_session, _value)
 
 #endif
 #endif

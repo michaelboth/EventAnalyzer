@@ -12,34 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _UtilizationView_h_
-#define _UtilizationView_h_
- 
-#include <QWidget>
-#include "EventTree.hpp"
+#ifndef _UNIKORN_CLOCK_H_
+#define _UNIKORN_CLOCK_H_
 
-class UtilizationView : public QWidget
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C"
 {
-  Q_OBJECT
+#endif
 
-public:
-  UtilizationView(QWidget *parent=0);
-  ~UtilizationView();
-  void updateLineHeight();
+extern uint64_t ukGetTime();
 
-protected:
-  void paintEvent(QPaintEvent *event);
-
-signals:
-
-public slots:
-  void updateVOffset(int offset);
-
-private:
-  int line_h = 0;
-  int v_offset = 0;
-
-  void drawHierarchyLine(QPainter *painter, UkEvents *events, EventTreeNode *tree, int &line_index);
-};
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "event_recorder_file_flush.h"
+#include "unikorn_file_flush.h"
 
-bool prepareFileFlush(void *user_data) {
-  FileFlushInfo *flush_info = (FileFlushInfo *)user_data;
+bool ukPrepareFileFlush(void *user_data) {
+  UkFileFlushInfo *flush_info = (UkFileFlushInfo *)user_data;
   // Open a file
   const char *save_mode = "wb";
   if (flush_info->events_saved && flush_info->append_subsequent_saves) {
@@ -36,14 +36,14 @@ bool prepareFileFlush(void *user_data) {
   return true;
 }
 
-bool fileFlush(void *user_data, const void *data, size_t bytes) {
-  FileFlushInfo *flush_info = (FileFlushInfo *)user_data;
+bool ukFileFlush(void *user_data, const void *data, size_t bytes) {
+  UkFileFlushInfo *flush_info = (UkFileFlushInfo *)user_data;
   if (fwrite(data, bytes, 1, flush_info->file) == 1) return true;
   return false;
 }
 
-bool finishFileFlush(void *user_data) {
-  FileFlushInfo *flush_info = (FileFlushInfo *)user_data;
+bool ukFinishFileFlush(void *user_data) {
+  UkFileFlushInfo *flush_info = (UkFileFlushInfo *)user_data;
   int rc = fclose(flush_info->file);
   return (rc == 0);
 }

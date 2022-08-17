@@ -33,7 +33,7 @@ bool EventTreeNode::isAncestorCollapsed() {
   return false;
 }
 
-EventTree::EventTree(Events *_events, QString _name, QString _folder, bool show_folders, bool show_threads) {
+EventTree::EventTree(UkEvents *_events, QString _name, QString _folder, bool show_folders, bool show_threads) {
   events = _events;
   name = _name;
   folder = _folder;
@@ -93,7 +93,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
     if (event_index == events->event_count) return; // Done processing events
 
     // Look at next event
-    Event *event = &events->event_buffer[event_index];
+    UkEvent *event = &events->event_buffer[event_index];
     if (event->event_id < events->folder_info_count) {
       // Process folder event
       if (!show_folders) {
@@ -123,7 +123,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
       // Process time event
       uint16_t first_event_id = (events->folder_info_count==0) ? 1 : events->folder_info_count;
       uint16_t event_info_index = (event->event_id - first_event_id) / 2;
-      EventInfo *event_info = &events->event_info_list[event_info_index];
+      UkLoaderEventInfo *event_info = &events->event_info_list[event_info_index];
       EventTreeNode *parent = node;
       // Get thread folder if threaded
       if (events->is_threaded && show_threads) {
@@ -162,7 +162,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
       if (child->num_event_instances > 0 && event->event_id == event_info->end_id) {
         // This is an end event, and a prev event exists. See if the prev event is a start event
         uint16_t prev_event_index = child->event_indices[child->num_event_instances-1];
-        Event *prev_event = &events->event_buffer[prev_event_index];
+        UkEvent *prev_event = &events->event_buffer[prev_event_index];
         if (prev_event->event_id == event_info->start_id) {
           // Prev event is the start. See if the duration is the largest
           uint64_t duration = event->time - prev_event->time;
@@ -173,8 +173,8 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
             // Subsequent duration
             uint16_t largest_start_event_index = child->event_indices[child->end_event_index_of_largest_duration-1];
             uint16_t largest_end_event_index = child->event_indices[child->end_event_index_of_largest_duration];
-            Event *largest_start_event = &events->event_buffer[largest_start_event_index];
-            Event *largest_end_event = &events->event_buffer[largest_end_event_index];
+            UkEvent *largest_start_event = &events->event_buffer[largest_start_event_index];
+            UkEvent *largest_end_event = &events->event_buffer[largest_end_event_index];
             uint64_t largest_duration = largest_end_event->time - largest_start_event->time;
             if (duration > largest_duration) {
               // This is larger

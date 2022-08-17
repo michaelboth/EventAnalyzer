@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#define DEFINE_FOLDERS_AND_EVENTS
-#include "custom_folders_and_events.h"
-#ifdef INSTRUMENT_APP
-  #include "event_file_loader.h"
+#define ENABLE_UNIKORN_SESSION_CREATION
+#include "unikorn_instrumentation.h"
+#ifdef ENABLE_UNIKORN_RECORDING
+  #include "unikorn_file_loader.h"
 #endif
 #include <math.h>
 #include <stdio.h>
@@ -23,18 +23,18 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#ifdef INSTRUMENT_APP
-static void *session = NULL;
+#ifdef ENABLE_UNIKORN_RECORDING
+static void *unikorn_session = NULL;
 #endif
 
 static void doStuff() {
   double a = 4.0;
-  EVENTS_START_SQRT(session, a);
+  UNIKORN_START_SQRT(unikorn_session, a);
   double b = sqrt(a);
-  EVENTS_END_SQRT(session, b);
-  EVENTS_START_PRINT(session, 0);
+  UNIKORN_END_SQRT(unikorn_session, b);
+  UNIKORN_START_PRINT(unikorn_session, 0);
   printf("The square root of %f is %f\n", a, b);
-  EVENTS_END_PRINT(session, 0);
+  UNIKORN_END_PRINT(unikorn_session, 0);
 }
 
 int main(int argc, char **argv) {
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
   }
 
   // Create event session
-#ifdef INSTRUMENT_APP
+#ifdef ENABLE_UNIKORN_RECORDING
   const char *filename = argv[1];
   uint32_t max_events = (uint32_t)atoi(argv[2]);
   assert(max_events > 0);
@@ -58,32 +58,32 @@ int main(int argc, char **argv) {
   bool record_instance = strcmp(argv[5], "instance=yes")==0;
   bool record_value = strcmp(argv[6], "value=yes")==0;
   bool record_location = strcmp(argv[7], "location=yes")==0;
-  FileFlushInfo flush_info;
-  session = EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, &flush_info);
+  UkFileFlushInfo flush_info; // Needs to be persistant for life of session
+  unikorn_session = UNIKORN_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, &flush_info);
 #endif
 
   // Record
   doStuff();
-  EVENTS_FOLDER1(session);
+  UNIKORN_OPEN_FOLDER1(unikorn_session);
   doStuff();
-  EVENTS_FOLDER2(session);
+  UNIKORN_OPEN_FOLDER2(unikorn_session);
   doStuff();
-  EVENTS_CLOSE_FOLDER(session);
-  EVENTS_CLOSE_FOLDER(session);
+  UNIKORN_CLOSE_FOLDER(unikorn_session);
+  UNIKORN_CLOSE_FOLDER(unikorn_session);
   doStuff();
-  EVENTS_FOLDER2(session);
+  UNIKORN_OPEN_FOLDER2(unikorn_session);
   doStuff();
-  EVENTS_CLOSE_FOLDER(session);
+  UNIKORN_CLOSE_FOLDER(unikorn_session);
   doStuff();
 
   // Save and finalize
-  EVENTS_FLUSH(session);
-  EVENTS_FINALIZE(session);
+  UNIKORN_FLUSH(unikorn_session);
+  UNIKORN_FINALIZE(unikorn_session);
 
   // Load the events
-#ifdef INSTRUMENT_APP
-  Events *instance = loadEventsFile(filename);
-  freeEvents(instance);
+#ifdef ENABLE_UNIKORN_RECORDING
+  UkEvents *instance = ukLoadEventsFile(filename);
+  ukFreeEvents(instance);
   printf("Events were recorded to the file '%s'. Use the Unikorn Viewer to view the results.\n", filename);
 #else
   printf("Event recording is not enabled.\n");

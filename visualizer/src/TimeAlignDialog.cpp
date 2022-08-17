@@ -28,7 +28,7 @@ TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::
     while (i.hasNext()) {
       i.next();
       EventTree *event_tree = i.value();
-      Events *events = event_tree->events;
+      UkEvents *events = event_tree->events;
 
       if (!events->includes_instance) {
         all_files_have_instances = false;
@@ -44,14 +44,14 @@ TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::
         // Create initial name list
         got_initial_names = true;
         for (uint16_t i=0; i<events->event_info_count; i++) {
-          EventInfo *event_info = &events->event_info_list[i];
+          UkLoaderEventInfo *event_info = &events->event_info_list[i];
           common_event_names += QString(event_info->name);
         }
       } else {
         // Remove names that are not common
         QStringList new_common_event_names;
         for (uint16_t i=0; i<events->event_info_count; i++) {
-          EventInfo *event_info = &events->event_info_list[i];
+          UkLoaderEventInfo *event_info = &events->event_info_list[i];
           QString name = event_info->name;
           if (common_event_names.contains(name)) {
             new_common_event_names += name;
@@ -105,7 +105,7 @@ void TimeAlignDialog::eventInfoChanged(int /*index*/) {
   setWidgetUsability();
 }
 
-static void getInstanceRange(Events *events, uint16_t event_id, int *min_instance_ret, int *max_instance_ret) {
+static void getInstanceRange(UkEvents *events, uint16_t event_id, int *min_instance_ret, int *max_instance_ret) {
   uint32_t min_instance = 1, max_instance = 0;
 
   // Forward search for lowest instance
@@ -143,12 +143,12 @@ bool TimeAlignDialog::getCommonInstanceRange(QString event_name, bool is_start, 
   while (i.hasNext()) {
     i.next();
     EventTree *event_tree = i.value();
-    Events *events = event_tree->events;
+    UkEvents *events = event_tree->events;
 
     // Get the event ID
     uint16_t event_id = 0;
     for (uint16_t j=0; j<events->event_info_count; j++) {
-      EventInfo *event_info = &events->event_info_list[j];
+      UkLoaderEventInfo *event_info = &events->event_info_list[j];
       if (QString(event_info->name) == event_name) {
 	event_id = is_start ? event_info->start_id : event_info->end_id;
 	break;

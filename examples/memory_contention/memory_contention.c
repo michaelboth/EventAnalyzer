@@ -19,8 +19,8 @@
 #include <string.h>
 #include <math.h>
 #include <pthread.h>
-#define DEFINE_FOLDERS_AND_EVENTS
-#include "custom_folders_and_events.h"
+#define ENABLE_UNIKORN_SESSION_CREATION
+#include "unikorn_instrumentation.h"
 
 #define NUM_ITERATIONS 1000
 
@@ -29,8 +29,8 @@ static int num_elements = 0;
 static volatile bool do_processing = false; // Using volatile to avoid compiler optimizations
 static double **A_list = NULL;
 static double **B_list = NULL;
-#ifdef INSTRUMENT_APP
-static void *session = NULL;
+#ifdef ENABLE_UNIKORN_RECORDING
+static void *unikorn_session = NULL;
 #endif
 
 static void *thread(void *user_data) {
@@ -43,11 +43,11 @@ static void *thread(void *user_data) {
 
   // Do the processing
   for (int i=0; i<NUM_ITERATIONS; i++) {
-    EVENTS_START_SQRT(session, i);
+    UNIKORN_START_SQRT(unikorn_session, i);
     for (int i=0; i<num_elements; i++) {
       B[i] = sqrt(A[i]);
     }
-    EVENTS_END_SQRT(session, i);
+    UNIKORN_END_SQRT(unikorn_session, i);
   }
 
   return NULL;
@@ -64,21 +64,16 @@ int main(int argc, char **argv) {
     printf("Processing across %d %s\n", num_concurrent_threads, num_concurrent_threads==1 ? "thread" : "concurrent threads");
 
     // Create event session
-#ifdef INSTRUMENT_APP
+#ifdef ENABLE_UNIKORN_RECORDING
     char filename[100];
     snprintf(filename, 100, "%d_concurrent_%s.events", num_concurrent_threads, num_concurrent_threads==1 ? "thread" : "threads");
-    uint32_t max_events = 100000;
-    bool flush_when_full = true;
-    bool is_threaded = true;
-    bool record_instance = true;
-    bool record_value = false;
-    bool record_location = false;
-    FileFlushInfo flush_info;
-    session = EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, &flush_info);
+    UkFileFlushInfo flush_info; // Needs to be persistant for life of session
+    // Arguments: filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, &flush_info
+    unikorn_session = UNIKORN_INIT(filename, 100000, true, true, true, true, true, &flush_info);
 #endif
 
     // Allocate math resources
-    EVENTS_START_ALLOC(session, 0);
+    UNIKORN_START_ALLOC(unikorn_session, 0);
     A_list = malloc(max_threads*sizeof(double*));
     for (int i=0; i<max_threads; i++) {
       A_list[i] = malloc(num_elements*sizeof(double));
@@ -90,31 +85,31 @@ int main(int argc, char **argv) {
     for (int i=0; i<max_threads; i++) {
       B_list[i] = malloc(num_elements*sizeof(double));
     }
-    EVENTS_END_ALLOC(session, 0);
+    UNIKORN_END_ALLOC(unikorn_session, 0);
 
     // Start threads
     do_processing = false;
-    EVENTS_START_INIT_THREADS(session, 0);
+    UNIKORN_START_INIT_THREADS(unikorn_session, 0);
     pthread_t *thread_ids = malloc(num_concurrent_threads*sizeof(pthread_t));
     for (uint16_t i=0; i<num_concurrent_threads; i++) {
       pthread_create(&thread_ids[i], NULL, thread, (void *)((uint64_t)i));
     }
-    EVENTS_END_INIT_THREADS(session, 0);
+    UNIKORN_END_INIT_THREADS(unikorn_session, 0);
 
     // Allow the threads to start processing
-    EVENTS_START_BARRIER(session, 0);
+    UNIKORN_START_BARRIER(unikorn_session, 0);
     do_processing = true;
-    EVENTS_END_BARRIER(session, 0);
+    UNIKORN_END_BARRIER(unikorn_session, 0);
 
     // Wait for threads to complete processing
-    EVENTS_START_JOIN_THREADS(session, 0);
+    UNIKORN_START_JOIN_THREADS(unikorn_session, 0);
     for (int i=0; i<num_concurrent_threads; i++) {
       pthread_join(thread_ids[i], NULL);
     }
-    EVENTS_END_JOIN_THREADS(session, 0);
+    UNIKORN_END_JOIN_THREADS(unikorn_session, 0);
 
     // Clean up math resources
-    EVENTS_START_FREE(session, 0);
+    UNIKORN_START_FREE(unikorn_session, 0);
     free(thread_ids);
     for (int i=0; i<max_threads; i++) {
       free(A_list[i]);
@@ -122,14 +117,14 @@ int main(int argc, char **argv) {
     }
     free(A_list);
     free(B_list);
-    EVENTS_END_FREE(session, 0);
+    UNIKORN_END_FREE(unikorn_session, 0);
 
     // Finish the event session
-    EVENTS_FLUSH(session);
-    EVENTS_FINALIZE(session);
+    UNIKORN_FLUSH(unikorn_session);
+    UNIKORN_FINALIZE(unikorn_session);
   }
 
-#ifdef INSTRUMENT_APP
+#ifdef ENABLE_UNIKORN_RECORDING
   printf("Events were recorded to %d %s. Use the Unikorn Viewer to view the results.\n", max_threads, max_threads==1 ? "file" : "files");
 #else
   printf("Event recording is not enabled.\n");

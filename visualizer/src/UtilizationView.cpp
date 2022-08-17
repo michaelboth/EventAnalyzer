@@ -41,7 +41,7 @@ void UtilizationView::updateVOffset(int offset) {
   update();
 }
 
-void UtilizationView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *parent, int &line_index) {
+void UtilizationView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTreeNode *parent, int &line_index) {
   int h = height();
   int w = width();
   int y = -v_offset + line_index * line_h;

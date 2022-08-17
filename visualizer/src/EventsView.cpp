@@ -53,20 +53,20 @@ EventsView::~EventsView() {
   // Nothing to do
 }
 
-static uint32_t findEventIndexAtTime(Events *events, EventTreeNode *node, uint64_t time, int32_t index_offset) {
+static uint32_t findEventIndexAtTime(UkEvents *events, EventTreeNode *node, uint64_t time, int32_t index_offset) {
   uint32_t first = 0;
   uint32_t last = node->num_event_instances-1;
 
   // See if before first event
   uint32_t first_event_index = node->event_indices[first];
-  Event *first_event = &events->event_buffer[first_event_index];
+  UkEvent *first_event = &events->event_buffer[first_event_index];
   if (time <= first_event->time) {
     return first;
   }
 
   // See if after last event
   uint32_t last_event_index = node->event_indices[last];
-  Event *last_event = &events->event_buffer[last_event_index];
+  UkEvent *last_event = &events->event_buffer[last_event_index];
   if (time > last_event->time) {
     return last+1;
   }
@@ -75,7 +75,7 @@ static uint32_t findEventIndexAtTime(Events *events, EventTreeNode *node, uint64
   while ((last-first) > 1) {
     uint32_t mid = first + (last-first)/2;
     uint32_t event_index = node->event_indices[mid];
-    Event *event = &events->event_buffer[event_index];
+    UkEvent *event = &events->event_buffer[event_index];
     if (event->time <= time) {
       first = mid;
     } else {
@@ -247,7 +247,7 @@ void EventsView::zoomToRegion() {
   rebuildAndUpdate();
 }
 
-void EventsView::centerPrevEvent(Events *events, EventTreeNode *events_row) {
+void EventsView::centerPrevEvent(UkEvents *events, EventTreeNode *events_row) {
   // Check if zoomed in, otherwise all events are visible
   if (percent_visible < 1.0) {
     // IMPORTANT: Using time range that was last calculated from the paintEvent()
@@ -255,7 +255,7 @@ void EventsView::centerPrevEvent(Events *events, EventTreeNode *events_row) {
     uint64_t center_time = start_time + (end_time - start_time)/2;
     uint32_t center_event_index = findEventIndexAtTime(events, events_row, center_time, 0);
     if (center_event_index >= events_row->num_event_instances) center_event_index = events_row->num_event_instances-1;
-    Event *event = &events->event_buffer[events_row->event_indices[center_event_index]];
+    UkEvent *event = &events->event_buffer[events_row->event_indices[center_event_index]];
 
     // See if need to skip to the prev event
     uint64_t margin = (uint64_t)(0.01*(end_time-start_time)); // 1% of visible time
@@ -282,7 +282,7 @@ void EventsView::centerPrevEvent(Events *events, EventTreeNode *events_row) {
   }
 }
 
-void EventsView::centerNextEvent(Events *events, EventTreeNode *events_row) {
+void EventsView::centerNextEvent(UkEvents *events, EventTreeNode *events_row) {
   // Check if zoomed in, otherwise all events are visible
   if (percent_visible < 1.0) {
     // IMPORTANT: Using time range that was last calculated from the paintEvent()
@@ -290,7 +290,7 @@ void EventsView::centerNextEvent(Events *events, EventTreeNode *events_row) {
     uint64_t center_time = start_time + (end_time - start_time)/2;
     uint32_t center_event_index = findEventIndexAtTime(events, events_row, center_time, 0);
     if (center_event_index >= events_row->num_event_instances) center_event_index = events_row->num_event_instances-1;
-    Event *event = &events->event_buffer[events_row->event_indices[center_event_index]];
+    UkEvent *event = &events->event_buffer[events_row->event_indices[center_event_index]];
 
     // See if need to skip to the next event
     uint64_t margin = (uint64_t)(0.01*(end_time-start_time)); // 1% of visible time
@@ -317,7 +317,7 @@ void EventsView::centerNextEvent(Events *events, EventTreeNode *events_row) {
   }
 }
 
-void EventsView::centerLargestEvent(Events *events, EventTreeNode *events_row) {
+void EventsView::centerLargestEvent(UkEvents *events, EventTreeNode *events_row) {
   // Check if zoomed in, otherwise all events are visible
   if (percent_visible < 1.0 && events_row->end_event_index_of_largest_duration > 0) {
     // IMPORTANT: Using time range that was last calculated from the paintEvent()
@@ -325,8 +325,8 @@ void EventsView::centerLargestEvent(Events *events, EventTreeNode *events_row) {
     // Get center time of largest duration
     uint32_t start_event_index = events_row->event_indices[events_row->end_event_index_of_largest_duration-1];
     uint32_t end_event_index = events_row->event_indices[events_row->end_event_index_of_largest_duration];
-    Event *start_event = &events->event_buffer[start_event_index];
-    Event *end_event = &events->event_buffer[end_event_index];
+    UkEvent *start_event = &events->event_buffer[start_event_index];
+    UkEvent *end_event = &events->event_buffer[end_event_index];
     uint64_t center_of_duration = start_event->time + (end_event->time - start_event->time)/2;
 
     // Shift to the duration center if can scroll that far
@@ -391,7 +391,7 @@ void EventsView::leaveEvent(QEvent * /*event*/) {
   update(); // Avoids full redraw
 }
 
-void EventsView::hasEventsOutsideOfVisibleRegion(Events *events, EventTreeNode *events_row, bool *events_to_the_left_ret, bool *events_to_the_right_ret) {
+void EventsView::hasEventsOutsideOfVisibleRegion(UkEvents *events, EventTreeNode *events_row, bool *events_to_the_left_ret, bool *events_to_the_right_ret) {
   *events_to_the_left_ret = false;
   *events_to_the_right_ret = false;
   // Check if zoomed in, otherwise all events are visible
@@ -408,7 +408,7 @@ void EventsView::hasEventsOutsideOfVisibleRegion(Events *events, EventTreeNode *
   }
 }
 
-void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *parent, int &line_index, int ancestor_open) {
+void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTreeNode *parent, int &line_index, int ancestor_open) {
   int h = height();
   int w = width();
   int y = -v_offset + line_index * line_h;
@@ -438,7 +438,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
       int prev_prev_x = -1;
       uint64_t prev_time = 0;
       bool prev_is_start = false;
-      EventInfo *event_info = &events->event_info_list[parent->event_info_index];
+      UkLoaderEventInfo *event_info = &events->event_info_list[parent->event_info_index];
       painter->setPen(QPen(parent->color, 1, Qt::SolidLine));
       int y2 = y + (int)(line_h * 0.15f); // Top if not overlapped
       int y3 = y + (int)(line_h * 0.35f); // Top of range
@@ -448,7 +448,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
       uint64_t total_time_usage = 0;
       for (uint32_t i=first_visible_event_index; i<=last_visible_event_index; i++) {
         uint32_t event_index = parent->event_indices[i];
-        Event *event = &events->event_buffer[event_index];
+        UkEvent *event = &events->event_buffer[event_index];
         bool is_start = event->event_id == event_info->start_id;
         // X location in visible region
         double x_percent;
@@ -505,21 +505,21 @@ void EventsView::drawHierarchyLine(QPainter *painter, Events *events, EventTreeN
   }
 }
 
-uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, Events *events, bool get_gap_durations, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret) {
-  EventInfo *event_info = &events->event_info_list[node->event_info_index];
+uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, UkEvents *events, bool get_gap_durations, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret) {
+  UkLoaderEventInfo *event_info = &events->event_info_list[node->event_info_index];
 
   // Get the first visible event
   uint32_t first_event_index = findEventIndexAtTime(events, node, start_time, 0); // NOTE: gets the first index to the right of the start time
 
   // Determine the min and max durations to know how to divey out the buckets
-  Event *prev_event = NULL;
+  UkEvent *prev_event = NULL;
   uint64_t min_duration = 0;
   uint64_t max_duration = 0;
   uint64_t total_duration = 0;
   uint32_t num_durations = 0;
   uint32_t event_index = first_event_index;
   while (event_index < node->num_event_instances) {
-    Event *event = &events->event_buffer[node->event_indices[event_index]];
+    UkEvent *event = &events->event_buffer[node->event_indices[event_index]];
     if (event->time > end_time) break; // Out of visible range
     if (prev_event != NULL) {
       if (prev_event->event_id == event_info->start_id && event->event_id == event_info->end_id) {
@@ -551,7 +551,7 @@ uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, Even
   uint64_t duration_range = max_duration - min_duration;
   event_index = first_event_index;
   while (event_index < node->num_event_instances) {
-    Event *event = &events->event_buffer[node->event_indices[event_index]];
+    UkEvent *event = &events->event_buffer[node->event_indices[event_index]];
     if (event->time > end_time) break; // Out of visible range
     if (prev_event != NULL) {
       if (prev_event->event_id == event_info->start_id && event->event_id == event_info->end_id) {
@@ -585,7 +585,7 @@ uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, Even
   return num_durations;
 }
 
-void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Events *events) {
+void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEvents *events) {
   int w = width();
   int h = height();
 
@@ -716,7 +716,7 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, Even
   free(buckets);
 }
 
-void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *events) {
+void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents *events) {
   int w = width();
   int h = height();
 
@@ -804,12 +804,12 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, Events *e
     bool has_next_event = event_index_to_right_of_mouse < node->num_event_instances;
     uint32_t event_index_to_left_of_mouse = (event_index_to_right_of_mouse > 0) ? event_index_to_right_of_mouse-1 : 0;
     bool has_prev_event = event_index_to_left_of_mouse < event_index_to_right_of_mouse;
-    Event *prev_event = has_prev_event ? &events->event_buffer[node->event_indices[event_index_to_left_of_mouse]] : NULL;
-    Event *next_event = has_next_event ? &events->event_buffer[node->event_indices[event_index_to_right_of_mouse]] : NULL;
+    UkEvent *prev_event = has_prev_event ? &events->event_buffer[node->event_indices[event_index_to_left_of_mouse]] : NULL;
+    UkEvent *next_event = has_next_event ? &events->event_buffer[node->event_indices[event_index_to_right_of_mouse]] : NULL;
 
     // Draw event icon or "GAP"
     if (has_prev_event && has_next_event && node->tree_node_type == TREE_NODE_IS_EVENT) {
-      EventInfo *event_info = &events->event_info_list[node->event_info_index];
+      UkLoaderEventInfo *event_info = &events->event_info_list[node->event_info_index];
       bool is_on_duration = (prev_event->event_id == event_info->start_id && next_event->event_id == event_info->end_id);
       if (is_on_duration) {
         int mini_icon_h = th * 1.2;
@@ -957,7 +957,7 @@ void EventsView::updateTimeAlignment() {
     while (i.hasNext()) {
       i.next();
       EventTree *event_tree = i.value();
-      Events *events = event_tree->events;
+      UkEvents *events = event_tree->events;
       uint64_t first_time = events->event_buffer[0].time;
       bool increase_time = (first_time < event_tree->native_start_time);
       uint64_t delta = increase_time ? event_tree->native_start_time - first_time : first_time - event_tree->native_start_time;
@@ -975,7 +975,7 @@ void EventsView::updateTimeAlignment() {
     while (i.hasNext()) {
       i.next();
       EventTree *event_tree = i.value();
-      Events *events = event_tree->events;
+      UkEvents *events = event_tree->events;
       uint64_t first_time = events->event_buffer[0].time;
       if (first_time > 0) {
         for (uint32_t j=0; j<events->event_count; j++) {
@@ -991,7 +991,7 @@ void EventsView::updateTimeAlignment() {
       while (i.hasNext()) {
         i.next();
         EventTree *event_tree = i.value();
-        Events *events = event_tree->events;
+        UkEvents *events = event_tree->events;
         uint64_t first_time = events->event_buffer[0].time;
         if (first_time > 0) {
           for (uint32_t j=0; j<events->event_count; j++) {
@@ -1013,12 +1013,12 @@ void EventsView::updateTimeAlignment() {
       while (i.hasNext()) {
         i.next();
         EventTree *event_tree = i.value();
-        Events *events = event_tree->events;
+        UkEvents *events = event_tree->events;
 
         // Get the event ID
         uint16_t event_id = 0;
         for (uint16_t j=0; j<events->event_info_count; j++) {
-          EventInfo *event_info = &events->event_info_list[j];
+          UkLoaderEventInfo *event_info = &events->event_info_list[j];
           if (QString(event_info->name) == event_name) {
             event_id = is_start ? event_info->start_id : event_info->end_id;
             break;
@@ -1027,7 +1027,7 @@ void EventsView::updateTimeAlignment() {
 
         // Find the event time with event_id and instance
         for (uint32_t j=0; j<events->event_count; j++) {
-          Event *event = &events->event_buffer[j];
+          UkEvent *event = &events->event_buffer[j];
           if (event->event_id == event_id && event->instance == instance_index) {
             if (event->time > max_time) max_time = event->time;
             break;
@@ -1043,12 +1043,12 @@ void EventsView::updateTimeAlignment() {
       while (i.hasNext()) {
         i.next();
         EventTree *event_tree = i.value();
-        Events *events = event_tree->events;
+        UkEvents *events = event_tree->events;
 
         // Get the event ID
         uint16_t event_id = 0;
         for (uint16_t j=0; j<events->event_info_count; j++) {
-          EventInfo *event_info = &events->event_info_list[j];
+          UkLoaderEventInfo *event_info = &events->event_info_list[j];
           if (QString(event_info->name) == event_name) {
             event_id = is_start ? event_info->start_id : event_info->end_id;
             break;
@@ -1058,7 +1058,7 @@ void EventsView::updateTimeAlignment() {
         // Find the event time with event_id and instance
         uint64_t max_time2 = 0;
         for (uint32_t j=0; j<events->event_count; j++) {
-          Event *event = &events->event_buffer[j];
+          UkEvent *event = &events->event_buffer[j];
           if (event->event_id == event_id && event->instance == instance_index) {
             max_time2 = event->time;
             break;
@@ -1130,9 +1130,9 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       // Get old tree info
       i.next();
       EventTree *event_tree = i.value();
-      Events *events = event_tree->events;
-      Event *first_event = &events->event_buffer[0];
-      Event *last_event = &events->event_buffer[events->event_count-1];
+      UkEvents *events = event_tree->events;
+      UkEvent *first_event = &events->event_buffer[0];
+      UkEvent *last_event = &events->event_buffer[events->event_count-1];
       if (!got_first_time_range) {
         // Record initial times
         full_start_time = first_event->time;
@@ -1219,7 +1219,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   // Draw rollover info or histogram
   if ((mouse_mode == MOUSE_MODE_EVENT_INFO || mouse_mode == MOUSE_MODE_EVENT_HISTOGRAM) && mouse_location.x() >= 0 && mouse_location.y() >= 0) {
     EventTreeNode *node_with_mouse = NULL;
-    Events *events_with_mouse = NULL;
+    UkEvents *events_with_mouse = NULL;
     QMapIterator<QString, EventTree*> i(G_event_tree_map);
     while (i.hasNext()) {
       // Get old tree info

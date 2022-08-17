@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _EVENT_FILE_LOADER_H_
-#define _EVENT_FILE_LOADER_H_
+#ifndef _UNIKORN_FILE_LOADER_H_
+#define _UNIKORN_FILE_LOADER_H_
 
 #include <stdio.h>
 #include <stdint.h>
@@ -22,14 +22,14 @@
 typedef struct {
   uint16_t id;
   char *name;
-} FolderInfo;
+} UkLoaderFolderInfo;
 
 typedef struct {
   uint16_t start_id;
   uint16_t end_id;
   uint16_t rgb;
   char *name;
-} EventInfo;
+} UkLoaderEventInfo;
 
 typedef struct {
   uint64_t time;     // Nanoseconds since clock started (each clock has a different base time)
@@ -40,7 +40,7 @@ typedef struct {
   uint16_t file_name_index;
   uint16_t function_name_index;
   uint16_t line_number;
-} Event;
+} UkEvent;
 
 typedef struct {
   // Header (should be same for each flush)
@@ -51,9 +51,9 @@ typedef struct {
   bool includes_value;
   bool includes_file_location;
   uint16_t folder_info_count;
-  FolderInfo *folder_info_list;
+  UkLoaderFolderInfo *folder_info_list;
   uint16_t event_info_count;
-  EventInfo *event_info_list;
+  UkLoaderEventInfo *event_info_list;
 
   // Recorded Events (different for each flush)
   uint16_t file_name_count;
@@ -63,16 +63,16 @@ typedef struct {
   uint16_t thread_id_count;
   uint64_t *thread_id_list;
   uint32_t event_count;
-  Event *event_buffer;
-} Events;
+  UkEvent *event_buffer;
+} UkEvents;
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-extern Events *loadEventsFile(const char *filename);
-extern void freeEvents(Events *instance);
+extern UkEvents *ukLoadEventsFile(const char *filename);
+extern void ukFreeEvents(UkEvents *instance);
 
 #ifdef __cplusplus
 }

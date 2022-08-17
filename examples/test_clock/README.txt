@@ -1,8 +1,8 @@
 This example is used to determine clock performance for the various
-clocks that are supported. Test you own custom clock as needed.
+clocks that are supported. Test your own custom clock as needed.
 
-Many clocks were already implemented in src/event_recorder_clock_*.c
-but you can implement you own clock if needed.
+Many clocks are already implemented in src/unikorn_clock_*.c
+but you can implement your own clock if needed.
 
 
 Linux & Mac:

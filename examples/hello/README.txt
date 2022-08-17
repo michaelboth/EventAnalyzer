@@ -1,6 +1,6 @@
-Every software API should have it most basic hello worl example.
+Every software API should have it most basic hello world example.
 Use this as the basis for any application.
-Modify the 'custom_folders_and_events.h' file to define your own
+Modify the 'unikorn_instrumentation.h' file to define your own
 custom folders and events
 
 

@@ -18,7 +18,7 @@
 #include <QList>
 #include <QRect>
 #include <QColor>
-#include "event_file_loader.h"
+#include "unikorn_file_loader.h"
 
 typedef enum {
   SORT_BY_ID,
@@ -61,13 +61,13 @@ public:
 
 class EventTree {
 public:
-  Events *events = NULL;
+  UkEvents *events = NULL;
   uint64_t native_start_time = 0;
   QString name; // Filename (not including folder or .event suffix)
   QString folder;
   EventTreeNode *tree = NULL;
 
-  EventTree(Events *events, QString name, QString folder, bool show_folders, bool show_threads);
+  EventTree(UkEvents *events, QString name, QString folder, bool show_folders, bool show_threads);
   ~EventTree();
   void sortTree(SortType sort_type);
   void openAllFolders();

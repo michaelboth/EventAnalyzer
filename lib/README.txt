@@ -1,10 +1,10 @@
-This folder and makefiles are just a convenince for creating the Unikorn library
+This folder and makefiles are just a convenience for creating the Unikorn library
 instead of directly compiling unikorn.c into your application.
 
 Linux and Mac
   Build:
     > cd unikorn/lib
-    > make RELEASE=Yes ALLOW_THREADS=Yes
+    > make RELEASE=Yes ATOMIC_RECORDING=Yes
   When linking the library into your app add the following to the link line:
     -L../../lib -lunikorn -pthread
 
@@ -20,8 +20,8 @@ Windows
       > nmake VC VC-debug VC-static VC-static-debug install DESTROOT=.\install
   Build:
     > cd unikorn\lib
-    > nmake -f windows.Makefile RELEASE=Yes ALLOW_THREADS=No
-    > nmake -f windows.Makefile RELEASE=Yes ALLOW_THREADS=Yes
+    > nmake -f windows.Makefile RELEASE=Yes ATOMIC_RECORDING=No
+    > nmake -f windows.Makefile RELEASE=Yes ATOMIC_RECORDING=Yes
   When linking the library into your app add the following to the link line:
     Threaded:
       ../../lib/unikornMT.lib -nodefaultlib:MSVCRTD.LIB c:/pthreads4w/install/lib/libpthreadVC3.lib -nodefaultlib:LIBCMT.LIB

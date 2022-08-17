@@ -39,10 +39,10 @@ public:
   void updateTimeOffset(double percent_offset);
   bool timeRangeSelected();
   void setMouseMode(MouseMode mouse_mode);
-  void hasEventsOutsideOfVisibleRegion(Events *events, EventTreeNode *events_row, bool *events_to_the_left_ret, bool *events_to_the_right_ret);
-  void centerPrevEvent(Events *events, EventTreeNode *events_row);
-  void centerNextEvent(Events *events, EventTreeNode *events_row);
-  void centerLargestEvent(Events *events, EventTreeNode *events_row);
+  void hasEventsOutsideOfVisibleRegion(UkEvents *events, EventTreeNode *events_row, bool *events_to_the_left_ret, bool *events_to_the_right_ret);
+  void centerPrevEvent(UkEvents *events, EventTreeNode *events_row);
+  void centerNextEvent(UkEvents *events, EventTreeNode *events_row);
+  void centerLargestEvent(UkEvents *events, EventTreeNode *events_row);
 
 protected:
   void paintEvent(QPaintEvent *event);
@@ -90,11 +90,11 @@ private:
   uint64_t alignment_time = 0;
 
   void prepareIcon(QString filename, bool recolor, QColor color);
-  void drawHierarchyLine(QPainter *painter, Events *events, EventTreeNode *tree, int &line_index, int ancestor_open);
+  void drawHierarchyLine(QPainter *painter, UkEvents *events, EventTreeNode *tree, int &line_index, int ancestor_open);
   EventTreeNode *mouseOnEventsLine(EventTreeNode *parent);
-  void drawEventInfo(QPainter &painter, EventTreeNode *node, Events *events);
-  void drawEventHistogram(QPainter &painter, EventTreeNode *node, Events *events);
-  uint32_t calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, Events *events, bool get_gap_durations, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret);
+  void drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents *events);
+  void drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEvents *events);
+  uint32_t calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, UkEvents *events, bool get_gap_durations, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret);
 };
 
 #endif

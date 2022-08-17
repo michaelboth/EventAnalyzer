@@ -74,7 +74,7 @@ private:
   bool eventFilesHaveFolders();
   bool eventFilesHaveThreads();
   bool eventFileSelected();
-  EventTreeNode *eventRowSelected(Events **selected_events_ret);
+  EventTreeNode *eventRowSelected(UkEvents **selected_events_ret);
   EventTreeNode *eventRowSelected(EventTreeNode *parent);
   uint32_t totalEventInstances();
   uint32_t totalFilteredEventInstances();

@@ -12,38 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#define DEFINE_FOLDERS_AND_EVENTS
-#include "custom_folders_and_events.h"
+#define ENABLE_UNIKORN_SESSION_CREATION
+#include "unikorn_instrumentation.h"
 #include <stdio.h>
 
 int main() {
   // Create event session
-#ifdef INSTRUMENT_APP
-  const char *filename = "./hello.events";
-  uint32_t max_events = 10000;
-  bool flush_when_full = false;
-  bool is_threaded = false;
-  bool record_instance = true;
-  bool record_value = true;
-  bool record_location = true;
-  FileFlushInfo flush_info;
-  void *session = EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, &flush_info);
+#ifdef ENABLE_UNIKORN_RECORDING
+  UkFileFlushInfo flush_info; // Needs to be persistant for life of session
+  // Arguments: filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, &flush_info
+  void *unikorn_session = UNIKORN_INIT("./hello.events", 10000, false, false, true, true, true, &flush_info);
 #endif
 
-  // Do some processing
-  EVENTS_START_FOR_LOOP(session, 0);
+  // Do some simple timing
+  UNIKORN_START_FOR_LOOP(unikorn_session, 0);
   for (int j=0; j<10; j++) {
-    EVENTS_START_PRINTF(session, j);
+    UNIKORN_START_PRINTF(unikorn_session, j);
     printf("%d: Hello!\n", j+1);
-    EVENTS_END_PRINTF(session, j);
+    UNIKORN_END_PRINTF(unikorn_session, j);
   }
-  EVENTS_END_FOR_LOOP(session, 0);
+  UNIKORN_END_FOR_LOOP(unikorn_session, 0);
 
   // Clean up
-  EVENTS_FLUSH(session);
-  EVENTS_FINALIZE(session);
-#ifdef INSTRUMENT_APP
-  printf("Events were recorded to the file '%s'. Use the Unikorn Viewer to view the results.\n", filename);
+  UNIKORN_FLUSH(unikorn_session);
+  UNIKORN_FINALIZE(unikorn_session);
+#ifdef ENABLE_UNIKORN_RECORDING
+  printf("Events were recorded. Use UnikornViewer to view the .events file.\n");
 #else
   printf("Event recording is not enabled.\n");
 #endif

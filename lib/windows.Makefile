@@ -1,6 +1,6 @@
 # Check if threading is enabled
-!IF "$(ALLOW_THREADS)" == "Yes"
-THREAD_CFLAGS = -DALLOW_THREADS -Ic:/pthreads4w/install/include
+!IF "$(ATOMIC_RECORDING)" == "Yes"
+THREAD_CFLAGS = -DENABLE_UNIKORN_ATOMIC_RECORDING -Ic:/pthreads4w/install/include
 LIBRARY = unikornMT.lib
 !ELSE
 THREAD_CFLAGS =
@@ -9,7 +9,7 @@ LIBRARY = unikorn.lib
 
 # Check if release distribution is enabled
 !IF "$(RELEASE)" == "Yes"
-OPTIMIZATION_CFLAGS  = -O2 -MD -DRELEASE_BUILD # Release: -MT means static linking, and -MD means dynamic linking.
+OPTIMIZATION_CFLAGS  = -O2 -MD -DUNIKORN_RELEASE_BUILD # Release: -MT means static linking, and -MD means dynamic linking.
 !ELSE
 OPTIMIZATION_CFLAGS  = -Zi -MDd # Debug: -MTd or -MDd
 !ENDIF

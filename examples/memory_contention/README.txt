@@ -1,4 +1,4 @@
-This example is used to show how see memory contention via visualizing events.
+This example is used to see memory contention implicitly via visualizing events.
 
 Make sure to load all the event files to see them all at once in the visualizer, and align all the
 times to the 'Barrier' end event (instance == 0) when the visualizer asks how to align the files.
@@ -10,7 +10,7 @@ Memory contention can come from different aspects:
       take more time to process than the remaining. This is because the various levels of cache are
       getting the data from main memory.
   - Overuse of threads:
-      When comapring all the event files with overall time to complete processing, you'll notice the
+      When comparing all the event files with overall time to complete processing, you'll notice the
       more threads, the more time needed to complete processing. This is OK to a point, but eventually
       they will all be competing to use the same memory.
 

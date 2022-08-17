@@ -4,13 +4,13 @@ HEADER_FILES := unikorn.h
 LIBRARY      := libunikorn.a
 
 # Check if threading is enabled
-ifeq ($(ALLOW_THREADS),Yes)
-    CFLAGS += -pthread -DALLOW_THREADS
+ifeq ($(ATOMIC_RECORDING),Yes)
+    CFLAGS += -pthread -DENABLE_UNIKORN_ATOMIC_RECORDING
 endif
 
 # Check if release distribution is enabled
 ifeq ($(RELEASE),Yes)
-    CFLAGS += -O2 -DRELEASE_BUILD
+    CFLAGS += -O2 -DUNIKORN_RELEASE_BUILD
 else
     CFLAGS += -g -O0
 endif

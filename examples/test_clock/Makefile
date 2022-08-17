@@ -2,15 +2,15 @@ CFLAGS       := -std=gnu99 -Wall -Werror -Wextra -pthread -I../../inc
 CFLAGS       += -O2
 #CFLAGS       += -g -O0
 C_OBJS       := test_clock.o
-HEADER_FILES := event_recorder_clock.h
+HEADER_FILES := unikorn_clock.h
 LIBS         := 
 TARGET       := test_clock
 
 ifneq ($(MAKECMDGOALS),clean)
     ifeq ($(CLOCK),gettime)
-	C_OBJS += event_recorder_clock_gettime.o
+	C_OBJS += unikorn_clock_gettime.o
     else ifeq ($(CLOCK),gettimeofday)
-	C_OBJS += event_recorder_clock_gettimeofday.o
+	C_OBJS += unikorn_clock_gettimeofday.o
     else
         $(error 'ERROR: need to specify one of: CLOCK=gettime, CLOCK=gettimeofday')
     endif

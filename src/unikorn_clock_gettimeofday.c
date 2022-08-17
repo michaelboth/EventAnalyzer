@@ -12,32 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _EVENT_RECORDER_FILE_FLUSH_H_
-#define _EVENT_RECORDER_FILE_FLUSH_H_
-
+#include "unikorn_clock.h"
 #include <stdbool.h>
-#include <stdint.h>
+#include <assert.h>
 #include <stddef.h>
-#include <stdio.h>
+#include <sys/time.h>
 
-typedef struct {
-  const char *filename;
-  FILE *file;
-  bool events_saved;
-  bool append_subsequent_saves;
-} FileFlushInfo;
+//#define USE_ZERO_BASE_TIME
 
-#ifdef __cplusplus
-extern "C"
-{
+uint64_t ukGetTime() {
+#ifdef USE_ZERO_BASE_TIME
+  static uint64_t base_time;
+  static bool got_base_time = false;
 #endif
 
-extern bool prepareFileFlush(void *user_data);
-extern bool fileFlush(void *user_data, const void *data, size_t bytes);
-extern bool finishFileFlush(void *user_data);
+  // gettimeofday() only has microsecond precision but is more portable
+  struct timeval tp;
+  gettimeofday(&tp, NULL);
+  uint64_t total_nanoseconds = (uint64_t)tp.tv_sec * 1000000000 + (uint64_t)tp.tv_usec * 1000;
 
-#ifdef __cplusplus
+#ifdef USE_ZERO_BASE_TIME
+  if (!got_base_time) {
+    base_time = total_nanoseconds;
+    got_base_time = true;
+  }
+  total_nanoseconds -= base_time;
+#endif
+
+  return total_nanoseconds;
 }
-#endif
-
-#endif

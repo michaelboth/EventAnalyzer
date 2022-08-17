@@ -21,7 +21,7 @@
 #include "TimeAlignDialog.hpp"
 #include "EventFilterDialog.hpp"
 #include "main.hpp"
-#include "unikorn.h"
+#include "unikorn.h" // Only needed to get the API version number
 
 #define NORMAL_COLOR     QColor(50, 50, 50)
 #define IMPORTANT_COLOR  QColor(200, 0, 0)
@@ -460,7 +460,7 @@ void MainWindow::setWidgetUsability() {
   int num_files_loaded = G_event_tree_map.count();
   bool event_files_loaded = (num_files_loaded > 0);
   bool event_file_selected = eventFileSelected();
-  Events *selected_events = NULL;
+  UkEvents *selected_events = NULL;
   EventTreeNode *events_row = eventRowSelected(&selected_events);
   bool events_to_the_left = false;
   bool events_to_the_right = false;
@@ -561,12 +561,12 @@ void MainWindow::on_loadButton_clicked() {
       EventTree *old_tree = G_event_tree_map[filename];
       (void)/*int items_removed =*/G_event_tree_map.remove(filename);
       //assert(items_removed == 1);
-      freeEvents(old_tree->events);
+      ukFreeEvents(old_tree->events);
       delete old_tree;
     }
 
     // Load the events
-    Events *events = loadEventsFile(filename.toLatin1().data());
+    UkEvents *events = ukLoadEventsFile(filename.toLatin1().data());
 
     // Build the display tree
     EventTree *tree = new EventTree(events, name, folder, ui->showFoldersButton->isChecked(), ui->showThreadsButton->isChecked());
@@ -614,7 +614,7 @@ void MainWindow::on_closeSelectedButton_clicked() {
     i.next();
     EventTree *tree = i.value();
     if (tree->tree->row_selected) {
-      freeEvents(tree->events);
+      ukFreeEvents(tree->events);
       delete tree;
       delete_filenames += i.key();
     }
@@ -658,7 +658,7 @@ void MainWindow::updateEventTreeBuild() {
     i.next();
     QString filename = i.key();
     EventTree *tree = i.value();
-    Events *events = tree->events;
+    UkEvents *events = tree->events;
     uint64_t native_start_time = tree->native_start_time;
     QString name = tree->name;
     QString folder = tree->folder;
@@ -678,7 +678,7 @@ void MainWindow::freeAllEventFiles() {
   while (i.hasNext()) {
     i.next();
     EventTree *tree = i.value();
-    freeEvents(tree->events);
+    ukFreeEvents(tree->events);
     delete tree;
   }
   G_event_tree_map.clear();
@@ -701,7 +701,7 @@ uint32_t MainWindow::totalEventInstances() {
   while (i.hasNext()) {
     i.next();
     EventTree *tree = i.value();
-    Events *events = tree->events;
+    UkEvents *events = tree->events;
     count += events->event_count;
   }
   return count;
@@ -713,7 +713,7 @@ bool MainWindow::eventFilesHaveFolders() {
     // Get old tree info
     i.next();
     EventTree *tree = i.value();
-    Events *events = tree->events;
+    UkEvents *events = tree->events;
     if (events->folder_info_count > 0) return true;
   }
   return false;
@@ -725,7 +725,7 @@ bool MainWindow::eventFilesHaveThreads() {
     // Get old tree info
     i.next();
     EventTree *tree = i.value();
-    Events *events = tree->events;
+    UkEvents *events = tree->events;
     if (events->is_threaded) return true;
   }
   return false;
@@ -753,7 +753,7 @@ EventTreeNode *MainWindow::eventRowSelected(EventTreeNode *parent) {
   return NULL;
 }
 
-EventTreeNode *MainWindow::eventRowSelected(Events **selected_events_ret) {
+EventTreeNode *MainWindow::eventRowSelected(UkEvents **selected_events_ret) {
   *selected_events_ret = NULL;
   QMapIterator<QString, EventTree*> i(G_event_tree_map);
   while (i.hasNext()) {
@@ -1018,19 +1018,19 @@ void MainWindow::updateEventsTimeOffset(int scroll_offset) {
 }
 
 void MainWindow::on_prevEventButton_clicked() {
-  Events *selected_events = NULL;
+  UkEvents *selected_events = NULL;
   EventTreeNode *events_row = eventRowSelected(&selected_events);
   ui->eventsView->centerPrevEvent(selected_events, events_row);
 }
 
 void MainWindow::on_nextEventButton_clicked() {
-  Events *selected_events = NULL;
+  UkEvents *selected_events = NULL;
   EventTreeNode *events_row = eventRowSelected(&selected_events);
   ui->eventsView->centerNextEvent(selected_events, events_row);
 }
 
 void MainWindow::on_largestEventButton_clicked() {
-  Events *selected_events = NULL;
+  UkEvents *selected_events = NULL;
   EventTreeNode *events_row = eventRowSelected(&selected_events);
   ui->eventsView->centerLargestEvent(selected_events, events_row);
 }

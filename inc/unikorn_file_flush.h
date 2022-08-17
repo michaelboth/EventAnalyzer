@@ -12,17 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _EVENT_RECORDER_CLOCK_H_
-#define _EVENT_RECORDER_CLOCK_H_
+#ifndef _UNIKORN_FILE_FLUSH_H_
+#define _UNIKORN_FILE_FLUSH_H_
 
+#include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
+#include <stdio.h>
+
+typedef struct {
+  const char *filename;
+  FILE *file;
+  bool events_saved;
+  bool append_subsequent_saves;
+} UkFileFlushInfo;
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-extern uint64_t getEventTime();
+extern bool ukPrepareFileFlush(void *user_data);
+extern bool ukFileFlush(void *user_data, const void *data, size_t bytes);
+extern bool ukFinishFileFlush(void *user_data);
 
 #ifdef __cplusplus
 }

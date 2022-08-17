@@ -19,7 +19,7 @@
 #include <QStringList>
 #include <QMap>
 #include "EventTree.hpp"
-#include "event_file_loader.h"
+#include "unikorn_file_loader.h"
 
 extern QSettings *G_settings;
 extern double G_pixels_per_point;

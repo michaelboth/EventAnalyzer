@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "event_recorder_clock.h"
+#include "unikorn_clock.h"
 #include <stdbool.h>
 #include <assert.h>
 #include <time.h>
 
 //#define USE_ZERO_BASE_TIME
 
-uint64_t getEventTime() {
+uint64_t ukGetTime() {
 #ifdef USE_ZERO_BASE_TIME
   static uint64_t base_time;
   static bool got_base_time = false;
