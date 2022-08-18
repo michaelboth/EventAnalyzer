@@ -29,6 +29,8 @@ typedef struct {
   uint16_t end_id;
   uint16_t rgb;
   char *name;
+  char *start_value_name;
+  char *end_value_name;
 } UkLoaderEventInfo;
 
 typedef struct {

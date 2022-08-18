@@ -4,9 +4,6 @@ Tutorial/Demo:
 
 API:
  - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
- - Add two fields to UkEventInfo (would need to increase API version):
-    - const char *start_value_name;
-    - const char *end_value_name;
 
 Visualizer:
  - Add optional gridlines (via toggle button)

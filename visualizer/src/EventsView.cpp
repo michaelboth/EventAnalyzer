@@ -728,7 +728,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
   QFontMetrics fm = painter.fontMetrics();
   int th = fm.height() * 1.3f;
   int m = th * 0.25f;
-  int num_lines = 9;
+  int num_lines = 10;
   int dialog_w = fm.horizontalAdvance(" xxxfilename::function_name::line_numberxxx ");
   int dialog_h = th*num_lines;
   int dialog_x = mouse_location.x() + m;
@@ -746,7 +746,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
   int num_lines_to_draw = ancestor_collapsed ? 2 : num_lines;
   for (int i=1; i<num_lines_to_draw; i++) {
     int line_y = i*th;
-    if (i != 2) painter.drawLine(dialog_x+1, dialog_y+line_y, dialog_x+dialog_w-1, dialog_y+line_y);
+    if (i != 2 && i != 5) painter.drawLine(dialog_x+1, dialog_y+line_y, dialog_x+dialog_w-1, dialog_y+line_y);
   }
   //int mid_x = dialog_w/2;
   int col1_x = dialog_w * 0.333f;
@@ -754,15 +754,15 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
 
   // Veritical lines
   if (!ancestor_collapsed) {
-    painter.drawLine(dialog_x+col1_x, dialog_y+th*3, dialog_x+col1_x, dialog_y+th*5);
-    painter.drawLine(dialog_x+col2_x, dialog_y+th*3, dialog_x+col2_x, dialog_y+th*5);
+    painter.drawLine(dialog_x+col1_x, dialog_y+th*3, dialog_x+col1_x, dialog_y+th*6);
+    painter.drawLine(dialog_x+col2_x, dialog_y+th*3, dialog_x+col2_x, dialog_y+th*6);
   }
 
   // Titles
   painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
   if (!ancestor_collapsed) {
     painter.drawText(dialog_x+col1_x, dialog_y+th*3, col2_x-col1_x, th, Qt::AlignCenter, "Instance");
-    painter.drawText(dialog_x+col1_x, dialog_y+th*4, col2_x-col1_x, th, Qt::AlignCenter, "Value");
+    painter.drawText(dialog_x+col1_x, dialog_y+th*4.5, col2_x-col1_x, th, Qt::AlignCenter, "Value");
   }
   painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
 
@@ -808,7 +808,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
     UkEvent *next_event = has_next_event ? &events->event_buffer[node->event_indices[event_index_to_right_of_mouse]] : NULL;
 
     // Draw event icon or "GAP"
-    if (has_prev_event && has_next_event && node->tree_node_type == TREE_NODE_IS_EVENT) {
+    if (has_prev_event && has_next_event) {
       UkLoaderEventInfo *event_info = &events->event_info_list[node->event_info_index];
       bool is_on_duration = (prev_event->event_id == event_info->start_id && next_event->event_id == event_info->end_id);
       if (is_on_duration) {
@@ -856,13 +856,32 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
 
     // Prev/Next user defined event values
     if (has_prev_event) {
+      {
+        UkLoaderEventInfo *event_info = &events->event_info_list[node->event_info_index];
+        painter.save();
+        painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+        QString text = QString(event_info->start_value_name);
+        if (text == "") text = "unamed";
+        painter.drawText(dialog_x, dialog_y, col1_x, th, Qt::AlignRight | Qt::AlignVCenter, text + " ");
+        painter.restore();
+      }
       QString text = events->includes_value ? QString::number(prev_event->value) + " " : "- ";
-      painter.drawText(dialog_x, dialog_y, col1_x, th, Qt::AlignRight | Qt::AlignVCenter, text);
+      painter.drawText(dialog_x, dialog_y+th, col1_x, th, Qt::AlignRight | Qt::AlignVCenter, text);
     }
     if (has_next_event) {
+      {
+        UkLoaderEventInfo *event_info = &events->event_info_list[node->event_info_index];
+        painter.save();
+        painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+        QString text = QString(event_info->end_value_name);
+        if (text == "") text = "unamed";
+        painter.drawText(dialog_x+col2_x, dialog_y, col1_x, th, Qt::AlignLeft | Qt::AlignVCenter, " " + text);
+        painter.restore();
+      }
       QString text = events->includes_value ? " " + QString::number(next_event->value) : " -";
-      painter.drawText(dialog_x+col2_x, dialog_y, col1_x, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+      painter.drawText(dialog_x+col2_x, dialog_y+th, col1_x, th, Qt::AlignLeft | Qt::AlignVCenter, text);
     }
+    dialog_y += th;
     dialog_y += th;
 
     // Prev/Next Locations

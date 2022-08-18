@@ -78,6 +78,8 @@ typedef struct {
   uint16_t rgb;       // 0x0RGB
   uint64_t start_instance; // Number of times the start event was used
   uint64_t end_instance;   // Number of times the end event was used
+  char *start_value_name;
+  char *end_value_name;
 } PrivateEventInfo;
 
 typedef struct {
@@ -381,10 +383,15 @@ void *ukCreate(UkAttrs *attrs,
     object->event_info_list[i].end_id = attrs->event_info_list[i].end_id;
     object->event_info_list[i].rgb = attrs->event_info_list[i].rgb;
     object->event_info_list[i].name = strdup(attrs->event_info_list[i].name);
-#ifdef PRINT_INIT_INFO
-    printf("    startID=%d, endID=%d, RGB=0x%04x, name='%s'\n", object->event_info_list[i].start_id, object->event_info_list[i].end_id, object->event_info_list[i].rgb, object->event_info_list[i].name);
-#endif
     assert(object->event_info_list[i].name != NULL);
+    object->event_info_list[i].start_value_name = strdup(attrs->event_info_list[i].start_value_name);
+    assert(object->event_info_list[i].start_value_name != NULL);
+    object->event_info_list[i].end_value_name = strdup(attrs->event_info_list[i].end_value_name);
+    assert(object->event_info_list[i].end_value_name != NULL);
+#ifdef PRINT_INIT_INFO
+    printf("    startID=%d, endID=%d, RGB=0x%04x, name='%s', start_value_name='%s', end_value_name='%s'\n", object->event_info_list[i].start_id, object->event_info_list[i].end_id, object->event_info_list[i].rgb,
+           object->event_info_list[i].name, object->event_info_list[i].start_value_name, object->event_info_list[i].end_value_name);
+#endif
     object->event_info_list[i].start_instance = 1;
     object->event_info_list[i].end_instance = 1;
   }
@@ -459,7 +466,7 @@ static void flushEvents(EventObject *object) {
   for (uint16_t i=0; i<object->event_info_count; i++) {
     PrivateEventInfo *event = &object->event_info_list[i];
 #ifdef PRINT_FLUSH_INFO
-    printf("    startID=%d, endID=%d, RGB=0x%04x, name='%s'\n", event->start_id, event->end_id, event->rgb, event->name);
+    printf("    startID=%d, endID=%d, RGB=0x%04x, name='%s', start_value_name='%s', end_value_name='%s'\n", event->start_id, event->end_id, event->rgb, event->name, event->start_value_name, event->end_value_name);
 #endif
     assert(object->flush(object->flush_user_data, &event->start_id, sizeof(event->start_id)));
     assert(object->flush(object->flush_user_data, &event->end_id, sizeof(event->end_id)));
@@ -467,6 +474,12 @@ static void flushEvents(EventObject *object) {
     uint16_t num_chars = 1 + (uint16_t)strlen(event->name);
     assert(object->flush(object->flush_user_data, &num_chars, sizeof(num_chars)));
     assert(object->flush(object->flush_user_data, event->name, num_chars));
+    num_chars = 1 + (uint16_t)strlen(event->start_value_name);
+    assert(object->flush(object->flush_user_data, &num_chars, sizeof(num_chars)));
+    assert(object->flush(object->flush_user_data, event->start_value_name, num_chars));
+    num_chars = 1 + (uint16_t)strlen(event->end_value_name);
+    assert(object->flush(object->flush_user_data, &num_chars, sizeof(num_chars)));
+    assert(object->flush(object->flush_user_data, event->end_value_name, num_chars));
   }
 
   // File names and function names

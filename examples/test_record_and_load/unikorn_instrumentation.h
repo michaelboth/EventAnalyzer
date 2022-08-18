@@ -49,9 +49,9 @@ static UkFolderInfo L_folders[] = {
 
 // Define custom events
 static UkEventInfo L_events[] = {
-  // Name          Start ID              End ID              Color
-  { "Print",       PRINT_START_ID,       PRINT_END_ID,       UK_TEAL},
-  { "Sqrt",        SQRT_START_ID,        SQRT_END_ID,        UK_BLACK}
+  // Name     Color      Start ID         End ID         Start Value Name  End Value Name
+  { "Print",  UK_TEAL,   PRINT_START_ID,  PRINT_END_ID,  "",               ""},
+  { "Sqrt",   UK_BLACK,  SQRT_START_ID,   SQRT_END_ID,   "a",              "sqrt(a)"}
 };
 #define NUM_EVENT_TYPES (sizeof(L_events) / sizeof(UkEventInfo))
 

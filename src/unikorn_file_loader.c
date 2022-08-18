@@ -106,7 +106,7 @@ static void loadEventsHeader(FILE *file, bool first_time_loaded, bool swap_endia
   uint16_t version_minor = readUint16(swap_endian, file);
   // Currently only supporting version 1.0
   assert(version_major == 1);
-  assert(version_minor == 0);
+  assert(version_minor == 0 || version_minor == 1);
   if (first_time_loaded) {
     object->version_major = version_major;
     object->version_minor = version_minor;
@@ -209,24 +209,28 @@ static void loadEventsHeader(FILE *file, bool first_time_loaded, bool swap_endia
   }
   for (uint16_t i=0; i<object->event_info_count; i++) {
     UkLoaderEventInfo *event = &object->event_info_list[i];
+    // Start ID
     uint16_t start_id = readUint16(swap_endian, file);
     if (first_time_loaded) {
       event->start_id = start_id;
     } else {
       assert(event->start_id == start_id);
     }
+    // End ID
     uint16_t end_id = readUint16(swap_endian, file);
     if (first_time_loaded) {
       event->end_id = end_id;
     } else {
       assert(event->end_id == end_id);
     }
+    // Color
     uint16_t rgb = readUint16(swap_endian, file);
     if (first_time_loaded) {
       event->rgb = rgb;
     } else {
       assert(event->rgb == rgb);
     }
+    // Name
     uint16_t num_name_chars = readUint16(swap_endian, file);
     if (first_time_loaded) {
       event->name = malloc(num_name_chars);
@@ -240,8 +244,48 @@ static void loadEventsHeader(FILE *file, bool first_time_loaded, bool swap_endia
 	assert(event->name[j] == ch);
       }
     }
+    if (version_major >= 1 && version_minor >= 1) {
+      // Start value name
+      num_name_chars = readUint16(swap_endian, file);
+      if (first_time_loaded) {
+        event->start_value_name = malloc(num_name_chars);
+        assert(event->start_value_name != NULL);
+        readChars(event->start_value_name, num_name_chars, file);
+      } else {
+        assert((uint16_t)strlen(event->start_value_name)+1 == num_name_chars);
+        char ch;
+        for (uint16_t j=0; j<num_name_chars; j++) {
+          readChars(&ch, 1, file);
+          assert(event->start_value_name[j] == ch);
+        }
+      }
+      // End value name
+      num_name_chars = readUint16(swap_endian, file);
+      if (first_time_loaded) {
+        event->end_value_name = malloc(num_name_chars);
+        assert(event->end_value_name != NULL);
+        readChars(event->end_value_name, num_name_chars, file);
+      } else {
+        assert((uint16_t)strlen(event->end_value_name)+1 == num_name_chars);
+        char ch;
+        for (uint16_t j=0; j<num_name_chars; j++) {
+          readChars(&ch, 1, file);
+          assert(event->end_value_name[j] == ch);
+        }
+      }
+    } else {
+      // Version before 1.1
+      if (first_time_loaded) {
+        event->start_value_name = malloc(1);
+        assert(event->start_value_name != NULL);
+        event->end_value_name = malloc(1);
+        assert(event->end_value_name != NULL);
+        event->start_value_name[0] = '\0';
+        event->end_value_name[0] = '\0';
+      }
+    }
 #ifdef PRINT_UNIKORN_LOAD_INFO
-    printf("    startID=%d, endID=%d, RGB=0x%04x, name='%s'\n", event->start_id, event->end_id, event->rgb, event->name);
+    printf("    startID=%d, endID=%d, RGB=0x%04x, name='%s', start_value_name='%s', end_value_name='%s'\n", event->start_id, event->end_id, event->rgb, event->name, event->start_value_name, event->end_value_name);
 #endif
   }
 }

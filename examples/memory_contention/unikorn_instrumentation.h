@@ -57,13 +57,13 @@ enum {  // IMPORTANT, IDs must start with 1 since 0 is reserved for 'close folde
 
 // Define custom events
 static UkEventInfo L_events[] = {
-  // Name                 Start ID               End ID               Color
-  { "Allocate Resources", ALLOC_START_ID,        ALLOC_END_ID,        UK_GREEN},
-  { "Free Resources",     FREE_START_ID,         FREE_END_ID,         UK_GREEN},
-  { "Start Threads",      INIT_THREADS_START_ID, INIT_THREADS_END_ID, UK_GREEN},
-  { "Join Threads",       JOIN_THREADS_START_ID, JOIN_THREADS_END_ID, UK_GREEN},
-  { "Barrier",            BARRIER_START_ID,      BARRIER_END_ID,      UK_RED},
-  { "Sqrt()",             SQRT_START_ID,         SQRT_END_ID,         UK_BLUE}
+  // Name                  Color      Start ID               End ID                Start Value Name  End Value Name
+  { "Allocate Resources",  UK_GREEN,  ALLOC_START_ID,        ALLOC_END_ID,         "",               ""},
+  { "Free Resources",      UK_GREEN,  FREE_START_ID,         FREE_END_ID,          "",               ""},
+  { "Start Threads",       UK_GREEN,  INIT_THREADS_START_ID, INIT_THREADS_END_ID,  "Thread Count",   ""},
+  { "Join Threads",        UK_GREEN,  JOIN_THREADS_START_ID, JOIN_THREADS_END_ID,  "Thread Count",   ""},
+  { "Barrier",             UK_RED,    BARRIER_START_ID,      BARRIER_END_ID,       "",               ""},
+  { "Sqrt()",              UK_BLUE,   SQRT_START_ID,         SQRT_END_ID,          "Iteration",      "Vector Size"}
 };
 #define NUM_EVENT_TYPES (sizeof(L_events) / sizeof(UkEventInfo))
 

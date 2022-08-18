@@ -21,7 +21,8 @@
 
 // Version
 #define UK_API_VERSION_MAJOR 1
-#define UK_API_VERSION_MINOR 0
+//#define UK_API_VERSION_MINOR 0 // Original version
+#define UK_API_VERSION_MINOR 1 // Added names for start and end values in UkEventInfo
 
 // Predefined RGB colors. Application can still use custom color values, format is 0x0RGB
 enum {
@@ -44,9 +45,11 @@ typedef struct {
 
 typedef struct {
   const char *name;
+  uint16_t rgb;       // 0x0RGB
   uint16_t start_id;  // ID's must start with 1 and be contiguous across folders (defined first) and events
   uint16_t end_id;    // ID's must start with 1 and be contiguous across folders (defined first) and events
-  uint16_t rgb;       // 0x0RGB
+  const char *start_value_name;
+  const char *end_value_name;
 } UkEventInfo;
 
 typedef struct {
@@ -82,7 +85,11 @@ typedef struct {
     (uint16_t)       end_id
     (uint16_t)       rgb_color
     (uint16_t)       num_name_chars
-    (char[])         chars
+    (char[])         name_chars
+    (uint16_t)       num_start_value_name_chars          # Added in version 1.1
+    (char[])         start_value_name_chars              # Added in version 1.1
+    (uint16_t)       num_end_value_name_chars            # Added in version 1.1
+    (char[])         end_value_name_chars                # Added in version 1.1
   -------------------------------------------------
   | DATA: may be different with each flush        |
   -------------------------------------------------

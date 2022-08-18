@@ -49,9 +49,9 @@ enum {  // IMPORTANT, IDs must start with 1 since 0 is reserved for 'close folde
 
 // Define custom events
 static UkEventInfo L_events[] = {
-  // Name          Start ID              End ID              Color
-  { "For Loop",    FOR_LOOP_START_ID,    FOR_LOOP_END_ID,    UK_BLACK},
-  { "printf()",    PRINTF_START_ID,      PRINTF_END_ID,      UK_BLUE}
+  // Name        Color      Start ID            End ID           Start Value Name  End Value Name
+  { "For Loop",  UK_BLACK,  FOR_LOOP_START_ID,  FOR_LOOP_END_ID, "",               ""},
+  { "printf()",  UK_BLUE,   PRINTF_START_ID,    PRINTF_END_ID,   "Loop Index",     "Loop Index"},
 };
 #define NUM_EVENT_TYPES (sizeof(L_events) / sizeof(UkEventInfo))
 

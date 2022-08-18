@@ -47,7 +47,7 @@ static void *thread(void *user_data) {
     for (int i=0; i<num_elements; i++) {
       B[i] = sqrt(A[i]);
     }
-    UNIKORN_END_SQRT(unikorn_session, i);
+    UNIKORN_END_SQRT(unikorn_session, num_elements);
   }
 
   return NULL;
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
 
     // Start threads
     do_processing = false;
-    UNIKORN_START_INIT_THREADS(unikorn_session, 0);
+    UNIKORN_START_INIT_THREADS(unikorn_session, num_concurrent_threads);
     pthread_t *thread_ids = malloc(num_concurrent_threads*sizeof(pthread_t));
     for (uint16_t i=0; i<num_concurrent_threads; i++) {
       pthread_create(&thread_ids[i], NULL, thread, (void *)((uint64_t)i));
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
     UNIKORN_END_BARRIER(unikorn_session, 0);
 
     // Wait for threads to complete processing
-    UNIKORN_START_JOIN_THREADS(unikorn_session, 0);
+    UNIKORN_START_JOIN_THREADS(unikorn_session, num_concurrent_threads);
     for (int i=0; i<num_concurrent_threads; i++) {
       pthread_join(thread_ids[i], NULL);
     }
