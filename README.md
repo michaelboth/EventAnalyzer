@@ -95,7 +95,7 @@ static UkEventInfo L_events[] = {
 ```
 Modify this file for use in your application. Define any number of events.<br>
 
-If ```ENABLE_UNIKORN_RECORDING``` is defined then your application also needs to compile in a few more unikorn files:
+If ```ENABLE_UNIKORN_RECORDING``` is defined then your application also needs to compile in the core unikorn file, a unikorn clock file (or your own custom clock file), and the unikorn flush file (or you own custom flush file):
 ```
 src/unikorn.c                                # The event recording engine
 src/unikorn_clock_gettime.c                  # A clock for Mac/Linux: high precision on most variations
