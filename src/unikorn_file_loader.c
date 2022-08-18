@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#if defined(PRINT_UNIKORN_LOAD_INFO) && defined(_WIN32)
+  #define _CRT_SECURE_NO_WARNINGS   // Needed to quiet security issues about sprintf
+#endif
 #include "unikorn_file_loader.h"
 #include <assert.h>
 #include <stdlib.h>
@@ -525,7 +528,7 @@ static void loadEventsData(FILE *file, bool swap_endian, UkEvents *object) {
   uint64_t time_adjustment = 0;
   UkEvent *first_loaded_event = NULL;
 #ifdef PRINT_UNIKORN_LOAD_INFO
-  double prev_time = 0;
+  uint64_t prev_time = 0;
 #endif
   for (uint32_t i=0; i<event_count; i++) {
     UkEvent *event = &object->event_buffer[event_index];

@@ -19,7 +19,7 @@ CLOCK_C_OBJ = unikorn_clock_ftime.obj
 !ENDIF
 
 # Check if threading is enabled
-THREAD_SAFE = No
+THREAD_SAFE = Yes
 !IF "$(THREAD_SAFE)" == "Yes"
 THREAD_CFLAGS = -DENABLE_UNIKORN_ATOMIC_RECORDING -Ic:/pthreads4w/install/include
 THREAD_LIBS   = c:/pthreads4w/install/lib/libpthreadVC3.lib -nodefaultlib:LIBCMT.LIB
