@@ -1,23 +1,35 @@
 <img src="visualizer/icons/unikorn_logo.png" alt="Logo" style="width:400px;"/>
 
 # Unikorn Software Event Analyzer
-With the increased complexity of modern hardware and software, optimizing an application for performance is sometimes like trying to find a **unicorn**. Going green is more important than ever. Stop accepting poor performing software or using extra hardware to fix bad performance. Unikorn is easy to use, and should be part of daily development from the application's inception to distribution.
-<br><br>
-Unikorn is a C API and graphical visualizer (Windows, Mac, and Linux). These are the simple steps to discovering the behaviour of your application:
-1. Instrument your application with custom events (names and colors), a clock, and output stream to flush the events
-2. Run your application; make sure the events get flushed
-3. View the events in the Unikorn Viewer
+Unikorn is C API (source code, not a library) and graphical visualizer (Windows, Mac, and Linux) used to easily and quickly improve the design, performance, and reliability of complex software.
+
+Even seasoned experts will have difficulty fixing, tuning and improving software during development... like looking for a **unicorn**.
+
+Just instrument your source code with meaningful event; you defined the names and colors. This instrumentation is optional at compile time. Run your application, then view the results in the Unikorn graphical viewer.
 <img src="docs/UnikornViewer.png" alt="Logo" style="width:900px;"/>
 
+Unikorn helps with:
+- Revealing sub-microsecond timing of key events, functions, code segments
+- Validating complex dataflow interactions between CPU threads, processes, GPU streams, communication, IO
+- Validating determinism even with long runs (e.g. hours, days)
+- Implicitly seeing memory contention, thread starvation, context switches, and many other events
+- Finding causality bugs: e.g. knowing what happing just before the application started failing.
 
-## Preparing the Environment
+Unikorn is easy to use, and should be part of daily development from the application's inception to distribution.
+<br>
+
+## Downloading Unikorn
+In the 'Releases' section (right panel of the GitHub webpage, near the top), click on 'Latest' to get the latest release. 
+
+## Preparing the OS Environment
+To instrument and build your application, the following is needed:
 ### Linux:
-You'll need gcc and make
+gcc and make
 ### Mac
-You'll need xCode
+xCode
 ### Windows
-You'll need Visual Studio<br>
-You may need Posix threads. Unikorn's API can optionally be thread safe, and if so requires Posix threads. Visual Studio does not have native support for Posix threads, so you'll need to download and build it:
+Visual Studio<br>
+Unikorn's API can optionally be thread safe, which requires Posix threads, which is not supported in Visual Studio. To download and build it:
 1. Get the source code from: https://sourceforge.net/projects/pthreads4w/
 2. Unzip, rename to 'pthreads4w' and put in the C:\ folder
 3. Start a Visual Studio x64 native shell
@@ -26,46 +38,35 @@ You may need Posix threads. Unikorn's API can optionally be thread safe, and if 
 > nmake VC VC-debug VC-static VC-static-debug install DESTROOT=.\install
 ```
 
-## Downloading Unikorn
-In the 'Releases' section (right panel of the GitHub webpage, near the top), click on 'Latest' to get the latest release. 
-
 ## Instrumenting Your Application with Events
-The following is the 'hello' example. All of the event recording source code is compiled out if ```INSTRUMENT_APP``` is not defined when compiling.
+The following is the 'hello' example. All of the event recording source code is compiled out if ```ENABLE_UNIKORN_RECORDING``` is not defined when compiling.
 ```c
-#define DEFINE_FOLDERS_AND_EVENTS
-#include "custom_folders_and_events.h"
+#define ENABLE_UNIKORN_SESSION_CREATION
+#include "unikorn_instrumentation.h"
 #include <stdio.h>
-
-// Define the event session global variable
-EVENTS_GLOBAL_INSTANCE;
 
 int main() {
   // Create event session
-#ifdef INSTRUMENT_APP
-  const char *filename = "./hello.events";
-  uint32_t max_events = 10000;
-  bool flush_when_full = false;
-  bool is_threaded = false;
-  bool record_instance = true;
-  bool record_value = true;
-  bool record_location = true;
+#ifdef ENABLE_UNIKORN_RECORDING
+  UkFileFlushInfo flush_info; // Needs to be persistant for life of session
+  // Arguments: filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location, &flush_info
+  void *unikorn_session = UNIKORN_INIT("./hello.events", 10000, false, false, true, true, true, &flush_info);
 #endif
-  EVENTS_INIT(filename, max_events, flush_when_full, is_threaded, record_instance, record_value, record_location);
 
-  // Do some processing
-  EVENTS_START_FOR_LOOP();
+  // Do some simple timing
+  UNIKORN_START_FOR_LOOP(unikorn_session, 0);
   for (int j=0; j<10; j++) {
-    EVENTS_START_PRINTF();
+    UNIKORN_START_PRINTF(unikorn_session, j);
     printf("%d: Hello!\n", j+1);
-    EVENTS_END_PRINTF();
+    UNIKORN_END_PRINTF(unikorn_session, j);
   }
-  EVENTS_END_FOR_LOOP();
+  UNIKORN_END_FOR_LOOP(unikorn_session, 0);
 
   // Clean up
-  EVENTS_FLUSH();
-  EVENTS_FINALIZE();
-#ifdef INSTRUMENT_APP
-  printf("Events were recorded to the file '%s'. Use the Unikorn Viewer to view the results.\n", filename);
+  UNIKORN_FLUSH(unikorn_session);
+  UNIKORN_FINALIZE(unikorn_session);
+#ifdef ENABLE_UNIKORN_RECORDING
+  printf("Events were recorded. Use UnikornViewer to view the .events file.\n");
 #else
   printf("Event recording is not enabled.\n");
 #endif
@@ -74,25 +75,25 @@ int main() {
 }
 ```
 
-The custom folders and events are defined in ```custom_folders_and_events.h```. Here is the code snippet that defines the events (names and colors):
+The instrumentation is defined in ```unikorn_instrumentation.h```. Here is the code snippet that defines the events (names and colors):
 ```c
 static UkEventInfo L_events[] = {
-  // Name          Start ID              End ID              Color
-  { "For Loop",    FOR_LOOP_START_ID,    FOR_LOOP_END_ID,    UK_BLACK},
-  { "printf()",    PRINTF_START_ID,      PRINTF_END_ID,      UK_BLUE}
+  // Name        Color      Start ID            End ID           Start Value Name  End Value Name
+  { "For Loop",  UK_BLACK,  FOR_LOOP_START_ID,  FOR_LOOP_END_ID, "",               ""},
+  { "printf()",  UK_BLUE,   PRINTF_START_ID,    PRINTF_END_ID,   "Loop Index",     "Loop Index"},
 };
 ```
-Modify this file for use in your application. You could define any number of folders and events.<br>
+Modify this file for use in your application. Define any number of events.<br>
 
-If ```INSTRUMENT_APP``` is defined then example is built with a few other files that can be common to any application you instrument with event recording:
+If ```ENABLE_UNIKORN_RECORDING``` is defined then your application also needs to compile in a few more unikorn files:
 ```
-src/unikorn.c                                       # The event recording engine
-src/event_recorder_clock_gettime.c                  # A clock for Mac/Linux: high precision on most variations
-src/event_recorder_clock_gettimeofday.c             # A clock for Mac/Linux: good precision and portable
-src/event_recorder_clock_queryperformancecounter.c  # A clock for Windows: high precision
-src/event_recorder_clock_ftime.c                    # A clock for Windows: not high precision
-src/event_recorder_file_flush.c                     # Flush event data to a file
-inc/*.h                                             # Header files
+src/unikorn.c                                # The event recording engine
+src/unikorn_clock_gettime.c                  # A clock for Mac/Linux: high precision on most variations
+src/unikorn_clock_gettimeofday.c             # A clock for Mac/Linux: good precision and portable
+src/unikorn_clock_queryperformancecounter.c  # A clock for Windows: high precision
+src/unikorn_clock_ftime.c                    # A clock for Windows: not high precision
+src/unikorn_file_flush.c                     # Flush event data to a file
+inc/*.h                                      # Header files
 ```
 
 ## Examples
@@ -100,16 +101,16 @@ To help you get started, some examples are provided
 Example | Description
 --------|------------
 hello | Duh
-memory_contention | A simple example show how multi-threaded processing can effect memory.
+memory_contention | A simple example to show how multi-threaded processing can effect memory.
 test_clock | Helpful if you need to characterize the overhead and precision of a clock.
-test_record_and_load | A simple and full featured (including folders) example used to validate the unikorn API and event loading using ```src/event_file_loader.c```
+test_record_and_load | A simple and full featured (including folders) example used to validate the unikorn API and event loading using ```src/unikorn_file_loader.c```
 
 
 ## Developing a Visualizer or Application to Analyze the Events
 If you are creating you own graphical visualizer, or just need to load events into some post-processing application, you can use the supplied source code to load the events:
 ```
-src/event_file_loader.c       # Code for load a .events file
-int/event_file_loader.h       # Header file for event_file_loader.c
+src/unikorn_file_loader.c       # Code for load a .events file
+int/unikorn_file_loader.h       # Header file for unikorn_file_loader.c
 ```
 
 ## Visualizing Events with the Unikorn Viewer
