@@ -77,6 +77,16 @@ int main() {
 
 The instrumentation is defined in ```unikorn_instrumentation.h```. Here is the code snippet that defines the events (names and colors):
 ```c
+enum {  // IMPORTANT, IDs must start with 1 since 0 is reserved for 'close folder'
+  // Folders
+  //  FOLDER1_ID=1,
+  //  FOLDER2_ID,
+  // Events
+  FOR_LOOP_START_ID=1,
+  FOR_LOOP_END_ID,
+  PRINTF_START_ID,
+  PRINTF_END_ID
+};
 static UkEventInfo L_events[] = {
   // Name        Color      Start ID            End ID           Start Value Name  End Value Name
   { "For Loop",  UK_BLACK,  FOR_LOOP_START_ID,  FOR_LOOP_END_ID, "",               ""},
