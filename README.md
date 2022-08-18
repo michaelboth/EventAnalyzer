@@ -10,16 +10,16 @@ Just instrument your source code with meaningful events; you defined the names a
 
 Unikorn helps with:
 - Revealing sub-microsecond timing of key events, functions, code segments
-- Validating complex dataflow interactions between CPU threads, processes, GPU streams, communication, IO
+- Validating complex dataflow interactions between CPU threads, processes, GPU streams, communication, IO devices, etc.
 - Validating determinism even with long runs (e.g. hours, days)
-- Implicitly seeing memory contention, thread starvation, context switches, and many other events
-- Finding causality bugs: e.g. knowing what happing just before the application started failing.
+- Implicitly seeing memory contention, thread starvation, context switches, and many other implicit events
+- Finding causality bugs: e.g. knowing what happened just before the application started failing.
 
 Unikorn is easy to use, and should be part of daily development from the application's inception to distribution.
 <br>
 
 ## Downloading Unikorn
-In the 'Releases' section (right panel of the GitHub webpage, near the top), click on 'Latest' to get the latest release. 
+In the 'Releases' section (right panel of the GitHub webpage, near the top), click on 'Latest' to get the latest release, including the pre-built viewer for Mac, Linux, or Windows. 
 
 ## Preparing the OS Environment
 To instrument and build your application, the following is needed:
