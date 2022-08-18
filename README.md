@@ -5,7 +5,7 @@ Unikorn is C API (source code, not a library) and graphical visualizer (Windows,
 
 Even seasoned experts will have difficulty fixing, tuning and improving software during development... like looking for a **unicorn**.
 
-Just instrument your source code with meaningful event; you defined the names and colors. This instrumentation is optional at compile time. Run your application, then view the results in the Unikorn graphical viewer.
+Just instrument your source code with meaningful events; you defined the names and colors. This instrumentation is optional at compile time. Run your application, then view the results in the Unikorn graphical viewer.
 <img src="docs/UnikornViewer.png" alt="Logo" style="width:900px;"/>
 
 Unikorn helps with:
