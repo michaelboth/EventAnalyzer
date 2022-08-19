@@ -860,7 +860,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
         UkLoaderEventInfo *event_info = &events->event_info_list[node->event_info_index];
         painter.save();
         painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
-        QString text = QString(event_info->start_value_name);
+        QString text = (prev_event->event_id == event_info->start_id) ? event_info->start_value_name : event_info->end_value_name;
         if (text == "") text = "unamed";
         painter.drawText(dialog_x, dialog_y, col1_x, th, Qt::AlignRight | Qt::AlignVCenter, text + " ");
         painter.restore();
@@ -873,7 +873,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
         UkLoaderEventInfo *event_info = &events->event_info_list[node->event_info_index];
         painter.save();
         painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
-        QString text = QString(event_info->end_value_name);
+        QString text = (next_event->event_id == event_info->start_id) ? event_info->start_value_name : event_info->end_value_name;
         if (text == "") text = "unamed";
         painter.drawText(dialog_x+col2_x, dialog_y, col1_x, th, Qt::AlignLeft | Qt::AlignVCenter, " " + text);
         painter.restore();
