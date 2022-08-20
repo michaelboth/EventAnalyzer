@@ -1,10 +1,10 @@
 CFLAGS       := -std=gnu99 -Wall -Werror -Wextra -pthread -I. -I../../inc
 CFLAGS       += -O2 -DUNIKORN_RELEASE_BUILD
 #CFLAGS       += -g -O0
-C_OBJS       := memory_contention.o
+C_OBJS       := multi_thread_and_file.o
 HEADER_FILES := unikorn_instrumentation.h
 LIBS         := -pthread -lm
-TARGET       := memory_contention
+TARGET       := multi_thread_and_file
 
 ifeq ($(INSTRUMENT_APP),Yes)
     CFLAGS       += -DENABLE_UNIKORN_RECORDING

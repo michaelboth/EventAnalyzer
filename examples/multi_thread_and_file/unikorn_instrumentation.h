@@ -1,4 +1,4 @@
-// Copyright 2021 Michael Both
+// Copyright 2021,2022 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,8 +58,8 @@ enum {  // IMPORTANT, IDs must start with 1 since 0 is reserved for 'close folde
 // Define custom events
 static UkEventInfo L_events[] = {
   // Name                  Color      Start ID               End ID                Start Value Name  End Value Name
-  { "Allocate Resources",  UK_GREEN,  ALLOC_START_ID,        ALLOC_END_ID,         "",               ""},
-  { "Free Resources",      UK_GREEN,  FREE_START_ID,         FREE_END_ID,          "",               ""},
+  { "Allocate Resources",  UK_PURPLE, ALLOC_START_ID,        ALLOC_END_ID,         "",               ""},
+  { "Free Resources",      UK_PURPLE, FREE_START_ID,         FREE_END_ID,          "",               ""},
   { "Start Threads",       UK_GREEN,  INIT_THREADS_START_ID, INIT_THREADS_END_ID,  "Thread Count",   ""},
   { "Join Threads",        UK_GREEN,  JOIN_THREADS_START_ID, JOIN_THREADS_END_ID,  "Thread Count",   ""},
   { "Barrier",             UK_RED,    BARRIER_START_ID,      BARRIER_END_ID,       "",               ""},

@@ -196,7 +196,7 @@ To help you get started, some examples are provided
 Example | Description
 --------|------------
 hello | Duh
-memory_contention | A simple example to show how multi-threaded processing can effect memory.
+multi_thread_and_file | Shows how multi-threaded processing can effect memory accesses.
 test_clock | Helpful if you need to characterize the overhead and precision of a clock.
 test_record_and_load | A simple and full featured (including folders) example used to validate the unikorn API and event loading using ```src/unikorn_file_loader.c```
 

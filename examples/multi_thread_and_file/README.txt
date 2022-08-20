@@ -1,4 +1,4 @@
-This example is used to see memory contention implicitly via visualizing events.
+This example is used to see memory contention across multiple CPU cores.
 
 Make sure to load all the event files to see them all at once in the visualizer, and align all the
 times to the 'Barrier' end event (instance == 0) when the visualizer asks how to align the files.
@@ -22,8 +22,8 @@ Linux & Mac:
     > make INSTRUMENT_APP=Yes CLOCK=gettime
     > make INSTRUMENT_APP=Yes CLOCK=gettimeofday
   Run:
-    > ./memory_contention <num_threads> <num_elements>
-    > ./memory_contention 4 1000
+    > ./multi_thread_and_file <num_threads> <num_elements>
+    > ./multi_thread_and_file 4 1000
   View Results:
     View the event file simultaneously with UnikornViewer
   Clean:
@@ -37,8 +37,8 @@ Windows:
     > nmake -f windows.Makefile INSTRUMENT_APP=Yes CLOCK=queryperformancecounter
     > nmake -f windows.Makefile INSTRUMENT_APP=Yes CLOCK=ftime
   Run:
-    > memory_contention <num_threads> <num_elements>
-    > memory_contention 4 1000
+    > multi_thread_and_file <num_threads> <num_elements>
+    > multi_thread_and_file 4 1000
   View Results:
     View the event file simultaneously with UnikornViewer
   Clean:

@@ -35,8 +35,8 @@ OPTIMIZATION_CFLAGS  = -O2 -MD -DUNIKORN_RELEASE_BUILD  # Release: -MT means sta
 CFLAGS  = $(OPTIMIZATION_CFLAGS) -nologo -WX -W3 -I. -I../../inc $(INSTRUMENT_CFLAGS) $(THREAD_CFLAGS)
 LDFLAGS = -nologo -incremental:no -manifest:embed -subsystem:console
 LIBS    = $(THREAD_LIBS)
-C_OBJS  = memory_contention.obj $(INSTRUMENT_C_OBJS) $(CLOCK_C_OBJ)
-TARGET  = memory_contention.exe
+C_OBJS  = multi_thread_and_file.obj $(INSTRUMENT_C_OBJS) $(CLOCK_C_OBJ)
+TARGET  = multi_thread_and_file.exe
 
 .SUFFIXES: .c
 
