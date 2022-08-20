@@ -19,8 +19,8 @@ Linux & Mac:
   Without event instrumentation:
     > make
   With event instrumentation (one of):
-    > make INSTRUMENT_APP=Yes CLOCK=gettimeofday
     > make INSTRUMENT_APP=Yes CLOCK=gettime
+    > make INSTRUMENT_APP=Yes CLOCK=gettimeofday
   Run:
     > ./memory_contention <num_threads> <num_elements>
     > ./memory_contention 4 1000

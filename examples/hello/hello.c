@@ -24,14 +24,29 @@ int main() {
   void *unikorn_session = UNIKORN_INIT("./hello.events", 10000, false, false, true, true, true, &flush_info);
 #endif
 
-  // Do some simple timing
+  // Print without recording
+  printf("Hello!\n");
+
+  // Record print
+  UNIKORN_START_PRINT(unikorn_session, 0);
+  printf("Hello!\n");
+  UNIKORN_END_PRINT(unikorn_session, 42);
+
+  // Folders and loops
+  UNIKORN_OPEN_FOLDER_SOLAR_SYSTEM(unikorn_session);
   UNIKORN_START_FOR_LOOP(unikorn_session, 0);
-  for (int j=0; j<10; j++) {
-    UNIKORN_START_PRINTF(unikorn_session, j);
-    printf("%d: Hello!\n", j+1);
-    UNIKORN_END_PRINTF(unikorn_session, j);
+  for (int j=0; j<5; j++) {
+    UNIKORN_START_PRINT(unikorn_session, j);
+    printf("Earth to Mars!\n");
+    UNIKORN_END_PRINT(unikorn_session, 299792458);
   }
   UNIKORN_END_FOR_LOOP(unikorn_session, 0);
+  UNIKORN_CLOSE_FOLDER(unikorn_session);
+
+  // Another recorded print
+  UNIKORN_START_PRINT(unikorn_session, 0);
+  printf("Good Bye!\n");
+  UNIKORN_END_PRINT(unikorn_session, 23.33);
 
   // Clean up
   UNIKORN_FLUSH(unikorn_session);

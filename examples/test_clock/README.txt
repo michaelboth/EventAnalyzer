@@ -7,8 +7,8 @@ but you can implement your own clock if needed.
 
 Linux & Mac:
   Choose one of:
-    > make CLOCK=gettimeofday
     > make CLOCK=gettime
+    > make CLOCK=gettimeofday
   Run:
     > ./test_clock
   Clean:

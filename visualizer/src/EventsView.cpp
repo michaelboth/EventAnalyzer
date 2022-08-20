@@ -1,4 +1,4 @@
-// Copyright 2021 Michael Both
+// Copyright 2021,2022 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@
 #define ROW_HIGHLIGHT_COLOR2 QColor(0, 0, 0, 15)
 #define HISTOGRAM_BAR_BG_COLOR QColor(230,230,230)
 #define ALIGNMENT_COLOR QColor(150, 150, 150)
+#define LOGO_COLOR QColor(220,220,220)
 
 EventsView::EventsView(QWidget *parent) : QWidget(parent) {
   // Track mouse when not pressed
@@ -45,7 +46,7 @@ EventsView::EventsView(QWidget *parent) : QWidget(parent) {
 
   // Load the logo
   QImage image = QImage(":/unikorn_logo.png");
-  recolorImage(image, QColor(220,220,220));
+  recolorImage(image, LOGO_COLOR);
   logo = QPixmap::fromImage(image);
 }
 
@@ -729,7 +730,7 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
   int th = fm.height() * 1.3f;
   int m = th * 0.25f;
   int num_lines = 10;
-  int dialog_w = fm.horizontalAdvance(" xxxfilename::function_name::line_numberxxx ");
+  int dialog_w = fm.horizontalAdvance(" XXXXXxxxfilename::function_name::line_numberxxxXXXXX ");
   int dialog_h = th*num_lines;
   int dialog_x = mouse_location.x() + m;
   int dialog_y = mouse_location.y() + m;
@@ -916,53 +917,52 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
     }
     dialog_y += th;
 
-    // Average durations and gaps in visible area
-    if (has_prev_event && has_next_event) {
-      // Durations
-      {
-        int num_buckets = 2;
-        uint32_t buckets[2] = { 0, 0 };
-        uint64_t min, ave, max;
-        bool get_gap_durations = false;
-        uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &ave, &max);
-        if (num_durations > 1) {
-          uint64_t units_factor;
-          QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
-          double adjusted_ave = ave / (double)units_factor;
-          QString val_text = niceValueText(adjusted_ave);
-          QString text = "Ave of " + QString::number(num_durations) + " durations: " + val_text + " " + time_units;
-          painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
-        } else {
-          QString text = "No multi duration stats";
-          painter.save();
-          painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
-          painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
-          painter.restore();
-        }
+    // Ave durations
+    {
+      int num_buckets = 2;
+      uint32_t buckets[2] = { 0, 0 };
+      uint64_t min, ave, max;
+      bool get_gap_durations = false;
+      uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &ave, &max);
+      if (num_durations > 0) {
+        uint64_t units_factor;
+        QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
+        double adjusted_ave = ave / (double)units_factor;
+        QString val_text = niceValueText(adjusted_ave);
+        QString duration_text = (num_durations == 1) ? " duration: " : " durations: ";
+        QString text = "Ave of " + QString::number(num_durations) + duration_text + val_text + " " + time_units;
+        painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
+      } else {
+        QString text = "No durations";
+        painter.save();
+        painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+        painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
+        painter.restore();
       }
-      dialog_y += th;
+    }
+    dialog_y += th;
 
-      // Gaps
-      {
-        int num_buckets = 2;
-        uint32_t buckets[2] = { 0, 0 };
-        uint64_t min, ave, max;
-        bool get_gap_durations = true;
-        uint32_t num_gaps = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &ave, &max);
-        if (num_gaps > 1) {
-          uint64_t units_factor;
-          QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
-          double adjusted_ave = ave / (double)units_factor;
-          QString val_text = niceValueText(adjusted_ave);
-          QString text = "Ave of " + QString::number(num_gaps) + " gaps: " + val_text + " " + time_units;
-          painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
-        } else {
-          QString text = "No multi gaps stats";
-          painter.save();
-          painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
-          painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
-          painter.restore();
-        }
+    // Ave gaps
+    {
+      int num_buckets = 2;
+      uint32_t buckets[2] = { 0, 0 };
+      uint64_t min, ave, max;
+      bool get_gap_durations = true;
+      uint32_t num_gaps = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &ave, &max);
+      if (num_gaps > 0) {
+        uint64_t units_factor;
+        QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
+        double adjusted_ave = ave / (double)units_factor;
+        QString val_text = niceValueText(adjusted_ave);
+        QString gap_text = (num_gaps == 1) ? " gap: " : " gaps: ";
+        QString text = "Ave of " + QString::number(num_gaps) + gap_text + val_text + " " + time_units;
+        painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
+      } else {
+        QString text = "No gaps";
+        painter.save();
+        painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+        painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
+        painter.restore();
       }
     }
   }
@@ -1125,6 +1125,15 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
     painter.drawPixmap(inside_rect, logo);
     painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+    // Draw the copyright
+    painter.save();
+    QFont font = painter.font();
+    font.setPointSize(inside_rect.height()*0.1f);
+    painter.setFont(font);
+    painter.setPen(QPen(LOGO_COLOR, 1, Qt::SolidLine));
+    QRect text_rect = QRect(0, inside_rect.bottom(), w, h);
+    painter.drawText(text_rect, Qt::AlignHCenter | Qt::AlignTop, "Copyright 2021 Michael Both");
+    painter.restore();
     // Clear some stuff just in case it's active
     selected_time_range_x1 = -1;
     selected_time_range_x2 = -1;

@@ -6,8 +6,7 @@ API:
  - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
 
 Examples:
- - Simplify hello world. No for loop? Update Github README.md
- - Add hello example for folders?
+ - Rename memory contention with multi_thread_and_file. Update Github README.md
 
 Visualizer:
  - Add optional gridlines (via toggle button)

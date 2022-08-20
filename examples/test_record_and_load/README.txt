@@ -6,8 +6,8 @@ Linux & Mac:
   Without event instrumentation:
     > make
   With event instrumentation (one of):
-    > make INSTRUMENT_APP=Yes CLOCK=gettimeofday
     > make INSTRUMENT_APP=Yes CLOCK=gettime
+    > make INSTRUMENT_APP=Yes CLOCK=gettimeofday
   Run:
     > ./test_record_and_load test_record_and_load.events 100 auto_flush=no threaded=yes instance=yes value=yes location=yes
     > ./test_record_and_load test_record_and_load.events 17 auto_flush=no threaded=yes instance=yes value=yes location=yes
