@@ -1,14 +1,12 @@
 Tutorial/Demo:
-  - Slide deck plus examples to show off general usage
-  - Compare vector multiply via IPP, CUDA, and OpenCL?
+ - Slide deck plus examples to show off general usage
+ - Compare vector multiply via IPP, CUDA, and OpenCL?
 
 API:
  - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
 
-Examples:
- - Rename memory contention with multi_thread_and_file. Update Github README.md
-
 Visualizer:
+ - BUG: find largest event button not always enabled.
  - Add optional gridlines (via toggle button)
  - Remember the window size from run to run
  - Allow the files to also be sorted by time & event ID, not just alphabetical
