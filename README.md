@@ -22,7 +22,7 @@ Unikorn is easy to use, and should be part of daily development from the applica
 In the 'Releases' section (right panel of the GitHub webpage, near the top), click on 'Latest' to get the latest release, including the pre-built viewer for Mac, Linux, or Windows. 
 
 ## Prepare the OS Environment
-To instrument and build your application, the following is needed:
+To instrument and build Unikorn into your application, the following is needed:
 
 OS | Requirements
 --------|------------
