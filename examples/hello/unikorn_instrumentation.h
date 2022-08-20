@@ -85,8 +85,8 @@ void *UNIKORN_INIT(const char *_filename, uint32_t _max_events, bool _flush_when
 #define UNIKORN_FINALIZE(_session) ukDestroy(_session)
 
 // Folder recording macros
-//#define UNIKORN_OPEN_FOLDER1(_session) ukRecordFolder(_session, FOLDER1_ID)
-//#define UNIKORN_OPEN_FOLDER2(_session) ukRecordFolder(_session, FOLDER2_ID)
+//#define UNIKORN_OPEN_FOLDER1(_session) ukOpenFolder(_session, FOLDER1_ID)
+//#define UNIKORN_OPEN_FOLDER2(_session) ukOpenFolder(_session, FOLDER2_ID)
 //#define UNIKORN_CLOSE_FOLDER(_session) ukCloseFolder(_session)
 
 // Events recording macros

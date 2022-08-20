@@ -756,7 +756,7 @@ void ukRecordEvent(void *session_ref, uint16_t event_id, double value, const cha
 #endif
 }
 
-void ukRecordFolder(void *session_ref, uint16_t folder_id) {
+void ukOpenFolder(void *session_ref, uint16_t folder_id) {
   UnikornSession *session = (UnikornSession *)session_ref;
   OPTIONAL_ASSERT(session->magic_value1 == MAGIC_VALUE1);
   OPTIONAL_ASSERT(session->magic_value2 == MAGIC_VALUE2);

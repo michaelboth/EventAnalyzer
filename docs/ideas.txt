@@ -3,7 +3,6 @@ Tutorial/Demo:
   - Compare vector multiply via IPP, CUDA, and OpenCL?
 
 API:
- - Rename ukRecordFolder to ukOpenFolder
  - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
 
 Examples:
