@@ -42,7 +42,7 @@ OS | Requirements
 --------|------------
 Linux | gcc and make
 Mac | xCode
-Windows | Visual Studio<br> Unikorn's API can optionally be thread safe, which requires Posix threads, which is not supported in Visual Studio. To download and build it:<br> 1. Get the source code from: https://sourceforge.net/projects/pthreads4w/ <br> 2. Unzip, rename to 'pthreads4w' and put in the C:\ folder <br> 3. Start a Visual Studio x64 native shell <br> ``` > cd c:\pthreads4w <br> > nmake VC VC-debug VC-static VC-static-debug install DESTROOT=.\install```
+Windows | Visual Studio<br> Unikorn's API can optionally be thread safe, which requires Posix threads, which is not supported in Visual Studio. To download and build it:<br> 1. Get the source code from: https://sourceforge.net/projects/pthreads4w/ <br> 2. Unzip, rename to 'pthreads4w' and put in the C:\ folder <br> 3. Start a Visual Studio x64 native shell <br> ```> cd c:\pthreads4w``` <br> ```> nmake VC VC-debug VC-static VC-static-debug install DESTROOT=.\install```
 
 
 ## Instrument Your Application with Events
