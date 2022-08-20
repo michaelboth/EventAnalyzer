@@ -3,7 +3,12 @@ Tutorial/Demo:
   - Compare vector multiply via IPP, CUDA, and OpenCL?
 
 API:
+ - Rename ukRecordFolder to ukOpenFolder
  - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
+
+Examples:
+ - Simplify hello world. No for loop? Update Github README.md
+ - Add hello example for folders?
 
 Visualizer:
  - Add optional gridlines (via toggle button)
