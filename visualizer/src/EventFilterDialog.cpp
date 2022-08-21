@@ -29,9 +29,9 @@ EventFilterDialog::EventFilterDialog(QWidget *parent) : QDialog(parent), ui(new 
     i.next();
     EventTree *event_tree = i.value();
     UkEvents *events = event_tree->events;
-    for (uint16_t i=0; i<events->event_info_count; i++) {
-      UkLoaderEventInfo *event_info = &events->event_info_list[i];
-      QString name = event_info->name;
+    for (uint16_t i=0; i<events->event_registration_count; i++) {
+      UkLoaderEventRegistration *event_registration = &events->event_registration_list[i];
+      QString name = event_registration->name;
       if (!event_names.contains(name)) {
 	event_names += name;
       }

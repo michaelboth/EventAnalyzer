@@ -1,6 +1,6 @@
 CFLAGS       := -std=gnu99 -Wall -Werror -Wextra -pthread -I. -I../../inc
-CFLAGS       += -O2 -DUNIKORN_RELEASE_BUILD
-#CFLAGS       += -g -O0
+#CFLAGS       += -O2 -DUNIKORN_RELEASE_BUILD
+CFLAGS       += -g -O0
 C_OBJS       := test_record_and_load.o
 HEADER_FILES := unikorn_instrumentation.h
 LIBS         := -pthread -lm

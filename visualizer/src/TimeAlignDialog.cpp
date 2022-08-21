@@ -43,16 +43,16 @@ TimeAlignDialog::TimeAlignDialog(QWidget *parent) : QDialog(parent), ui(new Ui::
       if (!got_initial_names) {
         // Create initial name list
         got_initial_names = true;
-        for (uint16_t i=0; i<events->event_info_count; i++) {
-          UkLoaderEventInfo *event_info = &events->event_info_list[i];
-          common_event_names += QString(event_info->name);
+        for (uint16_t i=0; i<events->event_registration_count; i++) {
+          UkLoaderEventRegistration *event_registration = &events->event_registration_list[i];
+          common_event_names += QString(event_registration->name);
         }
       } else {
         // Remove names that are not common
         QStringList new_common_event_names;
-        for (uint16_t i=0; i<events->event_info_count; i++) {
-          UkLoaderEventInfo *event_info = &events->event_info_list[i];
-          QString name = event_info->name;
+        for (uint16_t i=0; i<events->event_registration_count; i++) {
+          UkLoaderEventRegistration *event_registration = &events->event_registration_list[i];
+          QString name = event_registration->name;
           if (common_event_names.contains(name)) {
             new_common_event_names += name;
           }
@@ -147,10 +147,10 @@ bool TimeAlignDialog::getCommonInstanceRange(QString event_name, bool is_start, 
 
     // Get the event ID
     uint16_t event_id = 0;
-    for (uint16_t j=0; j<events->event_info_count; j++) {
-      UkLoaderEventInfo *event_info = &events->event_info_list[j];
-      if (QString(event_info->name) == event_name) {
-	event_id = is_start ? event_info->start_id : event_info->end_id;
+    for (uint16_t j=0; j<events->event_registration_count; j++) {
+      UkLoaderEventRegistration *event_registration = &events->event_registration_list[j];
+      if (QString(event_registration->name) == event_name) {
+	event_id = is_start ? event_registration->start_id : event_registration->end_id;
 	break;
       }
     }

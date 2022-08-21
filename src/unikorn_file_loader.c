@@ -119,11 +119,11 @@ static void loadEventsHeader(FILE *file, bool first_time_loaded, bool swap_endia
   }
 
   // Get the event parameters
-  bool is_threaded = readBool(file);
+  bool is_multi_threaded = readBool(file);
   if (first_time_loaded) {
-    object->is_threaded = is_threaded;
+    object->is_multi_threaded = is_multi_threaded;
   } else {
-    assert(object->is_threaded == is_threaded);
+    assert(object->is_multi_threaded == is_multi_threaded);
   }
   bool includes_instance = readBool(file);
   if (first_time_loaded) {
@@ -150,28 +150,28 @@ static void loadEventsHeader(FILE *file, bool first_time_loaded, bool swap_endia
   bool is_big_endian = swap_endian ? !isBigEndian() : isBigEndian();
   printf("  file is big endian = %s (need endian swapping = %s)\n", is_big_endian ? "yes" : "no", swap_endian ? "yes" : "no");
   printf("  version = %d.%d\n", version_major, version_minor);
-  printf("  is_threaded = %s\n", object->is_threaded ? "yes" : "no");
+  printf("  is_multi_threaded = %s\n", object->is_multi_threaded ? "yes" : "no");
   printf("  includes_instance = %s\n", object->includes_instance ? "yes" : "no");
   printf("  includes_value = %s\n", object->includes_value ? "yes" : "no");
   printf("  includes_file_location = %s\n", object->includes_file_location ? "yes" : "no");
 #endif
 
   // Folder info
-  uint16_t folder_info_count = readUint16(swap_endian, file);
+  uint16_t folder_registration_count = readUint16(swap_endian, file);
   if (first_time_loaded) {
-    object->folder_info_count = folder_info_count;
+    object->folder_registration_count = folder_registration_count;
   } else {
-    assert(object->folder_info_count == folder_info_count);
+    assert(object->folder_registration_count == folder_registration_count);
   }
 #ifdef PRINT_UNIKORN_LOAD_INFO
-  printf("  folder_info_count = %d\n", object->folder_info_count);
+  printf("  folder_registration_count = %d\n", object->folder_registration_count);
 #endif
   if (first_time_loaded) {
-    object->folder_info_list = malloc(object->folder_info_count*sizeof(UkLoaderFolderInfo));
-    assert(object->folder_info_list != NULL);
+    object->folder_registration_list = malloc(object->folder_registration_count*sizeof(UkLoaderFolderRegistration));
+    assert(object->folder_registration_list != NULL);
   }
-  for (uint16_t i=0; i<object->folder_info_count; i++) {
-    UkLoaderFolderInfo *folder = &object->folder_info_list[i];
+  for (uint16_t i=0; i<object->folder_registration_count; i++) {
+    UkLoaderFolderRegistration *folder = &object->folder_registration_list[i];
     uint16_t id = readUint16(swap_endian, file);
     if (first_time_loaded) {
       folder->id = id;
@@ -197,21 +197,21 @@ static void loadEventsHeader(FILE *file, bool first_time_loaded, bool swap_endia
   }
 
   // Event info
-  uint16_t event_info_count = readUint16(swap_endian, file);
+  uint16_t event_registration_count = readUint16(swap_endian, file);
   if (first_time_loaded) {
-    object->event_info_count = event_info_count;
+    object->event_registration_count = event_registration_count;
   } else {
-    assert(object->event_info_count == event_info_count);
+    assert(object->event_registration_count == event_registration_count);
   }
 #ifdef PRINT_UNIKORN_LOAD_INFO
-  printf("  event_info_count = %d\n", object->event_info_count);
+  printf("  event_registration_count = %d\n", object->event_registration_count);
 #endif
   if (first_time_loaded) {
-    object->event_info_list = malloc(object->event_info_count*sizeof(UkLoaderEventInfo));
-    assert(object->event_info_list != NULL);
+    object->event_registration_list = malloc(object->event_registration_count*sizeof(UkLoaderEventRegistration));
+    assert(object->event_registration_list != NULL);
   }
-  for (uint16_t i=0; i<object->event_info_count; i++) {
-    UkLoaderEventInfo *event = &object->event_info_list[i];
+  for (uint16_t i=0; i<object->event_registration_count; i++) {
+    UkLoaderEventRegistration *event = &object->event_registration_list[i];
     // Start ID
     uint16_t start_id = readUint16(swap_endian, file);
     if (first_time_loaded) {
@@ -295,15 +295,15 @@ static void loadEventsHeader(FILE *file, bool first_time_loaded, bool swap_endia
 
 #ifdef PRINT_UNIKORN_LOAD_INFO
 static const char *getEventName(UkEvents *object, uint16_t event_id) {
-  if (event_id < object->folder_info_count) {
-    return object->folder_info_list[event_id].name;
+  if (event_id < object->folder_registration_count) {
+    return object->folder_registration_list[event_id].name;
   } else {
-    event_id -= object->folder_info_count;
-    if (object->folder_info_count == 0) event_id--;
+    event_id -= object->folder_registration_count;
+    if (object->folder_registration_count == 0) event_id--;
     uint16_t array_index = event_id/2;
-    bool is_start = (object->event_info_list[array_index].start_id == event_id);
+    bool is_start = (object->event_registration_list[array_index].start_id == event_id);
     static char name[1000];
-    sprintf(name, "%s: %s", is_start ? "Start" : "End", object->event_info_list[array_index].name);
+    sprintf(name, "%s: %s", is_start ? "Start" : "End", object->event_registration_list[array_index].name);
     return name;
   }
 }
@@ -397,7 +397,7 @@ static void loadEventsData(FILE *file, bool swap_endian, UkEvents *object) {
   }
 
   // Thread IDs
-  if (object->is_threaded) {
+  if (object->is_multi_threaded) {
     uint16_t thread_id_count = readUint16(swap_endian, file);
 #ifdef PRINT_UNIKORN_LOAD_INFO
     printf("  thread_id_count = %d\n", thread_id_count);
@@ -433,7 +433,7 @@ static void loadEventsData(FILE *file, bool swap_endian, UkEvents *object) {
     for (uint16_t i=0; i<num_open_folders; i++) {
       folder_id_list[i] = readUint16(swap_endian, file);
 #ifdef PRINT_UNIKORN_LOAD_INFO
-      printf("    index = %d: '%s'\n", folder_id_list[i], object->folder_info_list[folder_id_list[i]].name);
+      printf("    index = %d: '%s'\n", folder_id_list[i], object->folder_registration_list[folder_id_list[i]].name);
 #endif
     }
   }
@@ -441,10 +441,10 @@ static void loadEventsData(FILE *file, bool swap_endian, UkEvents *object) {
   // From the existing events, determine the list of folders that were open after the last event
   uint16_t num_final_open_folders = 0;
   uint16_t *final_folder_id_list = NULL;
-  if (object->folder_info_count > 0) {
-    final_folder_id_list = malloc(object->folder_info_count*sizeof(uint16_t));
+  if (object->folder_registration_count > 0) {
+    final_folder_id_list = malloc(object->folder_registration_count*sizeof(uint16_t));
     assert(final_folder_id_list != NULL);
-    uint16_t first_event_id = (object->folder_info_count == 0) ? 1 : object->folder_info_count;
+    uint16_t first_event_id = (object->folder_registration_count == 0) ? 1 : object->folder_registration_count;
     for (uint32_t i=0; i<object->event_count; i++) {
       UkEvent *event = &object->event_buffer[i];
       if (event->event_id < first_event_id) {
@@ -455,7 +455,7 @@ static void loadEventsData(FILE *file, bool swap_endian, UkEvents *object) {
           num_final_open_folders--;
         } else {
           // Push folder on stack
-          assert(num_final_open_folders < object->folder_info_count);
+          assert(num_final_open_folders < object->folder_registration_count);
           final_folder_id_list[num_final_open_folders] = event->event_id;
           num_final_open_folders++;
         }
@@ -562,7 +562,7 @@ static void loadEventsData(FILE *file, bool swap_endian, UkEvents *object) {
       printf("      value = %f\n", event->value);
 #endif
     }
-    if (object->is_threaded) {
+    if (object->is_multi_threaded) {
       event->thread_index = readUint16(swap_endian, file);
 #ifdef PRINT_UNIKORN_LOAD_INFO
       printf("      thread index = %d\n", event->thread_index);
@@ -590,7 +590,7 @@ static void loadEventsData(FILE *file, bool swap_endian, UkEvents *object) {
   if (num_open_folders > 0) {
     free(folder_id_list);
   }
-  if (object->folder_info_count > 0) {
+  if (object->folder_registration_count > 0) {
     free(final_folder_id_list);
   }
 }
@@ -643,14 +643,16 @@ UkEvents *ukLoadEventsFile(const char *filename) {
 }
 
 void ukFreeEvents(UkEvents *object) {
-  for (uint16_t i=0; i<object->folder_info_count; i++) {
-    free(object->folder_info_list[i].name);
+  for (uint16_t i=0; i<object->folder_registration_count; i++) {
+    free(object->folder_registration_list[i].name);
   }
-  free(object->folder_info_list);
-  for (uint16_t i=0; i<object->event_info_count; i++) {
-    free(object->event_info_list[i].name);
+  free(object->folder_registration_list);
+  for (uint16_t i=0; i<object->event_registration_count; i++) {
+    free(object->event_registration_list[i].name);
+    free(object->event_registration_list[i].start_value_name);
+    free(object->event_registration_list[i].end_value_name);
   }
-  free(object->event_info_list);
+  free(object->event_registration_list);
   for (uint16_t i=0; i<object->file_name_count; i++) {
     free(object->file_name_list[i]);
   }

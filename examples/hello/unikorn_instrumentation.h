@@ -37,36 +37,36 @@ enum {  // IMPORTANT, IDs must start with 1 since 0 is reserved for 'close folde
 #ifdef ENABLE_UNIKORN_SESSION_CREATION
 
 // Define custom folders
-static UkFolderInfo L_folders[] = {
+static UkFolderRegistration L_folders[] = {
   // Name            ID
   { "Solar System",  FOLDER_SOLAR_SYSTEM_ID},
 };
-#define NUM_FOLDERS (sizeof(L_folders) / sizeof(UkFolderInfo))
+#define NUM_FOLDERS (sizeof(L_folders) / sizeof(UkFolderRegistration))
 // Use this if no folders are defined
 //#define L_folders NULL
 //#define NUM_FOLDERS 0
 
 // Define custom events
-static UkEventInfo L_events[] = {
+static UkEventRegistration L_events[] = {
   // Name        Color      Start ID            End ID           Start Value Name  End Value Name
   { "For Loop",  UK_BLACK,  FOR_LOOP_START_ID,  FOR_LOOP_END_ID, "",               ""},
   { "Print",     UK_BLUE,   PRINT_START_ID,     PRINT_END_ID,    "Loop Index",     "Favorite Number"},
 };
-#define NUM_EVENT_TYPES (sizeof(L_events) / sizeof(UkEventInfo))
+#define NUM_EVENT_TYPES (sizeof(L_events) / sizeof(UkEventRegistration))
 
 // Init the event session
-void *UNIKORN_INIT(const char *_filename, uint32_t _max_events, bool _flush_when_full, bool _is_threaded, bool _record_instance, bool _record_value, bool _record_location, UkFileFlushInfo *_flush_info) {
+void *UNIKORN_INIT(const char *_filename, uint32_t _max_events, bool _flush_when_full, bool _is_multi_threaded, bool _record_instance, bool _record_value, bool _record_location, UkFileFlushInfo *_flush_info) {
   UkAttrs attrs = {
     .max_event_count = _max_events,
     .flush_when_full = _flush_when_full,
-    .is_threaded = _is_threaded,
+    .is_multi_threaded = _is_multi_threaded,
     .record_instance = _record_instance,
     .record_value = _record_value,
     .record_file_location = _record_location,
-    .folder_info_count = NUM_FOLDERS,
-    .folder_info_list = L_folders,
-    .event_info_count = NUM_EVENT_TYPES,
-    .event_info_list = L_events
+    .folder_registration_count = NUM_FOLDERS,
+    .folder_registration_list = L_folders,
+    .event_registration_count = NUM_EVENT_TYPES,
+    .event_registration_list = L_events
   };
   _flush_info->filename = _filename;
   _flush_info->file = NULL;

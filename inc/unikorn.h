@@ -24,7 +24,7 @@
 #define UK_API_VERSION_MINOR 1
 // Version history
 // 1.0: Initial release
-// 1.1: UkEventInfo, added names for start and end values
+// 1.1: UkEventRegistration, added names for start and end values
 
 // Predefined RGB colors. Application can still use custom color values, format is 0x0RGB
 enum {
@@ -43,7 +43,7 @@ enum {
 typedef struct {
   const char *name;
   uint16_t id;        // ID's must start with 1 and be contiguous across folders (defined first) and events. ID 0 is reserved for 'close folder' event.
-} UkFolderInfo;
+} UkFolderRegistration;
 
 typedef struct {
   const char *name;
@@ -52,19 +52,19 @@ typedef struct {
   uint16_t end_id;    // ID's must start with 1 and be contiguous across folders (defined first) and events. ID 0 is reserved for 'close folder' event.
   const char *start_value_name;
   const char *end_value_name;
-} UkEventInfo;
+} UkEventRegistration;
 
 typedef struct {
   uint32_t max_event_count;     // Max number of events that can be stored before oldest events get overwritten
   bool flush_when_full;         // If true, flushes stored events when event buffer is full, by implicitly calling ukFlush(). If enabled, this may significantly impact performance and disk space.
-  bool is_threaded;             // If true, the API will be thread safe and the thread ID is stored in each event. 'true' only allowed if API built with mutex suppoprt.
+  bool is_multi_threaded;       // If true, the API will be thread safe and the thread ID is stored in each event. 'true' only allowed if API built with mutex suppoprt.
   bool record_instance;         // If true, will store a counter value (per event type) each time the event is recorded
   bool record_value;            // If true, will store 64 uninterpreted bits (can be interpreted by GUI; e.g. bool, int, int64, float, double, etc)
   bool record_file_location;    // If true, will store the filename and line number to each event
-  uint16_t folder_info_count;   // Folders are helpful with grouping events
-  UkFolderInfo *folder_info_list;
-  uint16_t event_info_count;    // Unique event types that can be recorded
-  UkEventInfo *event_info_list;
+  uint16_t folder_registration_count;   // Folders are helpful with grouping events
+  UkFolderRegistration *folder_registration_list;
+  uint16_t event_registration_count;    // Unique event types that can be recorded
+  UkEventRegistration *event_registration_list;
 } UkAttrs;
 
 #ifdef __cplusplus
@@ -84,9 +84,9 @@ void *ukCreate(UkAttrs *attrs,
 // Destroy the event session. This will not automatically save unsaved events
 void ukDestroy(void *instance);
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------
-// IMPORTANT: The remaining functions are thread safe if unikorn.c is compiled with ENABLE_UNIKORN_ATOMIC_RECORDING and UkAttrs.is_threaded==true
-//-----------------------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+// IMPORTANT: The remaining functions are thread safe if unikorn.c is compiled with ENABLE_UNIKORN_ATOMIC_RECORDING and UkAttrs.is_multi_threaded==true
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Record event: event ID, time, instance (optional), file (optional), function (optional), line number (optional), thread ID (optional)
 // If the event buffer is full and auto flushing is not enabled, the oldest event will be replaced by the new event
@@ -114,15 +114,15 @@ void ukFlush(void *instance);
   (bool)           is_big_endian
   (uint16_t)       version_major
   (uint16_t)       version_minor
-  (bool)           is_threaded
+  (bool)           is_multi_threaded
   (bool)           includes_instance
   (bool)           includes_value
   (bool)           includes_file_location
-  (uint16_t)       folder_info_count          (can be zero)
+  (uint16_t)       folder_registration_count     (can be zero)
     (uint16_t)       id
     (uint16_t)       num_name_chars
     (char[])         chars
-  (uint16_t)       event_info_count           (must be at least one or else this API is pretty useless)
+  (uint16_t)       event_registration_count      (must be at least one or else this API is pretty useless)
     (uint16_t)       start_id
     (uint16_t)       end_id
     (uint16_t)       rgb_color
@@ -135,22 +135,22 @@ void ukFlush(void *instance);
   -------------------------------------------------
   | DATA: may be different with each flush        |
   -------------------------------------------------
-  (uint16_t)       file_name_count            (0 if record_file_location==false)
+  (uint16_t)       file_name_count                (0 if record_file_location==false)
     (uint16_t)       num_chars
     (char[])         chars
-  (uint16_t)       function_name_count        (0 if record_file_location==false)
+  (uint16_t)       function_name_count            (0 if record_file_location==false)
     (uint16_t)       num_chars
     (char[])         chars
-  (uint16_t)       thread_id_count            (0 if is_threaded==false)
+  (uint16_t)       thread_id_count                (0 if is_multi_threaded==false)
     (uint64_t)       thread_id
-  (uint16_t)       num_open_folders           (stack of folders that were already open before the first event in the record buffer)
+  (uint16_t)       num_open_folders               (stack of folders that were already open before the first event in the record buffer)
     (uint16_t)       folder id
   (uint32_t)       event_count
     (uint64_t)       elapsed time since clocks base time
     (uint16_t)       event id
     (uint64_t)       instance                     (only recorded if record_instance==true)
     (uint64_t)       value                        (only recorded if record_value==true)
-    (uint16_t)       index in thread list         (only recorded if is_threaded==true)
+    (uint16_t)       index in thread list         (only recorded if is_multi_threaded==true)
     (uint16_t)       index in file name list      (only recorded if record_file_location==true)
     (uint16_t)       index in function name list  (only recorded if record_file_location==true)
     (uint16_t)       line number                  (only recorded if record_file_location==true)

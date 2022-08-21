@@ -714,7 +714,7 @@ bool MainWindow::eventFilesHaveFolders() {
     i.next();
     EventTree *tree = i.value();
     UkEvents *events = tree->events;
-    if (events->folder_info_count > 0) return true;
+    if (events->folder_registration_count > 0) return true;
   }
   return false;
 }
@@ -726,7 +726,7 @@ bool MainWindow::eventFilesHaveThreads() {
     i.next();
     EventTree *tree = i.value();
     UkEvents *events = tree->events;
-    if (events->is_threaded) return true;
+    if (events->is_multi_threaded) return true;
   }
   return false;
 }

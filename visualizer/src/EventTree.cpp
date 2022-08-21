@@ -63,9 +63,9 @@ void EventTree::deleteTree(EventTreeNode *node) {
   delete node;
 }
 
-EventTreeNode *EventTree::getChildWithEventInfoIndex(EventTreeNode *parent, uint16_t event_info_index) {
+EventTreeNode *EventTree::getChildWithEventInfoIndex(EventTreeNode *parent, uint16_t event_registration_index) {
   for (auto child: parent->children) {
-    if (child->tree_node_type == TREE_NODE_IS_EVENT && child->event_info_index == event_info_index) return child;
+    if (child->tree_node_type == TREE_NODE_IS_EVENT && child->event_registration_index == event_registration_index) return child;
   }
   return NULL;
 }
@@ -94,7 +94,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
 
     // Look at next event
     UkEvent *event = &events->event_buffer[event_index];
-    if (event->event_id < events->folder_info_count) {
+    if (event->event_id < events->folder_registration_count) {
       // Process folder event
       if (!show_folders) {
         // Skip over folder events
@@ -108,7 +108,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
         EventTreeNode *folder = new EventTreeNode();
         folder->tree_node_type = TREE_NODE_IS_FOLDER;
         folder->ID = event->event_id;
-        folder->name = events->folder_info_list[event->event_id].name;
+        folder->name = events->folder_registration_list[event->event_id].name;
         node->children += folder;
         folder->parent = node;
 #ifdef PRINT_HELPFUL_MESSAGES
@@ -121,30 +121,30 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
 
     } else {
       // Process time event
-      uint16_t first_event_id = (events->folder_info_count==0) ? 1 : events->folder_info_count;
-      uint16_t event_info_index = (event->event_id - first_event_id) / 2;
-      UkLoaderEventInfo *event_info = &events->event_info_list[event_info_index];
+      uint16_t first_event_id = (events->folder_registration_count==0) ? 1 : events->folder_registration_count;
+      uint16_t event_registration_index = (event->event_id - first_event_id) / 2;
+      UkLoaderEventRegistration *event_registration = &events->event_registration_list[event_registration_index];
       EventTreeNode *parent = node;
       // Get thread folder if threaded
-      if (events->is_threaded && show_threads) {
+      if (events->is_multi_threaded && show_threads) {
         parent = getThreadFolder(node, event->thread_index);
       }
-      EventTreeNode *child = getChildWithEventInfoIndex(parent, event_info_index);
+      EventTreeNode *child = getChildWithEventInfoIndex(parent, event_registration_index);
       if (child == NULL) {
         // Create event child
 #ifdef PRINT_HELPFUL_MESSAGES
-        printf("Creating event node for ID %d, %s\n", event->event_id, event_info->name);
+        printf("Creating event node for ID %d, %s\n", event->event_id, event_registration->name);
 #endif
         child = new EventTreeNode();
         child->tree_node_type = TREE_NODE_IS_EVENT;
-        child->event_info_index = event_info_index;
+        child->event_registration_index = event_registration_index;
         child->row_start_time = event->time;
         child->ID = event->event_id;
-        int red   = (int)(255 * (((event_info->rgb & 0xf00) >> 8) / (float)0xf));
-        int green = (int)(255 * (((event_info->rgb & 0xf0) >> 4) / (float)0xf));
-        int blue  = (int)(255 * ((event_info->rgb & 0xf) / (float)0xf));
+        int red   = (int)(255 * (((event_registration->rgb & 0xf00) >> 8) / (float)0xf));
+        int green = (int)(255 * (((event_registration->rgb & 0xf0) >> 4) / (float)0xf));
+        int blue  = (int)(255 * ((event_registration->rgb & 0xf) / (float)0xf));
         child->color = QColor(red, green, blue);
-        child->name = event_info->name;
+        child->name = event_registration->name;
         child->max_event_instances = MIN_EVENT_INSTANCE_LIST_ELEMENTS;
         child->num_event_instances = 0;
         child->event_indices = (uint32_t *)malloc(child->max_event_instances * sizeof(uint32_t));
@@ -159,11 +159,11 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
       child->event_indices[child->num_event_instances] = event_index;
 
       // See if this is the largest duration
-      if (child->num_event_instances > 0 && event->event_id == event_info->end_id) {
+      if (child->num_event_instances > 0 && event->event_id == event_registration->end_id) {
         // This is an end event, and a prev event exists. See if the prev event is a start event
         uint16_t prev_event_index = child->event_indices[child->num_event_instances-1];
         UkEvent *prev_event = &events->event_buffer[prev_event_index];
-        if (prev_event->event_id == event_info->start_id) {
+        if (prev_event->event_id == event_registration->start_id) {
           // Prev event is the start. See if the duration is the largest
           uint64_t duration = event->time - prev_event->time;
           if (child->end_event_index_of_largest_duration == 0) {

@@ -42,7 +42,7 @@
 //     - Event ID               sizeof(uint16_t)
 //     - Instance               sizeof(uint64_t)  (only if record_instance==true)          Number of times the event ID was stored
 //     - Value                  sizeof(double)    (only if store_value == true)            64bit float value
-//     - Thread ID              sizeof(uint64_t)  (only if is_threaded == true)            Thread ID (can be used as a folder in the GUI)
+//     - Thread ID              sizeof(uint64_t)  (only if is_multi_threaded == true)      Thread ID (can be used as a folder in the GUI)
 //     - File Name Pointer      sizeof(char *)    (only if record_file_location == true)   Resolves to the name of the file where the event was stored
 //     - Function Name Pointer  sizeof(char *)    (only if record_file_location == true)   Resolves to the name of the function where the event was stored
 //     - Line number            sizeof(uint16_t)  (only if record_file_location == true)   Line number in the file where the event was stored
@@ -103,21 +103,21 @@ typedef struct {
   bool (*finishFlush)(void *user_data);
   // Recording attributes
   bool flush_when_full;
-  bool is_threaded;
+  bool is_multi_threaded;
   bool record_instance;
   bool record_file_location;
   bool record_value;
   // Folders
-  uint16_t folder_info_count;
-  PrivateFolderInfo *folder_info_list;
+  uint16_t folder_registration_count;
+  PrivateFolderInfo *folder_registration_list;
   uint16_t curr_folder_stack_count;
   uint16_t *curr_folder_stack;
   uint16_t starting_folder_stack_count;
   uint16_t *starting_folder_stack;
   // Event types
   uint16_t first_event_id;
-  uint16_t event_info_count;
-  PrivateEventInfo *event_info_list;
+  uint16_t event_registration_count;
+  PrivateEventInfo *event_registration_list;
   // Event buffer
   uint32_t max_event_count;
   uint32_t num_stored_events;
@@ -258,7 +258,7 @@ static uint16_t getNameIndex(char *name, char **name_list, uint16_t name_count) 
 }
 
 static void pushStartingFolderStack(UnikornSession *session, uint16_t folder_id) {
-  uint16_t max_folder_stack_count = session->folder_info_count - 1; // -1 for the close folder event
+  uint16_t max_folder_stack_count = session->folder_registration_count - 1; // -1 for the close folder event
   assert(session->starting_folder_stack_count < max_folder_stack_count);
   for (uint16_t i=0; i<session->starting_folder_stack_count; i++) {
     assert(session->starting_folder_stack[i] != folder_id);
@@ -280,25 +280,25 @@ void *ukCreate(UkAttrs *attrs,
 	       bool (*finishFlush)(void *user_data)) {
   // Verify attributes
   if (attrs->max_event_count < MIN_EVENT_COUNT) { printf("Expected max events count=%d to be at least %d\n", attrs->max_event_count, MIN_EVENT_COUNT); assert(0); }
-  if (attrs->event_info_count == 0) { printf("Expected at least one named event to be registered\n"); assert(0); }
+  if (attrs->event_registration_count == 0) { printf("Expected at least one named event to be registered\n"); assert(0); }
 #ifdef ENABLE_UNIKORN_ATOMIC_RECORDING
 #else
-  if (attrs->is_threaded) { printf("Asked for threading, but the library is not compiled with threading.\n"); assert(0); }
+  if (attrs->is_multi_threaded) { printf("Asked for threading, but the library is not compiled with threading.\n"); assert(0); }
 #endif
   uint32_t num_event_types = 1;
-  for (uint16_t i=0; i<attrs->folder_info_count; i++) {
-    if (attrs->folder_info_list[i].name == NULL) { printf("Folder name[%d] is NULL\n", i); assert(0); }
-    if (strlen(attrs->folder_info_list[i].name) >= MAX_NAME_LENGTH) { printf("Folder name[%d]='%s' has more than %d chars.\n", i, attrs->folder_info_list[i].name, MAX_NAME_LENGTH); assert(0); }
-    if (attrs->folder_info_list[i].id != num_event_types) { printf("Folder name[%d]='%s' was expected to have an ID=%d but has %d\n", i, attrs->folder_info_list[i].name, num_event_types, attrs->folder_info_list[i].id); assert(0); }
+  for (uint16_t i=0; i<attrs->folder_registration_count; i++) {
+    if (attrs->folder_registration_list[i].name == NULL) { printf("Folder name[%d] is NULL\n", i); assert(0); }
+    if (strlen(attrs->folder_registration_list[i].name) >= MAX_NAME_LENGTH) { printf("Folder name[%d]='%s' has more than %d chars.\n", i, attrs->folder_registration_list[i].name, MAX_NAME_LENGTH); assert(0); }
+    if (attrs->folder_registration_list[i].id != num_event_types) { printf("Folder name[%d]='%s' was expected to have an ID=%d but has %d\n", i, attrs->folder_registration_list[i].name, num_event_types, attrs->folder_registration_list[i].id); assert(0); }
     num_event_types++;
   }
   uint16_t first_event_id = num_event_types;
-  for (uint16_t i=0; i<attrs->event_info_count; i++) {
-    if (attrs->event_info_list[i].name == NULL) { printf("Event name[%d] is NULL\n", i); assert(0); }
-    if (strlen(attrs->event_info_list[i].name) >= MAX_NAME_LENGTH) { printf("Event name[%d]='%s' has more than %d chars.\n", i, attrs->event_info_list[i].name, MAX_NAME_LENGTH); assert(0); }
-    if (attrs->event_info_list[i].start_id != num_event_types) { printf("Event name[%d]='%s' was expected to have a start ID=%d but has %d\n", i, attrs->event_info_list[i].name, num_event_types, attrs->event_info_list[i].start_id); assert(0); }
+  for (uint16_t i=0; i<attrs->event_registration_count; i++) {
+    if (attrs->event_registration_list[i].name == NULL) { printf("Event name[%d] is NULL\n", i); assert(0); }
+    if (strlen(attrs->event_registration_list[i].name) >= MAX_NAME_LENGTH) { printf("Event name[%d]='%s' has more than %d chars.\n", i, attrs->event_registration_list[i].name, MAX_NAME_LENGTH); assert(0); }
+    if (attrs->event_registration_list[i].start_id != num_event_types) { printf("Event name[%d]='%s' was expected to have a start ID=%d but has %d\n", i, attrs->event_registration_list[i].name, num_event_types, attrs->event_registration_list[i].start_id); assert(0); }
     num_event_types++;
-    if (attrs->event_info_list[i].end_id != num_event_types) { printf("Event name[%d]='%s' was expected to have an end ID=%d but has %d\n", i, attrs->event_info_list[i].name, num_event_types, attrs->event_info_list[i].end_id); assert(0); }
+    if (attrs->event_registration_list[i].end_id != num_event_types) { printf("Event name[%d]='%s' was expected to have an end ID=%d but has %d\n", i, attrs->event_registration_list[i].name, num_event_types, attrs->event_registration_list[i].end_id); assert(0); }
     num_event_types++;
   }
 
@@ -314,12 +314,12 @@ void *ukCreate(UkAttrs *attrs,
   session->finishFlush = finishFlush;
   session->max_event_count = attrs->max_event_count;
   session->flush_when_full = attrs->flush_when_full;
-  session->is_threaded = attrs->is_threaded;
+  session->is_multi_threaded = attrs->is_multi_threaded;
   session->record_instance = attrs->record_instance;
   session->record_value = attrs->record_value;
   session->record_file_location = attrs->record_file_location;
-  session->folder_info_count = (attrs->folder_info_count == 0) ? 0 : attrs->folder_info_count + 1; // Also need the close folder event
-  session->event_info_count = attrs->event_info_count;
+  session->folder_registration_count = (attrs->folder_registration_count == 0) ? 0 : attrs->folder_registration_count + 1; // Also need the close folder event
+  session->event_registration_count = attrs->event_registration_count;
   session->first_event_id = first_event_id;
 #ifdef ENABLE_UNIKORN_ATOMIC_RECORDING
   pthread_mutex_init(&session->mutex, NULL);
@@ -331,7 +331,7 @@ void *ukCreate(UkAttrs *attrs,
   printf("%s():\n", __FUNCTION__);
   printf("  max_event_count = %d\n", session->max_event_count);
   printf("  flush_when_full = %s\n", session->flush_when_full ? "yes" : "no");
-  printf("  is_threaded = %s\n", session->is_threaded ? "yes" : "no");
+  printf("  is_multi_threaded = %s\n", session->is_multi_threaded ? "yes" : "no");
   printf("  record_instance = %s\n", session->record_instance ? "yes" : "no");
   printf("  record_value = %s\n", session->record_value ? "yes" : "no");
   printf("  record_file_location = %s\n", session->record_file_location ? "yes" : "no");
@@ -340,29 +340,29 @@ void *ukCreate(UkAttrs *attrs,
 
   // Named Folders
 #ifdef PRINT_INIT_INFO
-  printf("  folder_info_count = %d\n", session->folder_info_count);
+  printf("  folder_registration_count = %d\n", session->folder_registration_count);
 #endif
-  if (session->folder_info_count > 0) {
-    session->folder_info_list = calloc(session->folder_info_count, sizeof(PrivateFolderInfo));
-    assert(session->folder_info_list != NULL);
+  if (session->folder_registration_count > 0) {
+    session->folder_registration_list = calloc(session->folder_registration_count, sizeof(PrivateFolderInfo));
+    assert(session->folder_registration_list != NULL);
     // Register the CLOSE_FOLDER_ID event
-    session->folder_info_list[0].id = CLOSE_FOLDER_ID;
-    session->folder_info_list[0].name = strdup("Close Folder");
+    session->folder_registration_list[0].id = CLOSE_FOLDER_ID;
+    session->folder_registration_list[0].name = strdup("Close Folder");
 #ifdef PRINT_INIT_INFO
-    printf("    ID=%d, name='%s'\n", session->folder_info_list[0].id, session->folder_info_list[0].name);
+    printf("    ID=%d, name='%s'\n", session->folder_registration_list[0].id, session->folder_registration_list[0].name);
 #endif
-    assert(session->folder_info_list[0].name != NULL);
+    assert(session->folder_registration_list[0].name != NULL);
     // Register custom folders
-    for (uint16_t i=1; i<session->folder_info_count; i++) {
-      session->folder_info_list[i].id = attrs->folder_info_list[i-1].id;
-      session->folder_info_list[i].name = strdup(attrs->folder_info_list[i-1].name);
+    for (uint16_t i=1; i<session->folder_registration_count; i++) {
+      session->folder_registration_list[i].id = attrs->folder_registration_list[i-1].id;
+      session->folder_registration_list[i].name = strdup(attrs->folder_registration_list[i-1].name);
 #ifdef PRINT_INIT_INFO
-      printf("    ID=%d, name='%s'\n", session->folder_info_list[i].id, session->folder_info_list[i].name);
+      printf("    ID=%d, name='%s'\n", session->folder_registration_list[i].id, session->folder_registration_list[i].name);
 #endif
-      assert(session->folder_info_list[i].name != NULL);
+      assert(session->folder_registration_list[i].name != NULL);
     }
     // Create the stacks to track what folders are open
-    uint16_t max_folder_stack_count = session->folder_info_count - 1; // -1 due to the close folder event
+    uint16_t max_folder_stack_count = session->folder_registration_count - 1; // -1 due to the close folder event
     session->curr_folder_stack_count = 0;
     session->curr_folder_stack = calloc(max_folder_stack_count, sizeof(uint16_t));
     session->starting_folder_stack_count = 0;
@@ -371,27 +371,27 @@ void *ukCreate(UkAttrs *attrs,
 
   // Named events
 #ifdef PRINT_INIT_INFO
-  printf("  event_info_count = %d\n", session->event_info_count);
+  printf("  event_registration_count = %d\n", session->event_registration_count);
 #endif
-  session->event_info_list = calloc(session->event_info_count, sizeof(PrivateEventInfo));
-  assert(session->event_info_list != NULL);
+  session->event_registration_list = calloc(session->event_registration_count, sizeof(PrivateEventInfo));
+  assert(session->event_registration_list != NULL);
   // Register custom events
-  for (uint16_t i=0; i<session->event_info_count; i++) {
-    session->event_info_list[i].start_id = attrs->event_info_list[i].start_id;
-    session->event_info_list[i].end_id = attrs->event_info_list[i].end_id;
-    session->event_info_list[i].rgb = attrs->event_info_list[i].rgb;
-    session->event_info_list[i].name = strdup(attrs->event_info_list[i].name);
-    assert(session->event_info_list[i].name != NULL);
-    session->event_info_list[i].start_value_name = strdup(attrs->event_info_list[i].start_value_name);
-    assert(session->event_info_list[i].start_value_name != NULL);
-    session->event_info_list[i].end_value_name = strdup(attrs->event_info_list[i].end_value_name);
-    assert(session->event_info_list[i].end_value_name != NULL);
+  for (uint16_t i=0; i<session->event_registration_count; i++) {
+    session->event_registration_list[i].start_id = attrs->event_registration_list[i].start_id;
+    session->event_registration_list[i].end_id = attrs->event_registration_list[i].end_id;
+    session->event_registration_list[i].rgb = attrs->event_registration_list[i].rgb;
+    session->event_registration_list[i].name = strdup(attrs->event_registration_list[i].name);
+    assert(session->event_registration_list[i].name != NULL);
+    session->event_registration_list[i].start_value_name = strdup(attrs->event_registration_list[i].start_value_name);
+    assert(session->event_registration_list[i].start_value_name != NULL);
+    session->event_registration_list[i].end_value_name = strdup(attrs->event_registration_list[i].end_value_name);
+    assert(session->event_registration_list[i].end_value_name != NULL);
 #ifdef PRINT_INIT_INFO
-    printf("    startID=%d, endID=%d, RGB=0x%04x, name='%s', start_value_name='%s', end_value_name='%s'\n", session->event_info_list[i].start_id, session->event_info_list[i].end_id, session->event_info_list[i].rgb,
-           session->event_info_list[i].name, session->event_info_list[i].start_value_name, session->event_info_list[i].end_value_name);
+    printf("    startID=%d, endID=%d, RGB=0x%04x, name='%s', start_value_name='%s', end_value_name='%s'\n", session->event_registration_list[i].start_id, session->event_registration_list[i].end_id, session->event_registration_list[i].rgb,
+           session->event_registration_list[i].name, session->event_registration_list[i].start_value_name, session->event_registration_list[i].end_value_name);
 #endif
-    session->event_info_list[i].start_instance = 1;
-    session->event_info_list[i].end_instance = 1;
+    session->event_registration_list[i].start_instance = 1;
+    session->event_registration_list[i].end_instance = 1;
   }
 
   // Prepare the storage buffer
@@ -430,23 +430,23 @@ static void flushEvents(UnikornSession *session) {
 
   // Miscellanyous info
 #ifdef PRINT_FLUSH_INFO
-  printf("  is_threaded = %s\n", session->is_threaded ? "yes" : "no");
+  printf("  is_multi_threaded = %s\n", session->is_multi_threaded ? "yes" : "no");
   printf("  record_instance = %s\n", session->record_instance ? "yes" : "no");
   printf("  record_value = %s\n", session->record_value ? "yes" : "no");
   printf("  record_file_location = %s\n", session->record_file_location ? "yes" : "no");
 #endif
-  assert(session->flush(session->flush_user_data, &session->is_threaded, sizeof(session->is_threaded)));
+  assert(session->flush(session->flush_user_data, &session->is_multi_threaded, sizeof(session->is_multi_threaded)));
   assert(session->flush(session->flush_user_data, &session->record_instance, sizeof(session->record_instance)));
   assert(session->flush(session->flush_user_data, &session->record_value, sizeof(session->record_value)));
   assert(session->flush(session->flush_user_data, &session->record_file_location, sizeof(session->record_file_location)));
 
   // Folder info
 #ifdef PRINT_FLUSH_INFO
-  printf("  folder_info_count = %d\n", session->folder_info_count);
+  printf("  folder_registration_count = %d\n", session->folder_registration_count);
 #endif
-  assert(session->flush(session->flush_user_data, &session->folder_info_count, sizeof(session->folder_info_count)));
-  for (uint16_t i=0; i<session->folder_info_count; i++) {
-    PrivateFolderInfo *folder = &session->folder_info_list[i];
+  assert(session->flush(session->flush_user_data, &session->folder_registration_count, sizeof(session->folder_registration_count)));
+  for (uint16_t i=0; i<session->folder_registration_count; i++) {
+    PrivateFolderInfo *folder = &session->folder_registration_list[i];
 #ifdef PRINT_FLUSH_INFO
     printf("    ID=%d, name='%s'\n", folder->id, folder->name);
 #endif
@@ -458,11 +458,11 @@ static void flushEvents(UnikornSession *session) {
 
   // Event info
 #ifdef PRINT_FLUSH_INFO
-  printf("  event_info_count = %d\n", session->event_info_count);
+  printf("  event_registration_count = %d\n", session->event_registration_count);
 #endif
-  assert(session->flush(session->flush_user_data, &session->event_info_count, sizeof(session->event_info_count)));
-  for (uint16_t i=0; i<session->event_info_count; i++) {
-    PrivateEventInfo *event = &session->event_info_list[i];
+  assert(session->flush(session->flush_user_data, &session->event_registration_count, sizeof(session->event_registration_count)));
+  for (uint16_t i=0; i<session->event_registration_count; i++) {
+    PrivateEventInfo *event = &session->event_registration_list[i];
 #ifdef PRINT_FLUSH_INFO
     printf("    startID=%d, endID=%d, RGB=0x%04x, name='%s', start_value_name='%s', end_value_name='%s'\n", event->start_id, event->end_id, event->rgb, event->name, event->start_value_name, event->end_value_name);
 #endif
@@ -519,7 +519,7 @@ static void flushEvents(UnikornSession *session) {
   }
 
   // Build thread ID list (this needs maintain old thread IDs between flushes since the flush pushes out an index into the list, which needs to be consistent over time
-  if (session->is_threaded) {
+  if (session->is_multi_threaded) {
     getThreadIdList(session);
 #ifdef PRINT_FLUSH_INFO
     printf("  thread_id_list_count = %d\n", session->thread_id_list_count);
@@ -541,7 +541,7 @@ static void flushEvents(UnikornSession *session) {
   assert(session->flush(session->flush_user_data, &session->starting_folder_stack_count, sizeof(session->starting_folder_stack_count)));
   for (uint16_t i=0; i<session->starting_folder_stack_count; i++) {
 #ifdef PRINT_FLUSH_INFO
-    printf("    '%s'\n", session->folder_info_list[session->starting_folder_stack[i]].name);
+    printf("    '%s'\n", session->folder_registration_list[session->starting_folder_stack[i]].name);
 #endif
     assert(session->flush(session->flush_user_data, &session->starting_folder_stack[i], sizeof(session->starting_folder_stack[i])));
   }
@@ -581,7 +581,7 @@ static void flushEvents(UnikornSession *session) {
 #endif
     }
     // Thread ID
-    if (session->is_threaded) {
+    if (session->is_multi_threaded) {
       uint16_t thread_index = getThreadIndex(event->thread_id, session->thread_id_list, session->thread_id_list_count);
       assert(session->flush(session->flush_user_data, &thread_index, sizeof(thread_index)));
 #ifdef PRINT_FLUSH_INFO
@@ -623,11 +623,11 @@ void ukFlush(void *session_ref) {
   assert(session->magic_value1 == MAGIC_VALUE1);
   assert(session->magic_value2 == MAGIC_VALUE2);
 #ifdef ENABLE_UNIKORN_ATOMIC_RECORDING
-  if (session->is_threaded) pthread_mutex_lock(&session->mutex);
+  if (session->is_multi_threaded) pthread_mutex_lock(&session->mutex);
 #endif
   flushEvents(session);
 #ifdef ENABLE_UNIKORN_ATOMIC_RECORDING
-  if (session->is_threaded) pthread_mutex_unlock(&session->mutex);
+  if (session->is_multi_threaded) pthread_mutex_unlock(&session->mutex);
 #endif
 }
 
@@ -636,19 +636,21 @@ void ukDestroy(void *session_ref) {
   UnikornSession *session = (UnikornSession *)session_ref;
   assert(session->magic_value1 == MAGIC_VALUE1);
   assert(session->magic_value2 == MAGIC_VALUE2);
-  if (session->folder_info_count > 0) {
-    for (uint16_t i=0; i<session->folder_info_count; i++) {
-      free(session->folder_info_list[i].name);
+  if (session->folder_registration_count > 0) {
+    for (uint16_t i=0; i<session->folder_registration_count; i++) {
+      free(session->folder_registration_list[i].name);
     }
-    free(session->folder_info_list);
+    free(session->folder_registration_list);
     free(session->curr_folder_stack);
     free(session->starting_folder_stack);
   }
-  if (session->event_info_count > 0) {
-    for (uint16_t i=0; i<session->event_info_count; i++) {
-      free(session->event_info_list[i].name);
+  if (session->event_registration_count > 0) {
+    for (uint16_t i=0; i<session->event_registration_count; i++) {
+      free(session->event_registration_list[i].name);
+      free(session->event_registration_list[i].start_value_name);
+      free(session->event_registration_list[i].end_value_name);
     }
-    free(session->event_info_list);
+    free(session->event_registration_list);
   }
   if (session->thread_id_list_count > 0) free(session->thread_id_list);
   free(session->events_buffer);
@@ -690,7 +692,7 @@ static void recordEvent(UnikornSession *session, uint16_t event_id, double value
   event->instance = instance;
   event->value = value;
 #ifdef ENABLE_UNIKORN_ATOMIC_RECORDING
-  if (session->is_threaded) {
+  if (session->is_multi_threaded) {
     event->thread_id = myThreadId();
   }
 #endif
@@ -710,7 +712,7 @@ static void recordEvent(UnikornSession *session, uint16_t event_id, double value
     // Buffer was already full, must not have auto save enabled
     session->first_unsaved_event_index = (session->first_unsaved_event_index + 1) % session->max_event_count;
     // If the event is a folder, need to remember it was opened/closed
-    if (replaced_event_id < session->folder_info_count) {
+    if (replaced_event_id < session->folder_registration_count) {
       // This is a folder event
       if (replaced_event_id == CLOSE_FOLDER_ID) {
         popStartingFolderStack(session);
@@ -737,14 +739,14 @@ void ukRecordEvent(void *session_ref, uint16_t event_id, double value, const cha
   OPTIONAL_ASSERT(session->magic_value1 == MAGIC_VALUE1);
   OPTIONAL_ASSERT(session->magic_value2 == MAGIC_VALUE2);
   uint16_t event_index = (event_id - session->first_event_id) / 2;
-  OPTIONAL_ASSERT(event_index < session->event_info_count*2);
-  PrivateEventInfo *event = &session->event_info_list[event_index];
+  OPTIONAL_ASSERT(event_index < session->event_registration_count*2);
+  PrivateEventInfo *event = &session->event_registration_list[event_index];
 #ifdef PRINT_RECORD_INFO
   printf("%s(): ID=%d, value=%f, file=%s, function=%s, line_number=%d\n", __FUNCTION__, event_id, value, file, function, line_number);
 #endif
 
 #ifdef ENABLE_UNIKORN_ATOMIC_RECORDING
-  if (session->is_threaded) pthread_mutex_lock(&session->mutex);
+  if (session->is_multi_threaded) pthread_mutex_lock(&session->mutex);
 #endif
 
   // Add the folder event to the event buffer
@@ -752,7 +754,7 @@ void ukRecordEvent(void *session_ref, uint16_t event_id, double value, const cha
   recordEvent(session, event_id, value, instance, file, function, line_number);
 
 #ifdef ENABLE_UNIKORN_ATOMIC_RECORDING
-  if (session->is_threaded) pthread_mutex_unlock(&session->mutex);
+  if (session->is_multi_threaded) pthread_mutex_unlock(&session->mutex);
 #endif
 }
 
@@ -760,18 +762,18 @@ void ukOpenFolder(void *session_ref, uint16_t folder_id) {
   UnikornSession *session = (UnikornSession *)session_ref;
   OPTIONAL_ASSERT(session->magic_value1 == MAGIC_VALUE1);
   OPTIONAL_ASSERT(session->magic_value2 == MAGIC_VALUE2);
-  OPTIONAL_ASSERT(session->folder_info_count > 0);
-  OPTIONAL_ASSERT(folder_id >= 1 && folder_id < session->folder_info_count);
+  OPTIONAL_ASSERT(session->folder_registration_count > 0);
+  OPTIONAL_ASSERT(folder_id >= 1 && folder_id < session->folder_registration_count);
 #ifdef PRINT_RECORD_INFO
   printf("%s(): ID=%d\n", __FUNCTION__, folder_id);
 #endif
 
 #ifdef ENABLE_UNIKORN_ATOMIC_RECORDING
-  if (session->is_threaded) pthread_mutex_lock(&session->mutex);
+  if (session->is_multi_threaded) pthread_mutex_lock(&session->mutex);
 #endif
 
   // Push folder onto current folder stack
-  OPTIONAL_ASSERT(session->curr_folder_stack_count < (session->folder_info_count - 1)); // -1 for the close folder event
+  OPTIONAL_ASSERT(session->curr_folder_stack_count < (session->folder_registration_count - 1)); // -1 for the close folder event
   for (uint16_t i=0; i<session->curr_folder_stack_count; i++) {
     OPTIONAL_ASSERT(session->curr_folder_stack[i] != folder_id);
   }
@@ -782,7 +784,7 @@ void ukOpenFolder(void *session_ref, uint16_t folder_id) {
   recordEvent(session, folder_id, 0, 0, L_unused_name, L_unused_name, 0);
 
 #ifdef ENABLE_UNIKORN_ATOMIC_RECORDING
-  if (session->is_threaded) pthread_mutex_unlock(&session->mutex);
+  if (session->is_multi_threaded) pthread_mutex_unlock(&session->mutex);
 #endif
 }
 
@@ -790,13 +792,13 @@ void ukCloseFolder(void *session_ref) {
   UnikornSession *session = (UnikornSession *)session_ref;
   OPTIONAL_ASSERT(session->magic_value1 == MAGIC_VALUE1);
   OPTIONAL_ASSERT(session->magic_value2 == MAGIC_VALUE2);
-  OPTIONAL_ASSERT(session->folder_info_count > 0);
+  OPTIONAL_ASSERT(session->folder_registration_count > 0);
 #ifdef PRINT_RECORD_INFO
   printf("%s()\n", __FUNCTION__);
 #endif
 
 #ifdef ENABLE_UNIKORN_ATOMIC_RECORDING
-  if (session->is_threaded) pthread_mutex_lock(&session->mutex);
+  if (session->is_multi_threaded) pthread_mutex_lock(&session->mutex);
 #endif
 
   // Pop the latest folder from the current folder stack
@@ -807,6 +809,6 @@ void ukCloseFolder(void *session_ref) {
   recordEvent(session, CLOSE_FOLDER_ID, 0, 0, L_unused_name, L_unused_name, 0);
 
 #ifdef ENABLE_UNIKORN_ATOMIC_RECORDING
-  if (session->is_threaded) pthread_mutex_unlock(&session->mutex);
+  if (session->is_multi_threaded) pthread_mutex_unlock(&session->mutex);
 #endif
 }

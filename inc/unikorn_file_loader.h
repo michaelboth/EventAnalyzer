@@ -22,7 +22,7 @@
 typedef struct {
   uint16_t id;
   char *name;
-} UkLoaderFolderInfo;
+} UkLoaderFolderRegistration;
 
 typedef struct {
   uint16_t start_id;
@@ -31,7 +31,7 @@ typedef struct {
   char *name;
   char *start_value_name;
   char *end_value_name;
-} UkLoaderEventInfo;
+} UkLoaderEventRegistration;
 
 typedef struct {
   uint64_t time;     // Nanoseconds since clock started (each clock has a different base time)
@@ -48,14 +48,14 @@ typedef struct {
   // Header (should be same for each flush)
   uint16_t version_major;
   uint16_t version_minor;
-  bool is_threaded;
+  bool is_multi_threaded;
   bool includes_instance;
   bool includes_value;
   bool includes_file_location;
-  uint16_t folder_info_count;
-  UkLoaderFolderInfo *folder_info_list;
-  uint16_t event_info_count;
-  UkLoaderEventInfo *event_info_list;
+  uint16_t folder_registration_count;
+  UkLoaderFolderRegistration *folder_registration_list;
+  uint16_t event_registration_count;
+  UkLoaderEventRegistration *event_registration_list;
 
   // Recorded Events (different for each flush)
   uint16_t file_name_count;

@@ -38,7 +38,7 @@ public:
   TreeNodeType tree_node_type = TREE_NODE_IS_FILE;
   bool is_open = true;
   uint16_t thread_index = 0;
-  uint16_t event_info_index = 0;
+  uint16_t event_registration_index = 0;
   uint16_t ID = 0;
   QColor color;
   uint64_t row_start_time = 0; // A convenince here for sorting. This not the first time for the whole file, but the first time for the row. This is just a relative time and doesn't need to be modified of the events file is time shifted.
@@ -77,7 +77,7 @@ public:
 private:
   void buildTree(EventTreeNode *node, uint32_t &event_index, bool show_folders, bool show_threads);
   void deleteTree(EventTreeNode *node);
-  EventTreeNode *getChildWithEventInfoIndex(EventTreeNode *parent, uint16_t event_info_index);
+  EventTreeNode *getChildWithEventInfoIndex(EventTreeNode *parent, uint16_t event_registration_index);
   EventTreeNode *getThreadFolder(EventTreeNode *parent, uint16_t thread_index);
   void sortNode(EventTreeNode *parent, SortType sort_type);
   void setFoldersExpanded(EventTreeNode *parent, bool is_expanded);

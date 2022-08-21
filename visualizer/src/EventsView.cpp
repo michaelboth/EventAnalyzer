@@ -439,7 +439,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
       int prev_prev_x = -1;
       uint64_t prev_time = 0;
       bool prev_is_start = false;
-      UkLoaderEventInfo *event_info = &events->event_info_list[parent->event_info_index];
+      UkLoaderEventRegistration *event_registration = &events->event_registration_list[parent->event_registration_index];
       painter->setPen(QPen(parent->color, 1, Qt::SolidLine));
       int y2 = y + (int)(line_h * 0.15f); // Top if not overlapped
       int y3 = y + (int)(line_h * 0.35f); // Top of range
@@ -450,7 +450,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
       for (uint32_t i=first_visible_event_index; i<=last_visible_event_index; i++) {
         uint32_t event_index = parent->event_indices[i];
         UkEvent *event = &events->event_buffer[event_index];
-        bool is_start = event->event_id == event_info->start_id;
+        bool is_start = event->event_id == event_registration->start_id;
         // X location in visible region
         double x_percent;
         if (event->time < start_time) {
@@ -507,7 +507,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
 }
 
 uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, UkEvents *events, bool get_gap_durations, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret) {
-  UkLoaderEventInfo *event_info = &events->event_info_list[node->event_info_index];
+  UkLoaderEventRegistration *event_registration = &events->event_registration_list[node->event_registration_index];
 
   // Get the first visible event
   uint32_t first_event_index = findEventIndexAtTime(events, node, start_time, 0); // NOTE: gets the first index to the right of the start time
@@ -523,7 +523,7 @@ uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, Even
     UkEvent *event = &events->event_buffer[node->event_indices[event_index]];
     if (event->time > end_time) break; // Out of visible range
     if (prev_event != NULL) {
-      if (prev_event->event_id == event_info->start_id && event->event_id == event_info->end_id) {
+      if (prev_event->event_id == event_registration->start_id && event->event_id == event_registration->end_id) {
         // Found a duration
         if (!get_gap_durations) {
           uint64_t duration = event->time - prev_event->time;
@@ -555,7 +555,7 @@ uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, Even
     UkEvent *event = &events->event_buffer[node->event_indices[event_index]];
     if (event->time > end_time) break; // Out of visible range
     if (prev_event != NULL) {
-      if (prev_event->event_id == event_info->start_id && event->event_id == event_info->end_id) {
+      if (prev_event->event_id == event_registration->start_id && event->event_id == event_registration->end_id) {
         // Found a duration
         if (!get_gap_durations) {
           uint64_t duration = event->time - prev_event->time;
@@ -810,8 +810,8 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
 
     // Draw event icon or "GAP"
     if (has_prev_event && has_next_event) {
-      UkLoaderEventInfo *event_info = &events->event_info_list[node->event_info_index];
-      bool is_on_duration = (prev_event->event_id == event_info->start_id && next_event->event_id == event_info->end_id);
+      UkLoaderEventRegistration *event_registration = &events->event_registration_list[node->event_registration_index];
+      bool is_on_duration = (prev_event->event_id == event_registration->start_id && next_event->event_id == event_registration->end_id);
       if (is_on_duration) {
         int mini_icon_h = th * 1.2;
         image_icon = drawEventIcon(th, node->color);
@@ -858,10 +858,10 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
     // Prev/Next user defined event values
     if (has_prev_event) {
       {
-        UkLoaderEventInfo *event_info = &events->event_info_list[node->event_info_index];
+        UkLoaderEventRegistration *event_registration = &events->event_registration_list[node->event_registration_index];
         painter.save();
         painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
-        QString text = (prev_event->event_id == event_info->start_id) ? event_info->start_value_name : event_info->end_value_name;
+        QString text = (prev_event->event_id == event_registration->start_id) ? event_registration->start_value_name : event_registration->end_value_name;
         if (text == "") text = "unamed";
         painter.drawText(dialog_x, dialog_y, col1_x, th, Qt::AlignRight | Qt::AlignVCenter, text + " ");
         painter.restore();
@@ -871,10 +871,10 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
     }
     if (has_next_event) {
       {
-        UkLoaderEventInfo *event_info = &events->event_info_list[node->event_info_index];
+        UkLoaderEventRegistration *event_registration = &events->event_registration_list[node->event_registration_index];
         painter.save();
         painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
-        QString text = (next_event->event_id == event_info->start_id) ? event_info->start_value_name : event_info->end_value_name;
+        QString text = (next_event->event_id == event_registration->start_id) ? event_registration->start_value_name : event_registration->end_value_name;
         if (text == "") text = "unamed";
         painter.drawText(dialog_x+col2_x, dialog_y, col1_x, th, Qt::AlignLeft | Qt::AlignVCenter, " " + text);
         painter.restore();
@@ -1036,10 +1036,10 @@ void EventsView::updateTimeAlignment() {
 
         // Get the event ID
         uint16_t event_id = 0;
-        for (uint16_t j=0; j<events->event_info_count; j++) {
-          UkLoaderEventInfo *event_info = &events->event_info_list[j];
-          if (QString(event_info->name) == event_name) {
-            event_id = is_start ? event_info->start_id : event_info->end_id;
+        for (uint16_t j=0; j<events->event_registration_count; j++) {
+          UkLoaderEventRegistration *event_registration = &events->event_registration_list[j];
+          if (QString(event_registration->name) == event_name) {
+            event_id = is_start ? event_registration->start_id : event_registration->end_id;
             break;
           }
         }
@@ -1066,10 +1066,10 @@ void EventsView::updateTimeAlignment() {
 
         // Get the event ID
         uint16_t event_id = 0;
-        for (uint16_t j=0; j<events->event_info_count; j++) {
-          UkLoaderEventInfo *event_info = &events->event_info_list[j];
-          if (QString(event_info->name) == event_name) {
-            event_id = is_start ? event_info->start_id : event_info->end_id;
+        for (uint16_t j=0; j<events->event_registration_count; j++) {
+          UkLoaderEventRegistration *event_registration = &events->event_registration_list[j];
+          if (QString(event_registration->name) == event_name) {
+            event_id = is_start ? event_registration->start_id : event_registration->end_id;
             break;
           }
         }
