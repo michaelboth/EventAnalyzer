@@ -90,8 +90,8 @@ void *UNIKORN_INIT(const char *_filename, uint32_t _max_events, bool _flush_when
 // Events recording macros
 #define UNIKORN_START_FOR_LOOP(_session, _value) ukRecordEvent(_session, FOR_LOOP_START_ID, _value, __FILE__, __FUNCTION__, __LINE__)
 #define UNIKORN_END_FOR_LOOP(_session, _value)   ukRecordEvent(_session, FOR_LOOP_END_ID,   _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_START_PRINT(_session, _value)    ukRecordEvent(_session, PRINT_START_ID,   _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_END_PRINT(_session, _value)      ukRecordEvent(_session, PRINT_END_ID,     _value, __FILE__, __FUNCTION__, __LINE__)
+#define UNIKORN_START_PRINT(_session, _value)    ukRecordEvent(_session, PRINT_START_ID,    _value, __FILE__, __FUNCTION__, __LINE__)
+#define UNIKORN_END_PRINT(_session, _value)      ukRecordEvent(_session, PRINT_END_ID,      _value, __FILE__, __FUNCTION__, __LINE__)
 
 
 #else
