@@ -42,7 +42,7 @@ NOTE: All of the event recording source code is compiled out if ```ENABLE_UNIKOR
 int main() {
   // Create event session
 #ifdef ENABLE_UNIKORN_RECORDING
-  UkFileFlushInfo flush_info; // Needs to be persistant for life of session
+  UkFileFlushInfo flush_info; // Needs to be persistent for life of session
   // Arguments: filename, max_events, flush_when_full, is_multi_threaded, record_instance, record_value, record_location, &flush_info
   void *unikorn_session = UNIKORN_INIT("./hello.events", 10000, false, false, true, true, true, &flush_info);
 #endif

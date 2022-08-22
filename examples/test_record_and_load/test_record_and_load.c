@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
   bool record_instance = strcmp(argv[5], "instance=yes")==0;
   bool record_value = strcmp(argv[6], "value=yes")==0;
   bool record_location = strcmp(argv[7], "location=yes")==0;
-  UkFileFlushInfo flush_info; // Needs to be persistant for life of session
+  UkFileFlushInfo flush_info; // Needs to be persistent for life of session
   unikorn_session = UNIKORN_INIT(filename, max_events, flush_when_full, is_multi_threaded, record_instance, record_value, record_location, &flush_info);
 #endif
 

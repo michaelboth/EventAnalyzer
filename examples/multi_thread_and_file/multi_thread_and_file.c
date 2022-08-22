@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 #ifdef ENABLE_UNIKORN_RECORDING
     char filename[100];
     snprintf(filename, 100, "%d_concurrent_%s.events", num_concurrent_threads, num_concurrent_threads==1 ? "thread" : "threads");
-    UkFileFlushInfo flush_info; // Needs to be persistant for life of session
+    UkFileFlushInfo flush_info; // Needs to be persistent for life of session
     // Arguments: filename, max_events, flush_when_full, is_multi_threaded, record_instance, record_value, record_location, &flush_info
     unikorn_session = UNIKORN_INIT(filename, 100000, true, true, true, true, true, &flush_info);
 #endif

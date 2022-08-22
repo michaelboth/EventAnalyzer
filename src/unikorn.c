@@ -128,8 +128,8 @@ typedef struct {
 #ifdef ENABLE_UNIKORN_ATOMIC_RECORDING
   pthread_mutex_t mutex;
 #endif
-  uint16_t thread_id_list_count;  // This needs to be persistant and growing between flushes as threads come and go
-  uint64_t *thread_id_list;       // This needs to be persistant and growing between flushes as threads come and go
+  uint16_t thread_id_list_count;  // This needs to be persistent and growing between flushes as threads come and go
+  uint64_t *thread_id_list;       // This needs to be persistent and growing between flushes as threads come and go
   uint32_t magic_value2;
 } UnikornSession;
 
