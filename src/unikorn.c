@@ -96,7 +96,7 @@ typedef struct {
 typedef struct {
   uint32_t magic_value1;
   // User defined functions
-  uint64_t (*clock)();
+  uint64_t (*clockNanoseconds)();
   void *flush_user_data;
   bool (*prepareFlush)(void *user_data);
   bool (*flush)(void *user_data, const void *data, size_t bytes);
@@ -273,7 +273,7 @@ static void popStartingFolderStack(UnikornSession *session) {
 }
 
 void *ukCreate(UkAttrs *attrs,
-	       uint64_t (*clock)(),
+	       uint64_t (*clockNanoseconds)(),
 	       void *flush_user_data,
 	       bool (*prepareFlush)(void *user_data),
 	       bool (*flush)(void *user_data, const void *data, size_t bytes),
@@ -307,7 +307,7 @@ void *ukCreate(UkAttrs *attrs,
   assert(session != NULL);
   session->magic_value1 = MAGIC_VALUE1;
   session->magic_value2 = MAGIC_VALUE2;
-  session->clock = clock;
+  session->clockNanoseconds = clockNanoseconds;
   session->flush_user_data = flush_user_data;
   session->prepareFlush = prepareFlush;
   session->flush = flush;
@@ -680,7 +680,7 @@ static void recordEvent(UnikornSession *session, uint16_t event_id, double value
   // Store the required values
   Event *event = &session->events_buffer[session->curr_event_index];
   uint16_t replaced_event_id = event->event_id; // Need for book keeping at the end of this function
-  event->time = session->clock();
+  event->time = session->clockNanoseconds();
   event->event_id = event_id;
 
   // Store the optional values

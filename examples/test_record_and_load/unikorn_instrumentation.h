@@ -53,7 +53,7 @@ static UkEventRegistration L_events[] = {
   { "Print",  UK_TEAL,   PRINT_START_ID,  PRINT_END_ID,  "",               ""},
   { "Sqrt",   UK_BLACK,  SQRT_START_ID,   SQRT_END_ID,   "a",              "sqrt(a)"}
 };
-#define NUM_EVENT_TYPES (sizeof(L_events) / sizeof(UkEventRegistration))
+#define NUM_EVENT_REGISTRATIONS (sizeof(L_events) / sizeof(UkEventRegistration))
 
 // Init the event session
 void *UNIKORN_INIT(const char *_filename, uint32_t _max_events, bool _flush_when_full, bool _is_multi_threaded, bool _record_instance, bool _record_value, bool _record_location, UkFileFlushInfo *_flush_info) {
@@ -66,7 +66,7 @@ void *UNIKORN_INIT(const char *_filename, uint32_t _max_events, bool _flush_when
     .record_file_location = _record_location,
     .folder_registration_count = NUM_FOLDERS,
     .folder_registration_list = L_folders,
-    .event_registration_count = NUM_EVENT_TYPES,
+    .event_registration_count = NUM_EVENT_REGISTRATIONS,
     .event_registration_list = L_events
   };
   _flush_info->filename = _filename;

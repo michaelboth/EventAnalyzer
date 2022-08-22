@@ -74,7 +74,7 @@ extern "C"
 
 // Create an event session
 void *ukCreate(UkAttrs *attrs,
-	       uint64_t (*clock)(),                      // Application defined clock returning elapsed nanoseconds from some application defined base time
+	       uint64_t (*clockNanoseconds)(),           // Application defined clock returning elapsed nanoseconds from some application defined base time
 	       void *flush_user_data,                    // Application defined object passed to the three flush functions. E.g. Socket info or file info.
 	       bool (*prepareFlush)(void *user_data),    // Prepare application object for flushing events. E.g. open a file or socket
 	       bool (*flush)(void *user_data, const void *data, size_t bytes), // Flush a chunk of event data. This will be called many times to complete the flush of all the events
