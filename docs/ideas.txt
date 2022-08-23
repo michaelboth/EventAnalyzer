@@ -1,7 +1,3 @@
-Tutorial/Demo:
- - Slide deck plus examples to show off general usage
- - Compare vector multiply via IPP, CUDA, and OpenCL?
-
 API:
  - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
 

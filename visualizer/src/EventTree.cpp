@@ -125,10 +125,13 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
       uint16_t event_registration_index = (event->event_id - first_event_id) / 2;
       UkLoaderEventRegistration *event_registration = &events->event_registration_list[event_registration_index];
       EventTreeNode *parent = node;
+
       // Get thread folder if threaded
       if (events->is_multi_threaded && show_threads) {
         parent = getThreadFolder(node, event->thread_index);
       }
+
+      // Get the EventTreeNode (create one if doesn't exist)
       EventTreeNode *child = getChildWithEventInfoIndex(parent, event_registration_index);
       if (child == NULL) {
         // Create event child
@@ -151,14 +154,18 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
 	parent->children += child;
         child->parent = parent;
       }
+
+      // Double the event index buffer if it's full
       if (child->num_event_instances == child->max_event_instances) {
-        // Instance list is full, double its size
+        // Index list is full, double its size
         child->max_event_instances *= 2;
         child->event_indices = (uint32_t *)realloc(child->event_indices, child->max_event_instances * sizeof(uint32_t));
       }
+
+      // Add the event index to the event index buffer
       child->event_indices[child->num_event_instances] = event_index;
 
-      // See if this is the largest duration
+      // See if this is the largest duration (only check if there are at least two events in the list)
       if (child->num_event_instances > 0 && event->event_id == event_registration->end_id) {
         // This is an end event, and a prev event exists. See if the prev event is a start event
         uint16_t prev_event_index = child->event_indices[child->num_event_instances-1];
