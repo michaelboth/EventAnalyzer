@@ -27,6 +27,16 @@ fi
 
 echo "Building and running"
 
+cd ../lib
+make RELEASE=No ATOMIC_RECORDING=No
+make clean
+make RELEASE=No ATOMIC_RECORDING=Yes
+make clean
+make RELEASE=Yes ATOMIC_RECORDING=No
+make clean
+make RELEASE=Yes ATOMIC_RECORDING=Yes
+make clean
+
 cd ../examples/hello
 make
 ./hello
