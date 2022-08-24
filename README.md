@@ -9,14 +9,8 @@ Unikorn is C API (source code, not a library) and graphical visualizer (Windows,
 Just instrument your source code with meaningful events; you define the names and colors. Run your application, then view the results in UnikornViewer.
 <img src="docs/UnikornViewer.png" alt="Logo" style="width:900px;"/>
 
-<object data="docs/Unikorn Introduction.pdf" type="application/pdf" width="100px" height="100px">
-    <embed src="docs/Unikorn Introduction.pdf">
-        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="docs/Unikorn Introduction.pdf">Download PDF</a>.</p>
-    </embed>
-</object>
-
 <a href="docs/Unikorn Introduction.pdf">
-  <img src="docs/presentation_icon.png" alt="Unikorn Introduction" width="512" height="298">
+  <img src="docs/presentation_icon.png" alt="Unikorn Introduction" width="256" height="149">
 </a>
 
 Unikorn is used to:
