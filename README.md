@@ -1,5 +1,8 @@
 <img src="visualizer/icons/unikorn_logo.png" alt="Logo" style="width:400px;"/>
 
+***Improving complex software can be like trying to find a unicorn***
+<br>
+
 # Unikorn Software Event Analyzer
 Unikorn is C API (source code, not a library) and graphical visualizer (Windows, Mac, and Linux) used to easily and quickly improve the design, performance, and reliability of complex software.
 
