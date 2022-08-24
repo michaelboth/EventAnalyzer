@@ -15,6 +15,10 @@ Just instrument your source code with meaningful events; you define the names an
     </embed>
 </object>
 
+<a href="docs/Unikorn Introduction.pdf">
+  <img src="docs/presentation_icon.png" alt="Unikorn Introduction" width="512" height="298">
+</a>
+
 Unikorn is used to:
 - Reveal sub-microsecond timing of key events, functions, code segments
 - Validate complex dataflow interactions between CPU threads, processes, GPU streams, communication, IO devices, etc.
