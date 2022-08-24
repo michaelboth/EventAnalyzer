@@ -1,6 +1,6 @@
 <img src="visualizer/icons/unikorn_logo.png" alt="Logo" style="width:400px;"/>
 
-***Improving complex software can be like trying to find a unicorn***
+***"Improving complex software can be like trying to find a unicorn"***
 <br>
 
 # Unikorn Software Event Analyzer
