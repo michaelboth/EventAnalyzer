@@ -10,10 +10,11 @@ Just instrument your source code with meaningful events; you define the names an
 <img src="docs/UnikornViewer.png" alt="Logo" style="width:900px;"/>
 
 ## Unikorn Presentation
-View this presentation to learn the benefits and how to use it
+View this presentation 
 <a href="docs/Unikorn Introduction.pdf">
   <img src="docs/presentation_icon.png" alt="Unikorn Introduction" width="256" height="149">
 </a>
+ to learn the benefits of Unikorn and how to use it
 <br>
 
 ## Download Unikorn
