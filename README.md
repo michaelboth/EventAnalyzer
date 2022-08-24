@@ -32,9 +32,7 @@ Windows | Visual Studio<br><br> Unikorn's API can optionally be thread safe, whi
 
 ## Instrument Your Application with Events
 Copy the file ```examples/hello/unikorn_instrumentation.h``` into your project to get started. View the Unikorn presentation
-<a href="docs/Unikorn Introduction.pdf">
-  <alt="Unikorn Introduction">
-</a>
+<a href="docs/Unikorn Introduction.pdf">Unikorn Introduction</a>
 on more details on how to instrument your application or just look at the ```examples/hello/hello.c``` to get started.
 <br>
 
