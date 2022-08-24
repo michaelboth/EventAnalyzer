@@ -9,18 +9,11 @@ Unikorn is C API (source code, not a library) and graphical visualizer (Windows,
 Just instrument your source code with meaningful events; you define the names and colors. Run your application, then view the results in UnikornViewer.
 <img src="docs/UnikornViewer.png" alt="Logo" style="width:900px;"/>
 
+## Unikorn Presentation
+View this presentation to learn the benefits and how to use it
 <a href="docs/Unikorn Introduction.pdf">
   <img src="docs/presentation_icon.png" alt="Unikorn Introduction" width="256" height="149">
 </a>
-
-Unikorn is used to:
-- Reveal sub-microsecond timing of key events, functions, code segments
-- Validate complex dataflow interactions between CPU threads, processes, GPU streams, communication, IO devices, etc.
-- Validate determinism even with long runs (e.g. hours, days)
-- Implicitly see memory contention, thread starvation, context switches, and many other implicit events
-- Find causality bugs: e.g. knowing what happened just before the application started failing
-
-Unikorn is easy to use, and should be part of daily development from the application's inception to just before distribution.
 <br>
 
 ## Download Unikorn
