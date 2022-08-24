@@ -10,11 +10,11 @@ Just instrument your source code with meaningful events; you define the names an
 <img src="docs/UnikornViewer.png" alt="Logo" style="width:900px;"/>
 
 ## Unikorn Presentation
-View this presentation 
 <a href="docs/Unikorn Introduction.pdf">
   <img src="docs/presentation_icon.png" alt="Unikorn Introduction" width="256" height="149">
 </a>
- to learn the benefits of Unikorn and how to use it
+<br>
+View this presentation to learn the benefits of Unikorn and how to use it
 <br>
 
 ## Download Unikorn
@@ -31,9 +31,9 @@ Windows | Visual Studio<br><br> Unikorn's API can optionally be thread safe, whi
 
 
 ## Instrument Your Application with Events
-Copy the file ```examples/hello/unikorn_instrumentation.h``` into your project to get started. View the Unikorn presentation
+Copy the file ```examples/hello/unikorn_instrumentation.h``` into your project to get started. View the
 <a href="docs/Unikorn Introduction.pdf">Unikorn Introduction</a>
-on more details on how to instrument your application or just look at the ```examples/hello/hello.c``` to get started.
+to see the details on how to instrument your application or just look at the ```examples/hello/hello.c``` to get started.
 <br>
 
 NOTE: All of the event recording source code is compiled out if ```ENABLE_UNIKORN_RECORDING``` is not defined when compiling.
