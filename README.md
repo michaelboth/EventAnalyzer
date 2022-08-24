@@ -6,10 +6,14 @@
 # Unikorn Software Event Analyzer
 Unikorn is C API (source code, not a library) and graphical visualizer (Windows, Mac, and Linux) used to easily and quickly improve the design, performance, and reliability of complex software.
 
-Even seasoned experts have difficulty fixing, tuning and improving software during development... like looking for a **unicorn**.
-
 Just instrument your source code with meaningful events; you define the names and colors. Run your application, then view the results in UnikornViewer.
 <img src="docs/UnikornViewer.png" alt="Logo" style="width:900px;"/>
+
+<object data="docs/Unikorn Introduction.pdf" type="application/pdf" width="100px" height="100px">
+    <embed src="docs/Unikorn Introduction.pdf">
+        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="docs/Unikorn Introduction.pdf">Download PDF</a>.</p>
+    </embed>
+</object>
 
 Unikorn is used to:
 - Reveal sub-microsecond timing of key events, functions, code segments
