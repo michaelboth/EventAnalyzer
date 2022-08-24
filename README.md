@@ -36,7 +36,7 @@ Copy the file ```examples/hello/unikorn_instrumentation.h``` into your project t
 to see the details on how to instrument your application or just look at the ```examples/hello/hello.c``` to get started.
 <br>
 
-When using Unikorn in your application, you also need to compile in the core unikorn file, a unikorn clock file (or your own custom clock file), and the unikorn flush file (or your own custom flush file):
+When using Unikorn in your application, you also need to compile in the core unikorn file, a unikorn clock file (or your own custom clock file), and the unikorn flush file (or your own custom flush functionality):
 ```
 src/unikorn.c                                # The event recording engine
 src/unikorn_clock_gettime.c                  # A clock for Mac/Linux: high precision on most variations
