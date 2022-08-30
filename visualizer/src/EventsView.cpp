@@ -612,7 +612,6 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEv
   // Horizontal lines
   painter.drawLine(dialog_x+1, dialog_y+th, dialog_x+dialog_w-1, dialog_y+th);
   painter.drawLine(dialog_x+1, dialog_y+th*(num_lines-2), dialog_x+dialog_w-1, dialog_y+th*(num_lines-2));
-  painter.drawLine(dialog_x+1, dialog_y+th*(num_lines-1), dialog_x+dialog_w-1, dialog_y+th*(num_lines-1));
   painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
 
   // Draw icon
@@ -627,7 +626,7 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEv
     image_icon = drawEventIcon(th, node->color);
   }
   int icon_offset = 0;
-  if (!image_icon.isNull()) {
+  if (!image_icon.isNull() && (node->tree_node_type != TREE_NODE_IS_EVENT)) {
     painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
     icon_offset = m+image_icon.width();
     int image_w = th * image_icon.width() / (float)image_icon.height();
@@ -658,8 +657,21 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEv
   uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, false, &min, &ave, &max);
 
   // Draw number of durations
-  QString suffix = (num_durations == 1) ? " duration " : " durations ";
-  painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, QString::number(num_durations) + suffix);
+  {
+    int image_w = th * image_icon.width() / (float)image_icon.height();
+    QString text1 = QString::number(num_durations) + " ";
+    QString text2 = (num_durations == 1) ? " Duration " : " Durations ";
+    int text1_w = fm.horizontalAdvance(text1);
+    int text2_w = fm.horizontalAdvance(text2);
+    int text_x = dialog_x + dialog_w - (text1_w + image_w + text2_w);
+    painter.drawText(text_x, dialog_y, text1_w, th, Qt::AlignCenter, text1);
+    text_x += text1_w;
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
+    painter.drawPixmap(text_x, dialog_y, image_w, th, image_icon);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+    text_x += image_w;
+    painter.drawText(text_x, dialog_y, text2_w, th, Qt::AlignCenter, text2);
+  }
 
   // Draw histogram
   int hist_x = dialog_x + (dialog_w - bucket_w*num_buckets)/2;
@@ -676,42 +688,80 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEv
     }
   }
 
+  // Create arrow image
+  QPixmap up_arrow_image = drawUpArrow(th/3, th*1.2f, ROLLOVER_UNUNSED_TEXT_COLOR);
+
   // Draw min ave and max
   { // Min
     uint64_t units_factor;
     QString time_units = getTimeUnitsAndFactor(min, 1, &units_factor);
     double adjusted_time = min / (double)units_factor;
-    char val_text[40];
-    sprintf(val_text, "%0.3f", adjusted_time);
-    QString text = " " + QString(val_text) + " " + time_units;
-    painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
-    painter.drawText(dialog_x, dialog_y+th*(num_lines-2), dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, text);
+    QString text1 = " Min:";
+    QString text2 = " " + niceValueText(adjusted_time) + " " + time_units + " ";
+    int text1_w = fm.horizontalAdvance(text1);
+    int text2_w = fm.horizontalAdvance(text2);
+    int text_x = dialog_x;
+    // Arrow
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
+    painter.drawPixmap(text_x+2, dialog_y+th*(num_lines-2), up_arrow_image.width(), up_arrow_image.height(), up_arrow_image);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+    // Text
     painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
-    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignLeft | Qt::AlignVCenter, " Min");
+    painter.drawText(text_x, dialog_y+th*(num_lines-1), text1_w, th, Qt::AlignCenter, text1);
+    text_x += text1_w;
+    painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+    painter.drawText(text_x, dialog_y+th*(num_lines-1), text2_w, th, Qt::AlignCenter, text2);
   }
   { // Ave
     uint64_t units_factor;
     QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
     double adjusted_time = ave / (double)units_factor;
-    char val_text[40];
-    sprintf(val_text, "%0.3f", adjusted_time);
-    QString text = QString(val_text) + " " + time_units;
-    painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
-    painter.drawText(dialog_x, dialog_y+th*(num_lines-2), dialog_w, th, Qt::AlignCenter, text);
+    QString text1 = " Ave:";
+    QString text2 = " " + niceValueText(adjusted_time) + " " + time_units + " ";
+    int text1_w = fm.horizontalAdvance(text1);
+    int text2_w = fm.horizontalAdvance(text2);
+    // Arrow
+    double x_factor = 0.0;
+    if ((max-min) > 0) {
+      x_factor = (ave-min) / (double)(max-min);
+    }
+    int arrow_w = up_arrow_image.width();
+    int arrow_x = dialog_x + arrow_w + (dialog_w - arrow_w*2) * x_factor - arrow_w / 2;
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
+    painter.drawPixmap(arrow_x, dialog_y+th*(num_lines-2), up_arrow_image.width(), up_arrow_image.height(), up_arrow_image);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+    // Text
+    int text_x = arrow_x + arrow_w;
+    if (x_factor > 0.5) {
+      text_x = arrow_x - text1_w - text2_w - arrow_w;
+    }
     painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
-    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignCenter, "Ave");
+    painter.drawText(text_x, dialog_y+th*(num_lines-1.7), text1_w, th, Qt::AlignCenter, text1);
+    text_x += text1_w;
+    painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+    painter.drawText(text_x, dialog_y+th*(num_lines-1.7), text2_w, th, Qt::AlignCenter, text2);
+
   }
   { // Max
     uint64_t units_factor;
     QString time_units = getTimeUnitsAndFactor(max, 1, &units_factor);
     double adjusted_time = max / (double)units_factor;
-    char val_text[40];
-    sprintf(val_text, "%0.3f", adjusted_time);
-    QString text = QString(val_text) + " " + time_units + " ";
-    painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
-    painter.drawText(dialog_x, dialog_y+th*(num_lines-2), dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, text);
+    QString text1 = " Max:";
+    QString text2 = " " + niceValueText(adjusted_time) + " " + time_units + " ";
+    int text1_w = fm.horizontalAdvance(text1);
+    int text2_w = fm.horizontalAdvance(text2);
+    int text_x = dialog_x + dialog_w - (text1_w + text2_w);
+    // Arrow
+    int arrow_x = dialog_x + dialog_w - (up_arrow_image.width() + 2);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
+    painter.drawPixmap(arrow_x, dialog_y+th*(num_lines-2), up_arrow_image.width(), up_arrow_image.height(), up_arrow_image);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+    // Text
     painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
-    painter.drawText(dialog_x, dialog_y+th*(num_lines-1), dialog_w, th, Qt::AlignRight | Qt::AlignVCenter, "Max ");
+    painter.drawText(text_x, dialog_y+th*(num_lines-1), text1_w, th, Qt::AlignCenter, text1);
+    text_x += text1_w;
+    painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+    painter.drawText(text_x, dialog_y+th*(num_lines-1), text2_w, th, Qt::AlignCenter, text2);
   }
 
   free(buckets);
@@ -925,15 +975,44 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
       bool get_gap_durations = false;
       uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &ave, &max);
       if (num_durations > 0) {
+        // Build icon
+        int duration_icon_h = th;
+        QPixmap duration_icon = drawEventIcon(th, node->color);
+        int duration_icon_w = duration_icon_h * duration_icon.width() / (float)duration_icon.height();
+        // Build text
         uint64_t units_factor;
         QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
         double adjusted_ave = ave / (double)units_factor;
-        QString val_text = niceValueText(adjusted_ave);
-        QString duration_text = (num_durations == 1) ? " duration: " : " durations: ";
-        QString text = "Ave of " + QString::number(num_durations) + duration_text + val_text + " " + time_units;
-        painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
+        QString text1 = "Ave of";
+        QString text2 = " " + QString::number(num_durations) + " ";
+        QString text3 = (num_durations == 1) ? " Duration:" : " Durations:";
+        QString text4 = " " + niceValueText(adjusted_ave) + " " + time_units;
+        int text1_w = fm.horizontalAdvance(text1);
+        int text2_w = fm.horizontalAdvance(text2);
+        int text3_w = fm.horizontalAdvance(text3);
+        int text4_w = fm.horizontalAdvance(text4);
+        int text_x = dialog_x + (dialog_w - (text1_w + text2_w + duration_icon_w + text3_w + text4_w)) / 2;
+        painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+        painter.drawText(text_x, dialog_y, text1_w, th, Qt::AlignCenter, text1);
+        text_x += text1_w;
+        painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+        painter.drawText(text_x, dialog_y, text2_w, th, Qt::AlignCenter, text2);
+        text_x += text2_w;
+        {
+          // Draw icon
+          painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+          painter.drawPixmap(text_x, dialog_y, duration_icon_w, duration_icon_h, duration_icon);
+          painter.setRenderHint(QPainter::SmoothPixmapTransform, false);
+          text_x += duration_icon_w;
+        }
+        painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+        painter.drawText(text_x, dialog_y, text3_w, th, Qt::AlignCenter, text3);
+        text_x += text3_w;
+        painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+        painter.drawText(text_x, dialog_y, text4_w, th, Qt::AlignCenter, text4);
+
       } else {
-        QString text = "No durations";
+        QString text = "No Durations";
         painter.save();
         painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
         painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
@@ -953,12 +1032,28 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
         uint64_t units_factor;
         QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
         double adjusted_ave = ave / (double)units_factor;
-        QString val_text = niceValueText(adjusted_ave);
-        QString gap_text = (num_gaps == 1) ? " gap: " : " gaps: ";
-        QString text = "Ave of " + QString::number(num_gaps) + gap_text + val_text + " " + time_units;
-        painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);
+        QString text1 = "Ave of";
+        QString text2 = " " + QString::number(num_gaps) + " ";
+        QString text3 = (num_gaps == 1) ? "GAP:" : "GAPs:";
+        QString text4 = " " + niceValueText(adjusted_ave) + " " + time_units;
+        int text1_w = fm.horizontalAdvance(text1);
+        int text2_w = fm.horizontalAdvance(text2);
+        int text3_w = fm.horizontalAdvance(text3);
+        int text4_w = fm.horizontalAdvance(text4);
+        int text_x = dialog_x + (dialog_w - (text1_w + text2_w + text3_w + text4_w)) / 2;
+        painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+        painter.drawText(text_x, dialog_y, text1_w, th, Qt::AlignCenter, text1);
+        text_x += text1_w;
+        painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+        painter.drawText(text_x, dialog_y, text2_w, th, Qt::AlignCenter, text2);
+        text_x += text2_w;
+        painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+        painter.drawText(text_x, dialog_y, text3_w, th, Qt::AlignCenter, text3);
+        text_x += text3_w;
+        painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+        painter.drawText(text_x, dialog_y, text4_w, th, Qt::AlignCenter, text4);
       } else {
-        QString text = "No gaps";
+        QString text = "No Gaps";
         painter.save();
         painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
         painter.drawText(dialog_x, dialog_y, dialog_w, th, Qt::AlignCenter, text);

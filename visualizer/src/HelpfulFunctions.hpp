@@ -29,5 +29,6 @@ extern void recolorImage(QImage &image, QColor color);
 extern QString niceValueText(double value); // Don't show too much of the fraction if the integer part is big
 extern QString getTimeUnitsAndFactor(uint64_t nsecs, uint64_t max_times_to_display, uint64_t *units_factor_ret);
 extern QPixmap drawEventIcon(int height, QColor color);
+extern QPixmap drawUpArrow(int width, int height, QColor color);
 
 #endif

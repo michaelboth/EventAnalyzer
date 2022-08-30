@@ -135,6 +135,7 @@ QPixmap drawEventIcon(int height, QColor color) {
   icon_w /= G_pixels_per_point;
   pixmap.fill(Qt::transparent);
   QPainter painter(&pixmap);
+
   int x1 = 1;
   int x2 = icon_w-3;
   int y1 = (int)(icon_h * 0.2f);
@@ -144,5 +145,38 @@ QPixmap drawEventIcon(int height, QColor color) {
   painter.fillRect(x1, y1, 2, y3-y1, color);
   painter.fillRect(x2, y2, 2, y4-y2, color);
   painter.fillRect(x1, y2, x2-x1, y3-y2, color);
+
+  return pixmap;
+}
+
+QPixmap drawUpArrow(int width, int height, QColor color) {
+  QPixmap pixmap(width, height);
+  pixmap.setDevicePixelRatio(G_pixels_per_point);
+  width /= G_pixels_per_point;
+  height /= G_pixels_per_point;
+  pixmap.fill(Qt::transparent);
+  QPainter painter(&pixmap);
+
+  float mid_x = width / 2.0f;
+  float left = 0;
+  float right = width - 1;
+  float top = 0;
+  float head_y = right - left;
+  float bottom = height - 1;
+  float x1 = width * 0.4f;
+  float x2 = width * 0.6f;
+  const QPointF points[7] = { QPointF(x1, head_y),
+                              QPointF(left, head_y),
+                              QPointF(mid_x, top),
+                              QPointF(right, head_y),
+                              QPointF(x2, head_y),
+                              QPointF(x2, bottom),
+                              QPointF(x1, bottom)
+  };
+  painter.setPen(Qt::NoPen);
+  painter.setBrush(color);
+  painter.setRenderHint(QPainter::Antialiasing, true);
+  painter.drawPolygon(points, 7);
+
   return pixmap;
 }
