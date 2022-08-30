@@ -159,7 +159,7 @@ QPixmap drawUpArrow(int width, int height, QColor color) {
 
   float mid_x = width / 2.0f;
   float left = 0;
-  float right = width - 1;
+  float right = width;
   float top = 0;
   float head_y = right - left;
   float bottom = height - 1;

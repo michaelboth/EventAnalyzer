@@ -689,7 +689,7 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEv
   }
 
   // Create arrow image
-  QPixmap up_arrow_image = drawUpArrow(th/3, th*1.2f, ROLLOVER_UNUNSED_TEXT_COLOR);
+  QPixmap up_arrow_image = drawUpArrow(th/3, th*1.2f, Qt::black);
 
   // Draw min ave and max
   { // Min
@@ -716,8 +716,8 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEv
     uint64_t units_factor;
     QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
     double adjusted_time = ave / (double)units_factor;
-    QString text1 = " Ave:";
-    QString text2 = " " + niceValueText(adjusted_time) + " " + time_units + " ";
+    QString text1 = "Ave:";
+    QString text2 = " " + niceValueText(adjusted_time) + " " + time_units;
     int text1_w = fm.horizontalAdvance(text1);
     int text2_w = fm.horizontalAdvance(text2);
     // Arrow
