@@ -31,6 +31,7 @@ public:
 
 protected:
   void resizeEvent(QResizeEvent *event);
+  void closeEvent(QCloseEvent *event);
 
 private slots:
   // Hierarchy toolbar

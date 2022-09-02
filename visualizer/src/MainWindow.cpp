@@ -397,6 +397,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   this->connect(ui->zoomOutButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomOut()));
   this->connect(ui->zoomToSelectedButton, SIGNAL(clicked()), ui->eventsView, SLOT(zoomToRegion()));
   this->connect(ui->eventsHScroll, SIGNAL(valueChanged(int)), this, SLOT(updateEventsTimeOffset(int)));
+
+  // Restore the previous window geometry
+  restoreGeometry(G_settings->value("main_window_geometry").toByteArray());
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+  G_settings->setValue("main_window_geometry", saveGeometry());
+  QWidget::closeEvent(event);
 }
 
 MainWindow::~MainWindow() {
