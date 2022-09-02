@@ -136,13 +136,13 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
       if (child == NULL) {
         // Create event child
 #ifdef PRINT_HELPFUL_MESSAGES
-        printf("Creating event node for ID %d, %s\n", event->event_id, event_registration->name);
+        printf("Creating event node for ID %d, %s, event_registration_index %d, first_event_id %d\n", event->event_id, event_registration->name, event_registration_index, first_event_id);
 #endif
         child = new EventTreeNode();
         child->tree_node_type = TREE_NODE_IS_EVENT;
         child->event_registration_index = event_registration_index;
         child->row_start_time = event->time;
-        child->ID = event->event_id;
+        child->ID = event_registration->start_id;
         int red   = (int)(255 * (((event_registration->rgb & 0xf00) >> 8) / (float)0xf));
         int green = (int)(255 * (((event_registration->rgb & 0xf0) >> 4) / (float)0xf));
         int blue  = (int)(255 * ((event_registration->rgb & 0xf) / (float)0xf));
@@ -168,7 +168,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
       // See if this is the largest duration (only check if there are at least two events in the list)
       if (child->num_event_instances > 0 && event->event_id == event_registration->end_id) {
         // This is an end event, and a prev event exists. See if the prev event is a start event
-        uint16_t prev_event_index = child->event_indices[child->num_event_instances-1];
+        uint32_t prev_event_index = child->event_indices[child->num_event_instances-1];
         UkEvent *prev_event = &events->event_buffer[prev_event_index];
         if (prev_event->event_id == event_registration->start_id) {
           // Prev event is the start. See if the duration is the largest
@@ -178,8 +178,8 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
             child->end_event_index_of_largest_duration = child->num_event_instances;
           } else {
             // Subsequent duration
-            uint16_t largest_start_event_index = child->event_indices[child->end_event_index_of_largest_duration-1];
-            uint16_t largest_end_event_index = child->event_indices[child->end_event_index_of_largest_duration];
+            uint32_t largest_start_event_index = child->event_indices[child->end_event_index_of_largest_duration-1];
+            uint32_t largest_end_event_index = child->event_indices[child->end_event_index_of_largest_duration];
             UkEvent *largest_start_event = &events->event_buffer[largest_start_event_index];
             UkEvent *largest_end_event = &events->event_buffer[largest_end_event_index];
             uint64_t largest_duration = largest_end_event->time - largest_start_event->time;

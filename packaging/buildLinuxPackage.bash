@@ -24,6 +24,8 @@ mkdir ${output_folder}/visualizer/platforms
 
 # Copy the relevant files
 cp ../LICENSE ${output_folder}
+cp ../Unikorn_Introduction.pdf ${output_folder}
+cp ../GETTING_STARTED.txt ${output_folder}
 cp -r ../examples ${output_folder}
 cp -r ../src ${output_folder}
 cp -r ../inc ${output_folder}

@@ -2,8 +2,6 @@ API:
  - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
 
 Visualizer:
- - BUG: find largest event button not always enabled.
- - Add optional gridlines (via toggle button)
  - Remember the window size from run to run
  - Allow the files to also be sorted by time & event ID, not just alphabetical
  - From the time align dialog:

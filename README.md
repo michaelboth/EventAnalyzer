@@ -10,7 +10,7 @@ Just instrument your source code with meaningful events; you define the names an
 <img src="docs/UnikornViewer.png" alt="Logo" style="width:900px;"/>
 
 ## Unikorn Presentation
-<a href="docs/Unikorn Introduction.pdf">
+<a href="Unikorn_Introduction.pdf">
   <img src="docs/presentation_icon.png" alt="Unikorn Introduction" width="256" height="149">
 </a>
 <br>
@@ -32,7 +32,7 @@ Windows | Visual Studio<br><br> Unikorn's API can optionally be thread safe, whi
 
 ## Instrument Your Application with Events
 Copy the file ```examples/hello/unikorn_instrumentation.h``` into your project to get started. View the
-<a href="docs/Unikorn Introduction.pdf">Unikorn Introduction</a>
+<a href="Unikorn_Introduction.pdf">Unikorn Introduction</a>
 to see the details on how to instrument your application or just look at the ```examples/hello/hello.c``` to get started.
 <br>
 

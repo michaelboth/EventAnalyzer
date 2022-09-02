@@ -546,8 +546,20 @@ uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, Even
     prev_event = event;
     event_index++;
   }
+
+  // Check if no durations
   if (num_durations == 0) return 0;
 
+  // See if only one duration
+  if (num_durations == 1) {
+    buckets[num_buckets/2]++;
+    *min_ret = total_duration * 0.5;
+    *ave_ret = total_duration;
+    *max_ret = total_duration * 1.5;
+    return num_durations;
+  }
+
+  // There are multiple durations
   // Fill in the buckets
   uint64_t duration_range = max_duration - min_duration;
   event_index = first_event_index;
@@ -688,31 +700,13 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEv
     }
   }
 
+  if (num_durations == 0) return;
+
   // Create arrow image
   QPixmap up_arrow_image = drawUpArrow(th/3, th*1.2f, Qt::black);
 
-  // Draw min ave and max
-  { // Min
-    uint64_t units_factor;
-    QString time_units = getTimeUnitsAndFactor(min, 1, &units_factor);
-    double adjusted_time = min / (double)units_factor;
-    QString text1 = " Min:";
-    QString text2 = " " + niceValueText(adjusted_time) + " " + time_units + " ";
-    int text1_w = fm.horizontalAdvance(text1);
-    int text2_w = fm.horizontalAdvance(text2);
-    int text_x = dialog_x;
-    // Arrow
-    painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
-    painter.drawPixmap(text_x+2, dialog_y+th*(num_lines-2), up_arrow_image.width(), up_arrow_image.height(), up_arrow_image);
-    painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
-    // Text
-    painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
-    painter.drawText(text_x, dialog_y+th*(num_lines-1), text1_w, th, Qt::AlignCenter, text1);
-    text_x += text1_w;
-    painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
-    painter.drawText(text_x, dialog_y+th*(num_lines-1), text2_w, th, Qt::AlignCenter, text2);
-  }
-  { // Ave
+  // Draw ave
+  {
     uint64_t units_factor;
     QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
     double adjusted_time = ave / (double)units_factor;
@@ -742,7 +736,33 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEv
     painter.drawText(text_x, dialog_y+th*(num_lines-1.7), text2_w, th, Qt::AlignCenter, text2);
 
   }
-  { // Max
+
+  if (num_durations == 1) return;
+
+  // Draw min
+  {
+    uint64_t units_factor;
+    QString time_units = getTimeUnitsAndFactor(min, 1, &units_factor);
+    double adjusted_time = min / (double)units_factor;
+    QString text1 = " Min:";
+    QString text2 = " " + niceValueText(adjusted_time) + " " + time_units + " ";
+    int text1_w = fm.horizontalAdvance(text1);
+    int text2_w = fm.horizontalAdvance(text2);
+    int text_x = dialog_x;
+    // Arrow
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
+    painter.drawPixmap(text_x+2, dialog_y+th*(num_lines-2), up_arrow_image.width(), up_arrow_image.height(), up_arrow_image);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
+    // Text
+    painter.setPen(QPen(ROLLOVER_UNUNSED_TEXT_COLOR, 1, Qt::SolidLine));
+    painter.drawText(text_x, dialog_y+th*(num_lines-1), text1_w, th, Qt::AlignCenter, text1);
+    text_x += text1_w;
+    painter.setPen(QPen(ROLLOVER_TEXT_COLOR, 1, Qt::SolidLine));
+    painter.drawText(text_x, dialog_y+th*(num_lines-1), text2_w, th, Qt::AlignCenter, text2);
+  }
+
+  // Draw max
+  {
     uint64_t units_factor;
     QString time_units = getTimeUnitsAndFactor(max, 1, &units_factor);
     double adjusted_time = max / (double)units_factor;
@@ -1227,7 +1247,8 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     painter.setFont(font);
     painter.setPen(QPen(LOGO_COLOR, 1, Qt::SolidLine));
     QRect text_rect = QRect(0, inside_rect.bottom(), w, h);
-    painter.drawText(text_rect, Qt::AlignHCenter | Qt::AlignTop, "Copyright 2021 Michael Both");
+    QString copyright_message = QChar(0x00A9) + QString(" 2021-2022 Michael Both");
+    painter.drawText(text_rect, Qt::AlignHCenter | Qt::AlignTop, copyright_message);
     painter.restore();
     // Clear some stuff just in case it's active
     selected_time_range_x1 = -1;

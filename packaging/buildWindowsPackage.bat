@@ -30,6 +30,8 @@ if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
 
 rem Copy the relevant files
 copy ..\LICENSE %output_folder%
+copy ..\Unikorn_Introduction.pdf %output_folder%
+copy ..\GETTING_STARTED.txt %output_folder%
 xcopy /E/I ..\examples %output_folder%\examples
 xcopy /E/I ..\src %output_folder%\src
 xcopy /E/I ..\inc %output_folder%\inc

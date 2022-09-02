@@ -1,0 +1,40 @@
+"Improving complex software can be like trying to find a unicorn"
+
+
+-------------------------------------------------------------------
+LEARNING
+  To learn more about Unikorn benefits, see 'Unikorn Introduction.pdf'
+
+
+-------------------------------------------------------------------
+INSTRUMENT YOUR APP
+  To instrument your app, copy 'examples/hello/unikorn_instrumentation.h' to your project and customize it.
+  To see how to instrument your app, see the provided examples (there's a README.txt in each):
+    examples/hello/*                    A simple example of recording events and folders
+    examples/multi_thread_and_file/*    A multi threaded and file example
+    examples/test_clock/*               Test the performance of a clock; not meant to be an example
+    examples/test_record_and_load/*     For unit testing; not a realistic example
+
+
+-------------------------------------------------------------------
+VIEW THE RESULTS
+  To visualize Unikorn event files:
+    Linux:
+      Run from the command line:
+        > Unikorn-<version>/visualizer/UnikornViewer.sh
+      If it fails to run, it may be because of missing system libraries. To determine the missing libraries, do the following:
+        > cd Unikorn-<version>/visualizer
+        > export LD_LIBRARY_PATH=.
+        > export QT_DEBUG_PLUGINS=1
+        > ./UnikornViewer
+      This should identify missing libraries that need to be installed. For example, on Ubuntu Linux, you might need the library libxcb-xinerama.so.0:
+        > sudo apt install libxcb-xinerama0
+
+    Mac:
+      Run from the desktop:
+        Double click on app icon Unikorn-<version>/visualizer/UnikornViewer
+
+    Windows:
+      Run from the desktop:
+        Double click on the app icon Unikorn-<version>\visualizer\UnikornViewer.exe
+      If it fails to run you may need to install the Visual Studio redistribution package Unikorn-<version>\visualizer\vc_redist.x64.exe
