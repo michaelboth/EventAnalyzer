@@ -23,12 +23,12 @@ INSTRUMENT YOUR APP
 
 -------------------------------------------------------------------
 VIEW THE RESULTS
-  To visualize Unikorn event files:
+  To visualize Unikorn event files, use the pre-built viewers from the GitHub releases, or build the UnikornViewer yourself:
     Linux:
       Run from the command line:
-        > Unikorn-<version>/visualizer/UnikornViewer.sh
+        > Unikorn-<version>/visualizer/linux/UnikornViewer.sh
       If it fails to run, it may be because of missing system libraries. To determine the missing libraries, do the following:
-        > cd Unikorn-<version>/visualizer
+        > cd Unikorn-<version>/visualizer/linux
         > export LD_LIBRARY_PATH=.
         > export QT_DEBUG_PLUGINS=1
         > ./UnikornViewer
@@ -37,9 +37,9 @@ VIEW THE RESULTS
 
     Mac:
       Run from the desktop:
-        Double click on app icon Unikorn-<version>/visualizer/UnikornViewer
+        Double click on app icon Unikorn-<version>/visualizer/mac/UnikornViewer
 
     Windows:
       Run from the desktop:
-        Double click on the app icon Unikorn-<version>\visualizer\UnikornViewer.exe
-      If it fails to run you may need to install the Visual Studio redistribution package Unikorn-<version>\visualizer\vc_redist.x64.exe
+        Double click on the app icon Unikorn-<version>\visualizer\windows\UnikornViewer.exe
+      If it fails to run you may need to install the Visual Studio redistribution package Unikorn-<version>\visualizer\windows\vc_redist.x64.exe
