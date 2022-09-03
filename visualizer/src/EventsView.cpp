@@ -16,6 +16,7 @@
 #include <QPainter>
 #include <QAction>
 #include <QMenu>
+#include <QTime>
 #include "EventsView.hpp"
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
@@ -429,7 +430,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
     }
 
     if (parent->num_event_instances > 0) {
-      // Determin the ragne of events to draw based on visible time region
+      // Determin the range of events to draw based on visible time region
       uint32_t first_visible_event_index = findEventIndexAtTime(events, parent, start_time, -3);
       uint32_t last_visible_event_index = findEventIndexAtTime(events, parent, end_time, 3);
       if (last_visible_event_index >= parent->num_event_instances) last_visible_event_index = parent->num_event_instances - 1; // NOTE: just outside of range
@@ -439,6 +440,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
       int prev_prev_x = -1;
       uint64_t prev_time = 0;
       bool prev_is_start = false;
+      bool prev_x_is_full_height = false;
       UkLoaderEventRegistration *event_registration = &events->event_registration_list[parent->event_registration_index];
       painter->setPen(QPen(parent->color, 1, Qt::SolidLine));
       int y2 = y + (int)(line_h * 0.15f); // Top if not overlapped
@@ -447,6 +449,8 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
       int y5 = y + (int)(line_h * 0.85f); // Bottom if not overlapped
       int range_h = y4 - y3 + 1;
       uint64_t total_time_usage = 0;
+
+      // Loop over all the events on this line but within the time range
       for (uint32_t i=first_visible_event_index; i<=last_visible_event_index; i++) {
         uint32_t event_index = parent->event_indices[i];
         UkEvent *event = &events->event_buffer[event_index];
@@ -462,17 +466,27 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
         }
         int x = (int)(x_percent * (w-1));
         if (x == prev_prev_x) {
-          // Overlapped with other events, so draw tall event
-          painter->drawLine(x, y, x, y+line_h-1);
+          // Overlapped with at least 2 other events, so draw tall event
+          if (!prev_x_is_full_height) {
+            painter->drawLine(x, y, x, y+line_h-1);
+            prev_x_is_full_height = true;
+          }
         } else {
+          // Not overlapped, so only draw start or end bar
           int top_y = is_start ? y2 : y3;
           int bottom_y = is_start ? y4 : y5;
           painter->drawLine(x, top_y, x, bottom_y);
+          prev_x_is_full_height = false;
         }
         // Draw duration between start and end
         if (!is_start && prev_is_start) {
-          int range_w = x - prev_x;
-          painter->fillRect(QRect(prev_x,y3,range_w,range_h), parent->color);
+          // Draw the duration (if there's some width to it
+          {
+            int range_w = x - prev_x;
+            if (range_w > 1) { // There is some visible width
+              painter->fillRect(QRect(prev_x,y3,range_w,range_h), parent->color);
+            }
+          }
 	  // Accumulate time usage, to be displayed in the utilization column
 	  {
 	    uint64_t t1 = std::min(std::max(prev_time, start_time), end_time);
