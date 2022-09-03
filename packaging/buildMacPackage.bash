@@ -20,6 +20,7 @@ echo "qt_folder = ${qt_folder}"
 mkdir ${output_folder}
 mkdir ${output_folder}/inc
 mkdir ${output_folder}/visualizer
+mkdir ${output_folder}/visualizer/mac
 
 # Copy the relevant files
 cp ../LICENSE ${output_folder}
@@ -33,17 +34,17 @@ cp -r ../inc ${output_folder}
 cd ../visualizer
 qmake
 make -j8
-cp -r UnikornViewer.app ../packaging/${output_folder}/visualizer
+cp -r UnikornViewer.app ../packaging/${output_folder}/visualizer/mac
 make distclean
-cd ../packaging/${output_folder}/visualizer
+cd ../packaging/${output_folder}/visualizer/mac
 ${qt_folder}/clang_64/bin/macdeployqt UnikornViewer.app
-cd ../..
+cd ../../..
 
 # Compress package
 tar cvf ${output_folder}-osx.tar ${output_folder}
 gzip ${output_folder}-osx.tar
 #zip -r ${output_folder}-mac.zip ${output_folder}
 
-echo "Packaging created"
+echo "Unikorn Mac package created"
 
 exit 0

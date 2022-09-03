@@ -27,6 +27,8 @@ mkdir %output_folder%
 if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
 mkdir %output_folder%\visualizer
 if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
+mkdir %output_folder%\visualizer\windows
+if %ERRORLEVEL% neq 0 ( echo "Failed to create folder" & GOTO:done )
 
 rem Copy the relevant files
 copy ..\LICENSE %output_folder%
@@ -42,20 +44,20 @@ qmake
 if %ERRORLEVEL% neq 0 ( echo "Failed to qmake visualizer" & GOTO:done )
 nmake
 if %ERRORLEVEL% neq 0 ( echo "Failed to build visualizer" & GOTO:done )
-copy release\UnikornViewer.exe ..\packaging\%output_folder%\visualizer
+copy release\UnikornViewer.exe ..\packaging\%output_folder%\visualizer\windows
 if %ERRORLEVEL% neq 0 ( echo "Failed to copy visualizer" & GOTO:done )
 nmake distclean
 if %ERRORLEVEL% neq 0 ( echo "Failed to clean visualizer" & GOTO:done )
 cd ..\packaging
 
 rem Add support files for UnikornViewer.exe
-%qt_folder%\msvc2019_64\bin\windeployqt %output_folder%\visualizer
+%qt_folder%\msvc2019_64\bin\windeployqt %output_folder%\visualizer\windows
 
 rem Compress package
 powershell Compress-Archive %output_folder% %output_folder%-win64.zip
 if %ERRORLEVEL% neq 0 ( echo "Failed to zip package" & GOTO:done )
 
-echo "Packaging created"
+echo "Unikorn Windows package created"
 
 :done
 endlocal
