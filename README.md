@@ -38,7 +38,7 @@ to see the details on how to instrument your application or just look at the ```
 
 ### Unikorn's Core Source Files
 When using Unikorn in your application, you also need to compile in the following:
-- core Unikorn file
+- The core Unikorn file
 ```
     src/unikorn.c                                # The event recording engine
 ```
