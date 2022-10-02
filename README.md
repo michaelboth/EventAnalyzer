@@ -10,7 +10,6 @@ Just instrument your source code with meaningful events; you define the names an
 <img src="docs/UnikornViewer.png" alt="Logo" style="width:900px;"/>
 
 ### Unikorn Presentation
-<br>
 View this presentation to learn the benefits of Unikorn and how to use it
 <br>
 <a href="Unikorn_Introduction.pdf">
@@ -23,8 +22,7 @@ In the 'Releases' section (right panel of the GitHub webpage, near the top), cli
 # Building
 To instrument and build Unikorn into your application, do the following:
 
-### Development Environment
-Prepare your environment
+### Prepare Your Development Environment
 OS | Requirements
 --------|------------
 Linux | gcc <br> make
@@ -38,15 +36,28 @@ Copy the file ```examples/hello/unikorn_instrumentation.h``` into your project t
 to see the details on how to instrument your application or just look at the ```examples/hello/hello.c``` to get started.
 <br>
 
-When using Unikorn in your application, you also need to compile in the core unikorn file, a unikorn clock file (or your own custom clock file), and the unikorn flush file (or your own custom flush functionality):
+### Unikorn's Core Source Files
+When using Unikorn in your application, you also need to compile in the following:
+- core Unikorn file
 ```
-src/unikorn.c                                # The event recording engine
-src/unikorn_clock_gettime.c                  # A clock for Mac/Linux: high precision on most variations
-src/unikorn_clock_gettimeofday.c             # A clock for Mac/Linux: good precision and portable
-src/unikorn_clock_queryperformancecounter.c  # A clock for Windows: high precision
-src/unikorn_clock_ftime.c                    # A clock for Windows: not high precision
-src/unikorn_file_flush.c                     # Flush event data to a file
-inc/*.h                                      # Header files
+    src/unikorn.c                                # The event recording engine
+```
+- Unikorn clock file (or your own custom clock file)
+```
+    src/unikorn_clock_gettime.c                  # A clock for Mac/Linux: high precision on most variations
+    src/unikorn_clock_gettimeofday.c             # A clock for Mac/Linux: good precision and portable
+    src/unikorn_clock_queryperformancecounter.c  # A clock for Windows: high precision
+    src/unikorn_clock_ftime.c                    # A clock for Windows: not high precision
+```
+- Unikorn flush file (or your own custom flush functionality)
+```
+    src/unikorn_file_flush.c                     # Flush event data to a file
+```
+The header files for the core, clock, and flush functionality are in:
+```
+    inc/unikorn.h
+    inc/unikorn_clock.h
+    inc/unikorn_file_flush.h
 ```
 
 ### Examples
