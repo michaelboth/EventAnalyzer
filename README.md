@@ -42,18 +42,18 @@ When using Unikorn in your application, you also need to compile in the followin
 ```
     src/unikorn.c                                # The event recording engine
 ```
-- Unikorn clock file (or your own custom clock file)
+- One of the Unikorn clock files (or your own custom clock file)
 ```
     src/unikorn_clock_gettime.c                  # A clock for Mac/Linux: high precision on most variations
     src/unikorn_clock_gettimeofday.c             # A clock for Mac/Linux: good precision and portable
     src/unikorn_clock_queryperformancecounter.c  # A clock for Windows: high precision
     src/unikorn_clock_ftime.c                    # A clock for Windows: not high precision
 ```
-- Unikorn flush file (or your own custom flush functionality)
+- Unikorn flushing (or your own custom flush functionality; e.g. socket)
 ```
     src/unikorn_file_flush.c                     # Flush event data to a file
 ```
-The header files for the core, clock, and flush functionality are in:
+The header files for the core, clock, and flush functionality:
 ```
     inc/unikorn.h
     inc/unikorn_clock.h
