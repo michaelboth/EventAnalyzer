@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include "unikorn.h"
+#ifdef NDEBUG // Don't want assert compiled out
+  #undef NDEBUG
+#endif
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>

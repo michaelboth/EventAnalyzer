@@ -14,6 +14,9 @@
 
 #include "unikorn_clock.h"
 #include <stdbool.h>
+#ifdef NDEBUG // Don't want assert compiled out
+  #undef NDEBUG
+#endif
 #include <assert.h>
 #include <time.h>
 

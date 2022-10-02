@@ -16,6 +16,9 @@
   #define _CRT_SECURE_NO_WARNINGS   // Needed to quiet security issues about sprintf
 #endif
 #include "unikorn_file_loader.h"
+#ifdef NDEBUG // Don't want assert compiled out
+  #undef NDEBUG
+#endif
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>

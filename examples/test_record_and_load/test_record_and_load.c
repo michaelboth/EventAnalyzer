@@ -21,9 +21,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef NDEBUG // Don't want assert compiled out
+  #undef NDEBUG
+#endif
 #include <assert.h>
-
-/*+ valgrind */
 
 #ifdef ENABLE_UNIKORN_RECORDING
 static void *unikorn_session = NULL;
