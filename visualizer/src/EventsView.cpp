@@ -20,6 +20,7 @@
 #include "EventsView.hpp"
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
+#include "unikorn.h" // For the version number
 
 #define MIN_SELECTION_PIXEL_DIFF 5
 #define LINE_SEPARATOR_COLOR QColor(230, 230, 230)
@@ -31,6 +32,7 @@
 #define HISTOGRAM_BAR_BG_COLOR QColor(230,230,230)
 #define ALIGNMENT_COLOR QColor(150, 150, 150)
 #define LOGO_COLOR QColor(220,220,220)
+#define GHOST_ALPHA 50
 
 EventsView::EventsView(QWidget *parent) : QWidget(parent) {
   // Track mouse when not pressed
@@ -344,10 +346,26 @@ void EventsView::centerLargestEvent(UkEvents *events, EventTreeNode *events_row)
 void EventsView::mousePressEvent(QMouseEvent *event) {
   if (G_event_tree_map.count() == 0) return;
   if (event->button() == Qt::LeftButton) {
-    // Start selection of time range
-    mouse_button_pressed = true;
-    selected_time_range_x1 = event->x();
-    selected_time_range_x2 = selected_time_range_x1;
+    if (mouse_mode == MOUSE_MODE_EVENT_GHOSTING) {
+      // Ghosting
+      QMapIterator<QString, EventTree*> i(G_event_tree_map);
+      while (i.hasNext()) {
+	// Get old tree info
+	i.next();
+	EventTree *event_tree = i.value();
+	EventTreeNode *node_with_mouse = mouseOnEventsLine(event_tree->tree);
+	if (node_with_mouse != NULL) {
+	  alternateEventGhosting(node_with_mouse, event_tree);
+	  rebuildAndUpdate(); // Full redraw
+	  break;
+	}
+      }
+    } else {
+      // Start selection of time range
+      mouse_button_pressed = true;
+      selected_time_range_x1 = event->x();
+      selected_time_range_x2 = selected_time_range_x1;
+    }
     update(); // Avoids full redraw
   }
 }
@@ -484,7 +502,8 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
           {
             int range_w = x - prev_x;
             if (range_w > 1) { // There is some visible width
-              painter->fillRect(QRect(prev_x,y3,range_w,range_h), parent->color);
+	      QColor color = (event->is_ghosted) ? QColor(parent->color.red(), parent->color.green(), parent->color.blue(), GHOST_ALPHA) : parent->color;
+              painter->fillRect(QRect(prev_x,y3,range_w,range_h), color);
             }
           }
 	  // Accumulate time usage, to be displayed in the utilization column
@@ -799,6 +818,57 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEv
   }
 
   free(buckets);
+}
+
+bool EventsView::hasGhostedEvents() {
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  while (i.hasNext()) {
+    i.next();
+    EventTree *event_tree = i.value();
+    if (event_tree->events_ghosted) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void EventsView::clearEventGhosting() {
+  bool has_ghosting = false;
+  QMapIterator<QString, EventTree*> i(G_event_tree_map);
+  while (i.hasNext()) {
+    i.next();
+    EventTree *event_tree = i.value();
+    if (event_tree->events_ghosted) {
+      event_tree->clearEventGhosting();
+      event_tree->events_ghosted = false;
+      has_ghosting = true;
+    }
+  }
+  if (has_ghosting) {
+    rebuildAndUpdate(); // Full redraw
+  }
+}
+
+void EventsView::alternateEventGhosting(EventTreeNode *node, EventTree *event_tree) {
+  int w = width();
+  bool ancestor_collapsed = node->isAncestorCollapsed();
+  double time_range_factor = mouse_location.x()/(double)w;
+  uint64_t time_at_mouse = start_time + (uint64_t)(time_range_factor * time_range);
+
+  if (!ancestor_collapsed && node->tree_node_type == TREE_NODE_IS_EVENT) {
+    // If mouse on an event duration, then alternate its ghosting
+    UkEvents *events = event_tree->events;
+    uint32_t event_index_to_right_of_mouse = findEventIndexAtTime(events, node, time_at_mouse, 0);
+    bool has_next_event = event_index_to_right_of_mouse < node->num_event_instances;
+    uint32_t event_index_to_left_of_mouse = (event_index_to_right_of_mouse > 0) ? event_index_to_right_of_mouse-1 : 0;
+    bool has_prev_event = event_index_to_left_of_mouse < event_index_to_right_of_mouse;
+    if (has_prev_event && has_next_event) {
+      // Mouse is on a durration
+      UkEvent *next_event = has_next_event ? &events->event_buffer[node->event_indices[event_index_to_right_of_mouse]] : NULL;
+      next_event->is_ghosted = !next_event->is_ghosted;
+      event_tree->events_ghosted = true;
+    }
+  }
 }
 
 void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents *events) {
@@ -1254,17 +1324,30 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     painter.setRenderHint(QPainter::SmoothPixmapTransform,true);
     painter.drawPixmap(inside_rect, logo);
     painter.setRenderHint(QPainter::SmoothPixmapTransform,false);
-    // Draw the copyright
+
+    // Small font
     painter.save();
     QFont font = painter.font();
     font.setPointSize(inside_rect.height()*0.1f);
+    QFontMetrics fm = QFontMetrics(painter.font());
+    int line_h = fm.height();
     painter.setFont(font);
     painter.setPen(QPen(LOGO_COLOR, 1, Qt::SolidLine));
+
+    // Draw the API version
     QRect text_rect = QRect(0, inside_rect.bottom(), w, h);
+    QString version_message = QString("Version ") + QString::number(UK_API_VERSION_MAJOR) + "." + QString::number(UK_API_VERSION_MINOR);
+    painter.drawText(text_rect, Qt::AlignHCenter | Qt::AlignTop, version_message);
+
+    // Draw the copyright
+    text_rect.translate(QPoint(0, line_h*1.2));
     QString copyright_message = QChar(0x00A9) + QString(" 2021-2022 Michael Both");
     painter.drawText(text_rect, Qt::AlignHCenter | Qt::AlignTop, copyright_message);
+
+    // Revert painter save state
     painter.restore();
-    // Clear some stuff just in case it's active
+
+    // Clear some edit info just in case there were some event files previously loaded
     selected_time_range_x1 = -1;
     selected_time_range_x2 = -1;
     percent_visible = 1.0;
@@ -1273,6 +1356,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     emit selectionTimeRangeChanged(0, 0, 0);  // Signal to the header
     emit timeRangeSelectionChanged();   // Signal to the toolbar widgets
     emit utilizationRecalculated();     // Signal to utilization column
+
     return;
   }
 
@@ -1375,7 +1459,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
   if (mouse_button_pressed) return;
 
   // Draw rollover info or histogram
-  if ((mouse_mode == MOUSE_MODE_EVENT_INFO || mouse_mode == MOUSE_MODE_EVENT_HISTOGRAM) && mouse_location.x() >= 0 && mouse_location.y() >= 0) {
+  if ((mouse_mode == MOUSE_MODE_EVENT_INFO || mouse_mode == MOUSE_MODE_EVENT_HISTOGRAM || mouse_mode == MOUSE_MODE_EVENT_GHOSTING) && mouse_location.x() >= 0 && mouse_location.y() >= 0) {
     EventTreeNode *node_with_mouse = NULL;
     UkEvents *events_with_mouse = NULL;
     QMapIterator<QString, EventTree*> i(G_event_tree_map);
@@ -1396,6 +1480,8 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
       } else if (mouse_mode == MOUSE_MODE_EVENT_INFO) {
 	painter.fillRect(node_with_mouse->events_row_rect, ROW_HIGHLIGHT_COLOR2);
 	drawEventInfo(painter, node_with_mouse, events_with_mouse);
+      } else if (mouse_mode == MOUSE_MODE_EVENT_GHOSTING) {
+	painter.fillRect(node_with_mouse->events_row_rect, ROW_HIGHLIGHT_COLOR2);
       }
     }
   }

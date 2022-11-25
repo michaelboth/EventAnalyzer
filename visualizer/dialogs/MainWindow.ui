@@ -834,6 +834,29 @@
                </widget>
               </item>
               <item>
+               <widget class="QToolButton" name="mouseModeGhostingButton">
+                <property name="toolTip">
+                 <string>Click on events to ghost/unghost them. Helpful when interpreting or presenting.</string>
+                </property>
+                <property name="text">
+                 <string>...</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QToolButton" name="clearGhostingButton">
+                <property name="toolTip">
+                 <string>Clear all ghosting</string>
+                </property>
+                <property name="text">
+                 <string>...</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QToolButton" name="mouseModeTimeShiftButton">
                 <property name="toolTip">
                  <string>Use the mouse to drag event times to match times of events from another file. Effects all events of the same file.</string>
@@ -1105,7 +1128,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>22</height>
+     <height>33</height>
     </rect>
    </property>
   </widget>

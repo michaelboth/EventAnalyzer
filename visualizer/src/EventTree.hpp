@@ -66,6 +66,7 @@ public:
   QString name; // Filename (not including folder or .event suffix)
   QString folder;
   EventTreeNode *tree = NULL;
+  bool events_ghosted = false;
 
   EventTree(UkEvents *events, QString name, QString folder, bool show_folders, bool show_threads);
   ~EventTree();
@@ -73,6 +74,7 @@ public:
   void openAllFolders();
   void closeAllFolders();
   void printTree(EventTreeNode *parent, const char *title, int level);
+  void clearEventGhosting();
 
 private:
   void buildTree(EventTreeNode *node, uint32_t &event_index, bool show_folders, bool show_threads);

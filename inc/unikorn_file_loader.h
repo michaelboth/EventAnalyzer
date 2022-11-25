@@ -42,6 +42,7 @@ typedef struct {
   uint16_t file_name_index;
   uint16_t function_name_index;
   uint16_t line_number;
+  bool is_ghosted; // Used by UnikornViewer
 } UkEvent;
 
 typedef struct {

@@ -54,7 +54,9 @@ private slots:
   void on_mouseModeNoneButton_clicked();
   void on_mouseModeInfoButton_clicked();
   void on_mouseModeHistogramButton_clicked();
+  void on_mouseModeGhostingButton_clicked();
   void on_mouseModeTimeShiftButton_clicked();
+  void on_clearGhostingButton_clicked();
   void on_prevEventButton_clicked();
   void on_nextEventButton_clicked();
   void on_largestEventButton_clicked();

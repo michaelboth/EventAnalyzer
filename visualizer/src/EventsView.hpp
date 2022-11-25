@@ -29,6 +29,7 @@ public:
     MOUSE_MODE_EVENT_NONE,
     MOUSE_MODE_EVENT_INFO,
     MOUSE_MODE_EVENT_HISTOGRAM,
+    MOUSE_MODE_EVENT_GHOSTING,
     MOUSE_MODE_TIME_SHIFT,
   };
 
@@ -43,6 +44,8 @@ public:
   void centerPrevEvent(UkEvents *events, EventTreeNode *events_row);
   void centerNextEvent(UkEvents *events, EventTreeNode *events_row);
   void centerLargestEvent(UkEvents *events, EventTreeNode *events_row);
+  bool hasGhostedEvents();
+  void clearEventGhosting();
 
 protected:
   void paintEvent(QPaintEvent *event);
@@ -92,6 +95,7 @@ private:
   void prepareIcon(QString filename, bool recolor, QColor color);
   void drawHierarchyLine(QPainter *painter, UkEvents *events, EventTreeNode *tree, int &line_index, int ancestor_open);
   EventTreeNode *mouseOnEventsLine(EventTreeNode *parent);
+  void alternateEventGhosting(EventTreeNode *node, EventTree *event_tree);
   void drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents *events);
   void drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEvents *events);
   uint32_t calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, UkEvents *events, bool get_gap_durations, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret);

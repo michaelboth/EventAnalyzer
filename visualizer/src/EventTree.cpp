@@ -44,6 +44,7 @@ EventTree::EventTree(UkEvents *_events, QString _name, QString _folder, bool sho
   // Recursively build tree
   uint32_t event_index = 0;
   buildTree(tree, event_index, show_folders, show_threads);
+  clearEventGhosting();
 }
 
 EventTree::~EventTree() {
@@ -61,6 +62,12 @@ void EventTree::deleteTree(EventTreeNode *node) {
     free(node->event_indices);
   }
   delete node;
+}
+
+void EventTree::clearEventGhosting() {
+  for (uint32_t i=0; i<events->event_count; i++) {
+    events->event_buffer[i].is_ghosted = false;
+  }
 }
 
 EventTreeNode *EventTree::getChildWithEventInfoIndex(EventTreeNode *parent, uint16_t event_registration_index) {

@@ -236,7 +236,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->mouseModeNoneButton,
     ui->mouseModeInfoButton,
     ui->mouseModeHistogramButton,
+    ui->mouseModeGhostingButton,
     ui->mouseModeTimeShiftButton,
+    ui->clearGhostingButton,
     ui->zoomToAllButton,
     ui->zoomInButton,
     ui->zoomOutButton,
@@ -341,6 +343,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->mouseModeNoneButton->setIcon(buildIcon(":/mouse_mode_none.png",            true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->mouseModeInfoButton->setIcon(buildIcon(":/mouse_mode_info.png",            true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->mouseModeHistogramButton->setIcon(buildIcon(":/mouse_mode_histogram.png",  true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->mouseModeGhostingButton->setIcon(buildIcon(":/mouse_mode_ghosting.png",    true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
+  ui->clearGhostingButton->setIcon(buildIcon(":/clear_ghosting.png",             false, toolbar_icon_size, IMPORTANT_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->mouseModeTimeShiftButton->setIcon(buildIcon(":/mouse_mode_time_shift.png", true,  toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->zoomToAllButton->setIcon(buildIcon(":/zoom_to_all.png",                    false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
   ui->zoomInButton->setIcon(buildIcon(":/zoom_in.png",                           false, toolbar_icon_size, NORMAL_COLOR, DISABLED_COLOR, TOGGLE_ON_COLOR, TOGGLE_OFF_COLOR));
@@ -483,6 +487,7 @@ void MainWindow::setWidgetUsability() {
   double percent_visible, percent_offset;
   ui->eventsView->getTimeRange(&percent_visible, &percent_offset);
   bool zoomed_to_all = (percent_visible == 1.0);
+  bool has_ghosted_events = ui->eventsView->hasGhostedEvents();
 
   // Hierarchy toolbar
   ui->closeAllButton->setEnabled(event_files_loaded);
@@ -504,7 +509,9 @@ void MainWindow::setWidgetUsability() {
   ui->mouseModeNoneButton->setEnabled(event_files_loaded);
   ui->mouseModeInfoButton->setEnabled(event_files_loaded);
   ui->mouseModeHistogramButton->setEnabled(event_files_loaded);
+  ui->mouseModeGhostingButton->setEnabled(event_files_loaded);
   ui->mouseModeTimeShiftButton->setEnabled(event_files_loaded);
+  ui->clearGhostingButton->setEnabled(event_files_loaded && has_ghosted_events);
   ui->zoomToAllButton->setEnabled(event_files_loaded && !zoomed_to_all);
   ui->zoomInButton->setEnabled(event_files_loaded);
   ui->zoomOutButton->setEnabled(event_files_loaded && !zoomed_to_all);
@@ -546,6 +553,8 @@ void MainWindow::setWidgetUsability() {
 void MainWindow::on_loadButton_clicked() {
   QString prev_folder = G_settings->value("prev_load_folder", "").toString();
   QStringList files = QFileDialog::getOpenFileNames(this, "Load One Or More Event Files", prev_folder, "Event Files (*.events)");
+
+  // Load each file and create an event tree for each file
   for (auto filename: files) {
     // Get folder
     QString folder = filename.section("/", -999, -2);
@@ -583,6 +592,8 @@ void MainWindow::on_loadButton_clicked() {
     tree->sortTree(sort_type);
     G_event_tree_map[filename] = tree; // NOTE: QMaps are ordered alphabetically
   }
+
+  // Allow user to set time alignment if multiple files are loaded
   if (files.count() > 0) {
     setWidgetUsability();
     updateHierarchyScrollbars();
@@ -866,6 +877,7 @@ void MainWindow::on_mouseModeNoneButton_clicked() {
   }
   ui->mouseModeInfoButton->setChecked(false);
   ui->mouseModeHistogramButton->setChecked(false);
+  ui->mouseModeGhostingButton->setChecked(false);
   ui->mouseModeTimeShiftButton->setChecked(false);
   if (is_checked) {
     ui->eventsView->setMouseMode(EventsView::MOUSE_MODE_EVENT_NONE);
@@ -879,6 +891,7 @@ void MainWindow::on_mouseModeInfoButton_clicked() {
   }
   ui->mouseModeNoneButton->setChecked(false);
   ui->mouseModeHistogramButton->setChecked(false);
+  ui->mouseModeGhostingButton->setChecked(false);
   ui->mouseModeTimeShiftButton->setChecked(false);
   if (is_checked) {
     ui->eventsView->setMouseMode(EventsView::MOUSE_MODE_EVENT_INFO);
@@ -892,9 +905,24 @@ void MainWindow::on_mouseModeHistogramButton_clicked() {
   }
   ui->mouseModeNoneButton->setChecked(false);
   ui->mouseModeInfoButton->setChecked(false);
+  ui->mouseModeGhostingButton->setChecked(false);
   ui->mouseModeTimeShiftButton->setChecked(false);
   if (is_checked) {
     ui->eventsView->setMouseMode(EventsView::MOUSE_MODE_EVENT_HISTOGRAM);
+  }
+}
+
+void MainWindow::on_mouseModeGhostingButton_clicked() {
+  bool is_checked = ui->mouseModeGhostingButton->isChecked();
+  if (!is_checked) {
+    ui->mouseModeGhostingButton->setChecked(true);
+  }
+  ui->mouseModeNoneButton->setChecked(false);
+  ui->mouseModeInfoButton->setChecked(false);
+  ui->mouseModeHistogramButton->setChecked(false);
+  ui->mouseModeTimeShiftButton->setChecked(false);
+  if (is_checked) {
+    ui->eventsView->setMouseMode(EventsView::MOUSE_MODE_EVENT_GHOSTING);
   }
 }
 
@@ -906,9 +934,14 @@ void MainWindow::on_mouseModeTimeShiftButton_clicked() {
   ui->mouseModeNoneButton->setChecked(false);
   ui->mouseModeInfoButton->setChecked(false);
   ui->mouseModeHistogramButton->setChecked(false);
+  ui->mouseModeGhostingButton->setChecked(false);
   if (is_checked) {
     ui->eventsView->setMouseMode(EventsView::MOUSE_MODE_TIME_SHIFT);
   }
+}
+
+void MainWindow::on_clearGhostingButton_clicked() {
+  ui->eventsView->clearEventGhosting();
 }
 
 void MainWindow::on_increaseFontSizeButton_clicked() {
