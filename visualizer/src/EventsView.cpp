@@ -870,12 +870,15 @@ void EventsView::alternateEventGhosting(EventTreeNode *node, EventTree *event_tr
     uint32_t event_index_to_left_of_mouse = (event_index_to_right_of_mouse > 0) ? event_index_to_right_of_mouse-1 : 0;
     bool has_prev_event = event_index_to_left_of_mouse < event_index_to_right_of_mouse;
     if (has_prev_event && has_next_event) {
-      // Mouse is on a duration
+      UkLoaderEventRegistration *event_registration = &events->event_registration_list[node->event_registration_index];
       UkEvent *prev_event = has_prev_event ? &events->event_buffer[node->event_indices[event_index_to_left_of_mouse]] : NULL;
       UkEvent *next_event = has_next_event ? &events->event_buffer[node->event_indices[event_index_to_right_of_mouse]] : NULL;
-      prev_event->is_ghosted = !prev_event->is_ghosted;
-      next_event->is_ghosted = !next_event->is_ghosted;
-      event_tree->events_ghosted = true;
+      if (prev_event->event_id == event_registration->start_id && next_event->event_id == event_registration->end_id) {
+      // Mouse is on a duration
+	prev_event->is_ghosted = !prev_event->is_ghosted;
+	next_event->is_ghosted = !next_event->is_ghosted;
+	event_tree->events_ghosted = true;
+      }
     }
   }
 }
@@ -1338,8 +1341,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     painter.save();
     QFont font = painter.font();
     font.setPointSize(inside_rect.height()*0.1f);
-    QFontMetrics fm = QFontMetrics(painter.font());
-    int line_h = fm.height();
+    int line_h = font.pointSize();
     painter.setFont(font);
     painter.setPen(QPen(LOGO_COLOR, 1, Qt::SolidLine));
 
