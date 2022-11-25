@@ -1345,7 +1345,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     int line_h = font.pointSize() * 2.0f;
 #else
     font.setPointSize(inside_rect.height()*0.1f);
-    int line_h = font.pointSize();
+    int line_h = font.pointSize() * 1.2f;
 #endif
     painter.setFont(font);
     painter.setPen(QPen(LOGO_COLOR, 1, Qt::SolidLine));
