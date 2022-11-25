@@ -108,19 +108,38 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
         event_index++;
       } else if (event->event_id == 0) {
         // This is the 'close folder' event. Move back to the parent node
+#ifdef PRINT_HELPFUL_MESSAGES
+        printf("  Close folder, and move back a tree node\n");
+#endif
         event_index++;
         return;
       } else {
-        // Create the new folder and recurse into it
-        EventTreeNode *folder = new EventTreeNode();
-        folder->tree_node_type = TREE_NODE_IS_FOLDER;
-        folder->ID = event->event_id;
-        folder->name = events->folder_registration_list[event->event_id].name;
-        node->children += folder;
-        folder->parent = node;
+        // Opening folder... see if it already exists at this level
+        EventTreeNode *folder = NULL;
+        for (auto child: node->children) {
+          if (child->tree_node_type == TREE_NODE_IS_FOLDER && child->ID == event->event_id) {
+            folder = child;
 #ifdef PRINT_HELPFUL_MESSAGES
-        printf("Creating folder for ID %d, name=%s\n", event->event_id, folder->name.toLatin1().data());
+            printf("Reusing folder for ID %d, name=%s\n", event->event_id, folder->name.toLatin1().data());
 #endif
+            break;
+          }
+        }
+
+        // If folder tree doesn't exist, create it
+        if (folder == NULL) {
+          // Create the new folder
+          folder = new EventTreeNode();
+          folder->tree_node_type = TREE_NODE_IS_FOLDER;
+          folder->ID = event->event_id;
+          folder->name = events->folder_registration_list[event->event_id].name;
+          node->children += folder;
+          folder->parent = node;
+#ifdef PRINT_HELPFUL_MESSAGES
+          printf("Creating folder for ID %d, name=%s\n", event->event_id, folder->name.toLatin1().data());
+#endif
+        }
+
         // Recurse into folder node
         event_index++;
         buildTree(folder, event_index, show_folders, show_threads);

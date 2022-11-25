@@ -741,9 +741,9 @@ void ukRecordEvent(void *session_ref, uint16_t event_id, double value, const cha
   UnikornSession *session = (UnikornSession *)session_ref;
   OPTIONAL_ASSERT(session->magic_value1 == MAGIC_VALUE1);
   OPTIONAL_ASSERT(session->magic_value2 == MAGIC_VALUE2);
-  uint16_t event_index = (event_id - session->first_event_id) / 2;
-  OPTIONAL_ASSERT(event_index < session->event_registration_count*2);
-  PrivateEventInfo *event = &session->event_registration_list[event_index];
+  uint16_t event_registration_index = (event_id - session->first_event_id) / 2;
+  OPTIONAL_ASSERT(event_registration_index < session->event_registration_count*2);
+  PrivateEventInfo *event = &session->event_registration_list[event_registration_index];
 #ifdef PRINT_RECORD_INFO
   printf("%s(): ID=%d, value=%f, file=%s, function=%s, line_number=%d\n", __FUNCTION__, event_id, value, file, function, line_number);
 #endif
@@ -752,7 +752,7 @@ void ukRecordEvent(void *session_ref, uint16_t event_id, double value, const cha
   if (session->is_multi_threaded) pthread_mutex_lock(&session->mutex);
 #endif
 
-  // Add the folder event to the event buffer
+  // Add the event to the event buffer
   uint64_t instance = (event->start_id == event_id) ? event->start_instance++ : event->end_instance++;
   recordEvent(session, event_id, value, instance, file, function, line_number);
 

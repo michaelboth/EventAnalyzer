@@ -299,14 +299,15 @@ static void loadEventsHeader(FILE *file, bool first_time_loaded, bool swap_endia
 #ifdef PRINT_UNIKORN_LOAD_INFO
 static const char *getEventName(UkEvents *object, uint16_t event_id) {
   if (event_id < object->folder_registration_count) {
-    return object->folder_registration_list[event_id].name;
+    static char name[1000]; // Persistant memory, and should only be used by a single thread
+    sprintf(name, "Folder: %s", object->folder_registration_list[event_id].name);
+    return name;
   } else {
-    event_id -= object->folder_registration_count;
-    if (object->folder_registration_count == 0) event_id--;
-    uint16_t array_index = event_id/2;
-    bool is_start = (object->event_registration_list[array_index].start_id == event_id);
-    static char name[1000];
-    sprintf(name, "%s: %s", is_start ? "Start" : "End", object->event_registration_list[array_index].name);
+    uint16_t first_event_id = (object->folder_registration_count == 0) ? 1 : object->folder_registration_count;
+    uint16_t event_registration_index = (event_id - first_event_id) / 2;
+    bool is_start = (object->event_registration_list[event_registration_index].start_id == event_id);
+    static char name[1000]; // Persistant memory, and should only be used by a single thread
+    sprintf(name, "%s: %s", is_start ? "Start" : "End", object->event_registration_list[event_registration_index].name);
     return name;
   }
 }
