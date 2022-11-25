@@ -460,7 +460,6 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
       bool prev_is_start = false;
       bool prev_x_is_full_height = false;
       UkLoaderEventRegistration *event_registration = &events->event_registration_list[parent->event_registration_index];
-      painter->setPen(QPen(parent->color, 1, Qt::SolidLine));
       int y2 = y + (int)(line_h * 0.15f); // Top if not overlapped
       int y3 = y + (int)(line_h * 0.35f); // Top of range
       int y4 = y + (int)(line_h * 0.65f); // Bottom of range
@@ -473,6 +472,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
         uint32_t event_index = parent->event_indices[i];
         UkEvent *event = &events->event_buffer[event_index];
         bool is_start = event->event_id == event_registration->start_id;
+
         // X location in visible region
         double x_percent;
         if (event->time < start_time) {
@@ -483,6 +483,12 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
           x_percent = (event->time - start_time) / time_range;
         }
         int x = (int)(x_percent * (w-1));
+
+        // Set the color
+        QColor color = (event->is_ghosted) ? QColor(parent->color.red(), parent->color.green(), parent->color.blue(), GHOST_ALPHA) : parent->color;
+        painter->setPen(QPen(color, 1, Qt::SolidLine));
+
+        // Draw event
         if (x == prev_prev_x) {
           // Overlapped with at least 2 other events, so draw tall event
           if (!prev_x_is_full_height) {
@@ -496,13 +502,13 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
           painter->drawLine(x, top_y, x, bottom_y);
           prev_x_is_full_height = false;
         }
+
         // Draw duration between start and end
         if (!is_start && prev_is_start) {
           // Draw the duration (if there's some width to it
           {
             int range_w = x - prev_x;
             if (range_w > 1) { // There is some visible width
-	      QColor color = (event->is_ghosted) ? QColor(parent->color.red(), parent->color.green(), parent->color.blue(), GHOST_ALPHA) : parent->color;
               painter->fillRect(QRect(prev_x,y3,range_w,range_h), color);
             }
           }
@@ -513,6 +519,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
 	    total_time_usage += t2-t1;
 	  }
         }
+
         // Remember some stuff
         prev_time = event->time;
         prev_is_start = is_start;
@@ -863,8 +870,10 @@ void EventsView::alternateEventGhosting(EventTreeNode *node, EventTree *event_tr
     uint32_t event_index_to_left_of_mouse = (event_index_to_right_of_mouse > 0) ? event_index_to_right_of_mouse-1 : 0;
     bool has_prev_event = event_index_to_left_of_mouse < event_index_to_right_of_mouse;
     if (has_prev_event && has_next_event) {
-      // Mouse is on a durration
+      // Mouse is on a duration
+      UkEvent *prev_event = has_prev_event ? &events->event_buffer[node->event_indices[event_index_to_left_of_mouse]] : NULL;
       UkEvent *next_event = has_next_event ? &events->event_buffer[node->event_indices[event_index_to_right_of_mouse]] : NULL;
+      prev_event->is_ghosted = !prev_event->is_ghosted;
       next_event->is_ghosted = !next_event->is_ghosted;
       event_tree->events_ghosted = true;
     }
