@@ -1340,8 +1340,13 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
     // Small font
     painter.save();
     QFont font = painter.font();
+#if defined(_WIN32)
+    font.setPointSize(inside_rect.height()*0.05f);
+    int line_h = font.pointSize() * 2.0f;
+#else
     font.setPointSize(inside_rect.height()*0.1f);
     int line_h = font.pointSize();
+#endif
     painter.setFont(font);
     painter.setPen(QPen(LOGO_COLOR, 1, Qt::SolidLine));
 
