@@ -41,5 +41,6 @@
         <file alias="next_event.png">icons/next_event.png</file>
         <file alias="largest_event.png">icons/largest_event.png</file>
 
+        <file alias="ghost_pointer_32x32.png">icons/ghost_pointer_32x32.png</file>
     </qresource>
 </RCC>

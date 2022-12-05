@@ -13,8 +13,72 @@
 // limitations under the License.
 
 #include <QPainter>
+#include <QBitmap>
 #include "HelpfulFunctions.hpp"
 #include "main.hpp"
+
+#define CURSOR_SIZE 32   // 32 is more portable
+#define GHOST_CURSOR_HOT_SPOT_X 3
+#define GHOST_CURSOR_HOT_SPOT_Y 4
+
+QCursor createGhostingCursor() {
+  // Usage
+  //   Custom:
+  //     QCursor cursor = createCrossHairsCursor();
+  //   Built in cursors
+  //     QCursor cursor = Qt::ArrowCursor;
+  //     QCursor cursor = Qt::CrossCursor;
+  //     etc
+  //   Setting
+  //     this->setCursor(cursor);
+  //   Reverting to parent cursor
+  //     this->unsetCursor();
+
+  int cursor_size = CURSOR_SIZE; // IMPORTANT: Required for portability
+  QBitmap bitmap(cursor_size, cursor_size);
+  QBitmap mask(cursor_size, cursor_size);
+
+  // Load the reference image
+  QImage image(":/ghost_pointer_32x32.png");
+  if (CURSOR_SIZE != 32) {
+    image = image.scaled(CURSOR_SIZE, CURSOR_SIZE, Qt::IgnoreAspectRatio, Qt::SmoothTransformation /* Qt::FastTransformation */);
+  }
+
+  // Create the two bit masks to define black, white, and transparent
+  {
+    bitmap.clear();
+    mask.clear();
+
+    /*+ set pixel density? */
+
+    QPainter bpainter(&bitmap);
+    QPainter mpainter(&mask);
+
+    // The cursor bitmap (B) and mask (M) bits are combined like this:
+    //   B=1 and M=1 gives black.
+    //   B=0 and M=1 gives white.
+    //   B=0 and M=0 gives transparent.
+    //   B=1 and M=0 gives an XOR'd result under Windows, undefined results on all other platforms.
+
+    bpainter.setBrush(Qt::NoBrush);
+    bpainter.setPen(QPen(Qt::color1, 1.0, Qt::SolidLine));
+
+    for (int x=0; x<cursor_size; x++) {
+      for (int y=0; y<cursor_size; y++) {
+	int gray = image.pixelColor(x,y).red();
+	bool is_black = (gray < 100);
+	if (is_black) {
+	  bpainter.drawPoint(x, y);
+	  mpainter.drawPoint(x, y);
+	}
+      }
+    }
+  }
+
+  QCursor cursor = QCursor(bitmap, mask, GHOST_CURSOR_HOT_SPOT_X, GHOST_CURSOR_HOT_SPOT_Y);
+
+  return cursor;
+}
 
 QRect getFittedRect(FitType fit, int window_w, int window_h, int image_w, int image_h) {
   if (fit == FitType::Inside) {

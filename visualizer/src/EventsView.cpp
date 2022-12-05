@@ -51,6 +51,9 @@ EventsView::EventsView(QWidget *parent) : QWidget(parent) {
   QImage image = QImage(":/unikorn_logo.png");
   recolorImage(image, LOGO_COLOR);
   logo = QPixmap::fromImage(image);
+
+  // Create the ghosting cursor
+  ghosting_cursor = createGhostingCursor();
 }
 
 EventsView::~EventsView() {
@@ -145,6 +148,12 @@ void EventsView::popupContextMenu(const QPoint &mouse_location) {
 
 void EventsView::setMouseMode(MouseMode _mouse_mode) {
   mouse_mode = _mouse_mode;
+  if (mouse_mode == MOUSE_MODE_EVENT_GHOSTING) {
+    //setCursor(Qt::PointingHandCursor);
+    setCursor(ghosting_cursor);
+  } else {
+    unsetCursor();
+  }
 }
 
 void EventsView::prepareIcon(QString filename, bool recolor, QColor color) {

@@ -17,12 +17,14 @@
 
 #include <QImage>
 #include <QPixmap>
+#include <QCursor>
 
 enum class FitType {
   Inside,
   Outside
 };
 
+extern QCursor createGhostingCursor();
 extern QRect getFittedRect(FitType fit, int window_w, int window_h, int image_w, int image_h);
 extern QRectF getFittedRectF(FitType fit, int window_w, int window_h, int image_w, int image_h);
 extern void recolorImage(QImage &image, QColor color);

@@ -18,6 +18,7 @@
 #include <QWidget>
 #include <QPixmap>
 #include <QMap>
+#include <QCursor>
 #include "EventTree.hpp"
 
 class EventsView : public QWidget
@@ -91,6 +92,7 @@ private:
   QImage frame_buffer;
   MouseMode mouse_mode = MOUSE_MODE_EVENT_INFO;
   uint64_t alignment_time = 0;
+  QCursor ghosting_cursor;
 
   void prepareIcon(QString filename, bool recolor, QColor color);
   void drawHierarchyLine(QPainter *painter, UkEvents *events, EventTreeNode *tree, int &line_index, int ancestor_open);
