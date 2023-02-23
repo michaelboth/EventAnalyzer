@@ -1022,10 +1022,26 @@
               <item>
                <widget class="QToolButton" name="largestEventButton">
                 <property name="toolTip">
-                 <string>Center the largest duration event</string>
+                 <string>Show location of largest duration in each row of the visible region</string>
                 </property>
                 <property name="text">
                  <string>...</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QToolButton" name="smallestEventButton">
+                <property name="toolTip">
+                 <string>Show location of smallest duration in each row of the visible region</string>
+                </property>
+                <property name="text">
+                 <string>...</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -1128,7 +1144,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>33</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>

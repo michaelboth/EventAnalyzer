@@ -146,17 +146,15 @@ void EventsView::popupContextMenu(const QPoint &mouse_location) {
   menu.exec(mapToGlobal(mouse_location));
 }
 
-/*+
 void EventsView::setShowMinDurationsMode(bool _enabled) {
   show_min_durations = _enabled;
-  rebuild
+  rebuildAndUpdate();
 }
 
 void EventsView::setShowMaxDurationsMode(bool _enabled) {
   show_max_durations = _enabled;
-  rebuild
+  rebuildAndUpdate();
 }
-*/
 
 void EventsView::setMouseMode(MouseMode _mouse_mode) {
   mouse_mode = _mouse_mode;
@@ -342,6 +340,7 @@ void EventsView::centerNextEvent(UkEvents *events, EventTreeNode *events_row) {
   }
 }
 
+/* No longer used
 void EventsView::centerLargestEvent(UkEvents *events, EventTreeNode *events_row) {
   // Check if zoomed in, otherwise all events are visible
   if (percent_visible < 1.0 && events_row->end_event_index_of_largest_duration > 0) {
@@ -363,6 +362,7 @@ void EventsView::centerLargestEvent(UkEvents *events, EventTreeNode *events_row)
     rebuildAndUpdate();
   }
 }
+*/
 
 void EventsView::mousePressEvent(QMouseEvent *event) {
   if (G_event_tree_map.count() == 0) return;
@@ -468,6 +468,12 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
       painter->fillRect(row_rect, ROW_SELECTED_COLOR);
     }
 
+    // As events are drawn, keep track of location of min and max durations
+    uint64_t min_duration = 0;
+    uint64_t max_duration = 0;
+    int min_duration_x = -1;
+    int max_duration_x = -1;
+
     // See if there are any events
     if (parent->num_event_instances > 0) {
       // Determin the range of events to draw based on visible time region
@@ -488,8 +494,6 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
       int y5 = y + (int)(line_h * 0.85f); // Bottom if not overlapped
       int range_h = y4 - y3 + 1;
       uint64_t total_time_usage = 0;
-
-      /*+ as events are drawn, keep track of location of min and max durations? */
 
       // Loop over all the events on this line but within the time range
       for (uint32_t i=first_visible_event_index; i<=last_visible_event_index; i++) {
@@ -538,11 +542,20 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
           }
 	  // Accumulate time usage, to be displayed in the utilization column
 	  {
-	    uint64_t t1 = std::min(std::max(prev_time, start_time), end_time); /*+ explain what's going on here */
-	    uint64_t t2 = std::min(std::max(event->time, start_time), end_time);
+	    uint64_t t1 = std::min(std::max(prev_time, start_time), end_time);   // Keep time within visible region
+	    uint64_t t2 = std::min(std::max(event->time, start_time), end_time); // Keep time within visible region
 	    total_time_usage += t2-t1;
 	  }
-          /*+ check if got updated min/max duration */
+          // Check if got updated min/max duration
+          uint64_t elapsed_time = event->time - prev_time;
+          if (min_duration_x == -1 || elapsed_time < min_duration) {
+            min_duration_x = prev_x + (x - prev_x) / 2;
+            min_duration = elapsed_time;
+          }
+          if (max_duration_x == -1 || elapsed_time > max_duration) {
+            max_duration_x = prev_x + (x - prev_x) / 2;
+            max_duration = elapsed_time;
+          }
         }
 
         // Remember some stuff
@@ -554,10 +567,37 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
       parent->utilization = total_time_usage / (double)(end_time - start_time);
     }
 
-    /*+ if enabled, draw min/max duration location indicators
-      min - triangle pointing up
-      max - triangle pointing down
-     */
+    // Draw location of min/max durations
+    if (show_min_durations && min_duration_x >= 0) {
+      // Triangle pointing up
+      int x1 = min_duration_x;
+      int x2 = x1 - line_h/2;
+      int x3 = x1 + line_h/2;
+      int y1 = y + 2;
+      int y2 = y + line_h - 3;
+      QPoint points[3];
+      points[0] = QPoint(x1, y1);
+      points[1] = QPoint(x2, y2);
+      points[2] = QPoint(x3, y2);
+      painter->setPen(QPen(Qt::black, 1, Qt::SolidLine));
+      painter->setBrush(QColor(255,255,255,150));
+      painter->drawPolygon(points, 3);
+    }
+    if (show_max_durations && max_duration_x >= 0) {
+      // Triangle pointing down
+      int x1 = max_duration_x;
+      int x2 = x1 - line_h/2;
+      int x3 = x1 + line_h/2;
+      int y1 = y + line_h - 3;
+      int y2 = y + 2;
+      QPoint points[3];
+      points[0] = QPoint(x1, y1);
+      points[1] = QPoint(x2, y2);
+      points[2] = QPoint(x3, y2);
+      painter->setPen(QPen(Qt::black, 1, Qt::SolidLine));
+      painter->setBrush(QColor(255,255,255,150));
+      painter->drawPolygon(points, 3);
+    }
 
     // Draw separator line
     painter->setPen(QPen(LINE_SEPARATOR_COLOR, 1, Qt::SolidLine));
@@ -1382,7 +1422,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
 
     // Draw the API version
     QRect text_rect = QRect(0, inside_rect.bottom(), w, h);
-    QString version_message = QString("Version ") + QString::number(UK_API_VERSION_MAJOR) + "." + QString::number(UK_API_VERSION_MINOR);
+    QString version_message = QString("Version ") + QString::number(UK_API_VERSION_MAJOR) + "." + QString::number(UK_API_VERSION_MINOR) + "." + QString::number(UK_PACKAGE_VERSION);
     painter.drawText(text_rect, Qt::AlignHCenter | Qt::AlignTop, version_message);
 
     // Draw the copyright

@@ -1,4 +1,4 @@
-// Copyright 2021 Michael Both
+// Copyright 2021,2023 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -59,7 +59,8 @@ private slots:
   void on_clearGhostingButton_clicked();
   void on_prevEventButton_clicked();
   void on_nextEventButton_clicked();
-  void on_largestEventButton_clicked();
+  void on_largestEventButton_toggled(bool _enabled);
+  void on_smallestEventButton_toggled(bool _enabled);
   // Custom
   void updateColumnWidths(int pos, int index);
   void setWidgetUsability();

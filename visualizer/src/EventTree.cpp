@@ -1,4 +1,4 @@
-// Copyright 2021 Michael Both
+// Copyright 2021,2023 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -190,7 +190,8 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
 
       // Add the event index to the event index buffer
       child->event_indices[child->num_event_instances] = event_index;
-
+ 
+      /* No longer used
       // See if this is the largest duration (only check if there are at least two events in the list)
       if (child->num_event_instances > 0 && event->event_id == event_registration->end_id) {
         // This is an end event, and a prev event exists. See if the prev event is a start event
@@ -216,6 +217,7 @@ void EventTree::buildTree(EventTreeNode *node, uint32_t &event_index, bool show_
           }
         }
       }
+      */
 
       child->num_event_instances++;
       event_index++;

@@ -15,15 +15,15 @@ Presentation:
    - App defines if extra info is recorded: instance, app defined value, location in source file
 
 Visualizer:
- - Add 3rd digit for version number
+ + Add 3rd digit for version number
  + Copyright 2021-2023
  + Fix name: ave to avg
  + Update tool tip for histogram to say "in the current view"
- - Change the 'find max duration button' to do the following
+ + Change the 'find max duration button' to do the following
     - Toggle to highlight max duration in each row of current view
     - If row is selected, then only show for highlighte row?
     - Use black/white circle for indicator
- - Add button similar to highlight max duration, but for min duration
+ + Add button similar to highlight max duration, but for min duration
     - Use black/white diamond for indicator
  - Allow the files to also be sorted by time & event ID, not just alphabetical?
  - From the time align dialog:

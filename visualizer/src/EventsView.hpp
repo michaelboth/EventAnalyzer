@@ -1,4 +1,4 @@
-// Copyright 2021 Michael Both
+// Copyright 2021,2023 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,7 +44,9 @@ public:
   void hasEventsOutsideOfVisibleRegion(UkEvents *events, EventTreeNode *events_row, bool *events_to_the_left_ret, bool *events_to_the_right_ret);
   void centerPrevEvent(UkEvents *events, EventTreeNode *events_row);
   void centerNextEvent(UkEvents *events, EventTreeNode *events_row);
-  void centerLargestEvent(UkEvents *events, EventTreeNode *events_row);
+  //* No longer used */void centerLargestEvent(UkEvents *events, EventTreeNode *events_row);
+  void setShowMinDurationsMode(bool _enabled);
+  void setShowMaxDurationsMode(bool _enabled);
   bool hasGhostedEvents();
   void clearEventGhosting();
 
@@ -93,6 +95,8 @@ private:
   MouseMode mouse_mode = MOUSE_MODE_EVENT_INFO;
   uint64_t alignment_time = 0;
   QCursor ghosting_cursor;
+  bool show_min_durations = false;
+  bool show_max_durations = false;
 
   void prepareIcon(QString filename, bool recolor, QColor color);
   void drawHierarchyLine(QPainter *painter, UkEvents *events, EventTreeNode *tree, int &line_index, int ancestor_open);

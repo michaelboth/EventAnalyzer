@@ -1,4 +1,4 @@
-// Copyright 2021 Michael Both
+// Copyright 2021,2023 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public:
   uint32_t max_event_instances = 0; // Used when building the tree. Estimates max events. Gets double in size if exceed actual events
   uint32_t num_event_instances = 0; // This is the actual number of events in this tree node
   uint32_t *event_indices = NULL; // Ordered list of indices into the events file
-  uint32_t end_event_index_of_largest_duration = 0;
+  //* No longer used */uint32_t end_event_index_of_largest_duration = 0;
   QRect events_row_rect;
   QRect hierarchy_row_rect;
   QRect folder_rect;
