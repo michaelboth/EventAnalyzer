@@ -1,4 +1,4 @@
-// Copyright 2021,2022 Michael Both
+// Copyright 2021,2022,2023 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -43,11 +43,11 @@ static void *thread(void *user_data) {
 
   // Do the processing
   for (int i=0; i<NUM_ITERATIONS; i++) {
-    UNIKORN_START_SQRT(unikorn_session, i);
+    UK_RECORD_EVENT(unikorn_session, SQRT_START_ID, i);
     for (int i=0; i<num_elements; i++) {
       B[i] = sqrt(A[i]);
     }
-    UNIKORN_END_SQRT(unikorn_session, num_elements);
+    UK_RECORD_EVENT(unikorn_session, SQRT_END_ID, num_elements);
   }
 
   return NULL;
@@ -69,11 +69,11 @@ int main(int argc, char **argv) {
     snprintf(filename, 100, "%d_concurrent_%s.events", num_concurrent_threads, num_concurrent_threads==1 ? "thread" : "threads");
     UkFileFlushInfo flush_info; // Needs to be persistent for life of session
     // Arguments: filename, max_events, flush_when_full, is_multi_threaded, record_instance, record_value, record_location, &flush_info
-    unikorn_session = UNIKORN_INIT(filename, 100000, true, true, true, true, true, &flush_info);
+    unikorn_session = UK_CREATE(filename, 100000, true, true, true, true, true, &flush_info);
 #endif
 
     // Allocate math resources
-    UNIKORN_START_ALLOC(unikorn_session, 0);
+    UK_RECORD_EVENT(unikorn_session, ALLOC_START_ID, 0);
     A_list = malloc(max_threads*sizeof(double*));
     for (int i=0; i<max_threads; i++) {
       A_list[i] = malloc(num_elements*sizeof(double));
@@ -85,31 +85,31 @@ int main(int argc, char **argv) {
     for (int i=0; i<max_threads; i++) {
       B_list[i] = malloc(num_elements*sizeof(double));
     }
-    UNIKORN_END_ALLOC(unikorn_session, 0);
+    UK_RECORD_EVENT(unikorn_session, ALLOC_END_ID, 0);
 
     // Start threads
     do_processing = false;
-    UNIKORN_START_INIT_THREADS(unikorn_session, num_concurrent_threads);
+    UK_RECORD_EVENT(unikorn_session, INIT_THREADS_START_ID, num_concurrent_threads);
     pthread_t *thread_ids = malloc(num_concurrent_threads*sizeof(pthread_t));
     for (uint16_t i=0; i<num_concurrent_threads; i++) {
       pthread_create(&thread_ids[i], NULL, thread, (void *)((uint64_t)i));
     }
-    UNIKORN_END_INIT_THREADS(unikorn_session, 0);
+    UK_RECORD_EVENT(unikorn_session, INIT_THREADS_END_ID, 0);
 
     // Allow the threads to start processing
-    UNIKORN_START_BARRIER(unikorn_session, 0);
+    UK_RECORD_EVENT(unikorn_session, BARRIER_START_ID, 0);
     do_processing = true;
-    UNIKORN_END_BARRIER(unikorn_session, 0);
+    UK_RECORD_EVENT(unikorn_session, BARRIER_END_ID, 0);
 
     // Wait for threads to complete processing
-    UNIKORN_START_JOIN_THREADS(unikorn_session, num_concurrent_threads);
+    UK_RECORD_EVENT(unikorn_session, JOIN_THREADS_START_ID, num_concurrent_threads);
     for (int i=0; i<num_concurrent_threads; i++) {
       pthread_join(thread_ids[i], NULL);
     }
-    UNIKORN_END_JOIN_THREADS(unikorn_session, 0);
+    UK_RECORD_EVENT(unikorn_session, JOIN_THREADS_END_ID, 0);
 
     // Clean up math resources
-    UNIKORN_START_FREE(unikorn_session, 0);
+    UK_RECORD_EVENT(unikorn_session, FREE_START_ID, 0);
     free(thread_ids);
     for (int i=0; i<max_threads; i++) {
       free(A_list[i]);
@@ -117,11 +117,11 @@ int main(int argc, char **argv) {
     }
     free(A_list);
     free(B_list);
-    UNIKORN_END_FREE(unikorn_session, 0);
+    UK_RECORD_EVENT(unikorn_session, FREE_END_ID, 0);
 
     // Finish the event session
-    UNIKORN_FLUSH(unikorn_session);
-    UNIKORN_FINALIZE(unikorn_session);
+    UK_FLUSH(unikorn_session);
+    UK_DESTROY(unikorn_session);
   }
 
 #ifdef ENABLE_UNIKORN_RECORDING

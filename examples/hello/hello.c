@@ -1,4 +1,4 @@
-// Copyright 2021,2022 Michael Both
+// Copyright 2021,2022,2023 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,36 +21,36 @@ int main() {
 #ifdef ENABLE_UNIKORN_RECORDING
   UkFileFlushInfo flush_info; // Needs to be persistent for life of session
   // Arguments: filename, max_events, flush_when_full, is_multi_threaded, record_instance, record_value, record_location, &flush_info
-  void *unikorn_session = UNIKORN_INIT("./hello.events", 10000, false, false, true, true, true, &flush_info);
+  void *unikorn_session = UK_CREATE("./hello.events", 10000, false, false, true, true, true, &flush_info);
 #endif
 
   // Print without recording
   printf("Hello!\n");
 
   // Record print
-  UNIKORN_START_PRINT(unikorn_session, 0);
+  UK_RECORD_EVENT(unikorn_session, PRINT_START_ID, 0);
   printf("Hello!\n");
-  UNIKORN_END_PRINT(unikorn_session, 42);
+  UK_RECORD_EVENT(unikorn_session, PRINT_END_ID, 42);
 
   // Folders and loops
-  UNIKORN_OPEN_FOLDER_SOLAR_SYSTEM(unikorn_session);
-  UNIKORN_START_FOR_LOOP(unikorn_session, 0);
+  UK_OPEN_FOLDER(unikorn_session, FOLDER_SOLAR_SYSTEM_ID);
+  UK_RECORD_EVENT(unikorn_session, FOR_LOOP_START_ID, 0);
   for (int j=0; j<5; j++) {
-    UNIKORN_START_PRINT(unikorn_session, j);
+    UK_RECORD_EVENT(unikorn_session, PRINT_START_ID, j);
     printf("Earth to Mars!\n");
-    UNIKORN_END_PRINT(unikorn_session, 299792458);
+    UK_RECORD_EVENT(unikorn_session, PRINT_END_ID, 299792458);
   }
-  UNIKORN_END_FOR_LOOP(unikorn_session, 0);
-  UNIKORN_CLOSE_FOLDER(unikorn_session);
+  UK_RECORD_EVENT(unikorn_session, FOR_LOOP_END_ID, 0);
+  UK_CLOSE_FOLDER(unikorn_session);
 
   // Another recorded print
-  UNIKORN_START_PRINT(unikorn_session, 0);
+  UK_RECORD_EVENT(unikorn_session, PRINT_START_ID, 0);
   printf("Good Bye!\n");
-  UNIKORN_END_PRINT(unikorn_session, 23.33);
+  UK_RECORD_EVENT(unikorn_session, PRINT_END_ID, 23.33);
 
   // Clean up
-  UNIKORN_FLUSH(unikorn_session);
-  UNIKORN_FINALIZE(unikorn_session);
+  UK_FLUSH(unikorn_session);
+  UK_DESTROY(unikorn_session);
 #ifdef ENABLE_UNIKORN_RECORDING
   printf("Events were recorded. Use UnikornViewer to view the .events file.\n");
 #else

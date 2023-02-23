@@ -1,7 +1,30 @@
 API:
  - When flushing, identify the difference between header and data, to allow output stream to skip multiple headers that are always identical
+ - ??? Add new API to fill in external clock time... e.g. may be helpful with CUDA event times
+ - ??? Is there an elegant way to merge the event IDs enumeraton with the registration list and folder list
+
+Examples:
+ + Minimize macros, and rename to match unikorn functions
+
+Presentation:
+ - Ultimate flexibility
+   - App defines clock
+   - App defines method to flush results; e.g. file, socket, etc.
+   - App defines event properties (name, color, and names of attached values)
+   - App defines if event session is thread-safe or not
+   - App defines if extra info is recorded: instance, app defined value, location in source file
 
 Visualizer:
+ - Add 3rd digit for version number
+ + Copyright 2021-2023
+ + Fix name: ave to avg
+ + Update tool tip for histogram to say "in the current view"
+ - Change the 'find max duration button' to do the following
+    - Toggle to highlight max duration in each row of current view
+    - If row is selected, then only show for highlighte row?
+    - Use black/white circle for indicator
+ - Add button similar to highlight max duration, but for min duration
+    - Use black/white diamond for indicator
  - Allow the files to also be sorted by time & event ID, not just alphabetical?
  - From the time align dialog:
-       - Allow clock drift correction between files via scaling first and last event instances
+    - Allow clock drift correction between files via scaling first and last event instances

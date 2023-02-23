@@ -1,4 +1,4 @@
-// Copyright 2021,2022 Michael Both
+// Copyright 2021,2022,2023 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,16 +18,16 @@
 #ifdef ENABLE_UNIKORN_RECORDING
 
 #include "unikorn.h"
-#include "unikorn_clock.h"
-#include "unikorn_file_flush.h"
+#include "unikorn_clock.h"       // Provide your own clock functionality if you don't want to use one of the clocks provided with the Unikorn distribution
+#include "unikorn_file_flush.h"  // Provide your own flush functionality (e.g. socket) here if you don't want to flush to a file
 #include <stdlib.h>
 
 // Define the unique IDs for the folders and events
 enum {  // IMPORTANT, IDs must start with 1 since 0 is reserved for 'close folder'
-  // Folders
+  // Folders   (not required to have any folders)
   //  FOLDER1_ID=1,
   //  FOLDER2_ID,
-  // Events
+  // Events   (must have at least one start/end ID combo)
   ALLOC_START_ID=1,
   ALLOC_END_ID,
   FREE_START_ID,
@@ -50,6 +50,7 @@ enum {  // IMPORTANT, IDs must start with 1 since 0 is reserved for 'close folde
 //    Name        ID
 //  { "Folder 1", FOLDER1_ID},
 //  { "Folder 2", FOLDER2_ID}
+//   IMPORTANT: This folder registration list must be in the same order as the folder ID enumerations above
 //};
 //#define NUM_FOLDERS (sizeof(L_folders) / sizeof(UkFolderRegistration))
 #define L_folders NULL
@@ -64,11 +65,12 @@ static UkEventRegistration L_events[] = {
   { "Join Threads",        UK_GREEN,  JOIN_THREADS_START_ID, JOIN_THREADS_END_ID,  "Thread Count",   ""},
   { "Barrier",             UK_RED,    BARRIER_START_ID,      BARRIER_END_ID,       "",               ""},
   { "Sqrt()",              UK_BLUE,   SQRT_START_ID,         SQRT_END_ID,          "Iteration",      "Vector Size"}
+  // IMPORTANT: This event registration list must be in the same order as the event ID enumerations above
 };
 #define NUM_EVENT_REGISTRATIONS (sizeof(L_events) / sizeof(UkEventRegistration))
 
 // Init the event session
-void *UNIKORN_INIT(const char *_filename, uint32_t _max_events, bool _flush_when_full, bool _is_multi_threaded, bool _record_instance, bool _record_value, bool _record_location, UkFileFlushInfo *_flush_info) {
+void *UK_CREATE(const char *_filename, uint32_t _max_events, bool _flush_when_full, bool _is_multi_threaded, bool _record_instance, bool _record_value, bool _record_location, UkFileFlushInfo *_flush_info) {
   UkAttrs attrs = {
     .max_event_count = _max_events,
     .flush_when_full = _flush_when_full,
@@ -92,51 +94,23 @@ void *UNIKORN_INIT(const char *_filename, uint32_t _max_events, bool _flush_when
 #endif  // ENABLE_UNIKORN_SESSION_CREATION
 
 
-// Cleanup functions
-#define UNIKORN_FLUSH(_session) ukFlush(_session)
-#define UNIKORN_FINALIZE(_session) ukDestroy(_session)
-
-// Folder recording macros
-//#define UNIKORN_OPEN_FOLDER1(_session) ukOpenFolder(_session, FOLDER1_ID)
-//#define UNIKORN_OPEN_FOLDER2(_session) ukOpenFolder(_session, FOLDER2_ID)
-//#define UNIKORN_CLOSE_FOLDER(_session) ukCloseFolder(_session)
-
-// Events recording macros
-#define UNIKORN_START_ALLOC(_session, _value)        ukRecordEvent(_session, ALLOC_START_ID,        _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_END_ALLOC(_session, _value)          ukRecordEvent(_session, ALLOC_END_ID,          _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_START_FREE(_session, _value)         ukRecordEvent(_session, FREE_START_ID,         _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_END_FREE(_session, _value)           ukRecordEvent(_session, FREE_END_ID,           _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_START_INIT_THREADS(_session, _value) ukRecordEvent(_session, INIT_THREADS_START_ID, _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_END_INIT_THREADS(_session, _value)   ukRecordEvent(_session, INIT_THREADS_END_ID,   _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_START_JOIN_THREADS(_session, _value) ukRecordEvent(_session, JOIN_THREADS_START_ID, _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_END_JOIN_THREADS(_session, _value)   ukRecordEvent(_session, JOIN_THREADS_END_ID,   _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_START_BARRIER(_session, _value)      ukRecordEvent(_session, BARRIER_START_ID,      _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_END_BARRIER(_session, _value)        ukRecordEvent(_session, BARRIER_END_ID,        _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_START_SQRT(_session, _value)         ukRecordEvent(_session, SQRT_START_ID,         _value, __FILE__, __FUNCTION__, __LINE__)
-#define UNIKORN_END_SQRT(_session, _value)           ukRecordEvent(_session, SQRT_END_ID,           _value, __FILE__, __FUNCTION__, __LINE__)
+// Macros to compile in event recording
+#define UK_FLUSH(_session) ukFlush(_session)
+#define UK_DESTROY(_session) ukDestroy(_session)
+#define UK_OPEN_FOLDER(_session, _folder_id) ukOpenFolder(_session, _folder_id)
+#define UK_CLOSE_FOLDER(_session) ukCloseFolder(_session)
+#define UK_RECORD_EVENT(_session, _event_id, _value) ukRecordEvent(_session, _event_id, _value, __FILE__, __FUNCTION__, __LINE__)
 
 
 #else
 
 
-// Compile out all event recording macros
-#define UNIKORN_FLUSH(_session)
-#define UNIKORN_FINALIZE(_session)
-//#define UNIKORN_OPEN_FOLDER1(_session)
-//#define UNIKORN_OPEN_FOLDER2(_session)
-//#define UNIKORN_CLOSE_FOLDER(_session)
-#define UNIKORN_START_ALLOC(_session, _value)
-#define UNIKORN_END_ALLOC(_session, _value)
-#define UNIKORN_START_FREE(_session, _value)
-#define UNIKORN_END_FREE(_session, _value)
-#define UNIKORN_START_INIT_THREADS(_session, _value)
-#define UNIKORN_END_INIT_THREADS(_session, _value)
-#define UNIKORN_START_JOIN_THREADS(_session, _value)
-#define UNIKORN_END_JOIN_THREADS(_session, _value)
-#define UNIKORN_START_BARRIER(_session, _value)
-#define UNIKORN_END_BARRIER(_session, _value)
-#define UNIKORN_START_SQRT(_session, _value)
-#define UNIKORN_END_SQRT(_session, _value)
+// Macros to compile out event recording
+#define UK_FLUSH(_session)
+#define UK_DESTROY(_session)
+#define UK_OPEN_FOLDER(_session, _folder_id)
+#define UK_CLOSE_FOLDER(_session)
+#define UK_RECORD_EVENT(_session, _event_id, _value)
 
 #endif
 #endif

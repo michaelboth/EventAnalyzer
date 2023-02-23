@@ -1,4 +1,4 @@
-// Copyright 2021,2022 Michael Both
+// Copyright 2021,2022,2023 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,12 +32,12 @@ static void *unikorn_session = NULL;
 
 static void doStuff() {
   double a = 4.0;
-  UNIKORN_START_SQRT(unikorn_session, a);
+  UK_RECORD_EVENT(unikorn_session, SQRT_START_ID, a);
   double b = sqrt(a);
-  UNIKORN_END_SQRT(unikorn_session, b);
-  UNIKORN_START_PRINT(unikorn_session, 0);
+  UK_RECORD_EVENT(unikorn_session, SQRT_END_ID, b);
+  UK_RECORD_EVENT(unikorn_session, PRINT_START_ID, 0);
   printf("The square root of %f is %f\n", a, b);
-  UNIKORN_END_PRINT(unikorn_session, 0);
+  UK_RECORD_EVENT(unikorn_session, PRINT_END_ID, 0);
 }
 
 int main(int argc, char **argv) {
@@ -62,26 +62,26 @@ int main(int argc, char **argv) {
   bool record_value = strcmp(argv[6], "value=yes")==0;
   bool record_location = strcmp(argv[7], "location=yes")==0;
   UkFileFlushInfo flush_info; // Needs to be persistent for life of session
-  unikorn_session = UNIKORN_INIT(filename, max_events, flush_when_full, is_multi_threaded, record_instance, record_value, record_location, &flush_info);
+  unikorn_session = UK_CREATE(filename, max_events, flush_when_full, is_multi_threaded, record_instance, record_value, record_location, &flush_info);
 #endif
 
   // Record
   doStuff();
-  UNIKORN_OPEN_FOLDER1(unikorn_session);
+  UK_OPEN_FOLDER(unikorn_session, FOLDER1_ID);
   doStuff();
-  UNIKORN_OPEN_FOLDER2(unikorn_session);
+  UK_OPEN_FOLDER(unikorn_session, FOLDER2_ID);
   doStuff();
-  UNIKORN_CLOSE_FOLDER(unikorn_session);
-  UNIKORN_CLOSE_FOLDER(unikorn_session);
+  UK_CLOSE_FOLDER(unikorn_session);
+  UK_CLOSE_FOLDER(unikorn_session);
   doStuff();
-  UNIKORN_OPEN_FOLDER2(unikorn_session);
+  UK_OPEN_FOLDER(unikorn_session, FOLDER2_ID);
   doStuff();
-  UNIKORN_CLOSE_FOLDER(unikorn_session);
+  UK_CLOSE_FOLDER(unikorn_session);
   doStuff();
 
   // Save and finalize
-  UNIKORN_FLUSH(unikorn_session);
-  UNIKORN_FINALIZE(unikorn_session);
+  UK_FLUSH(unikorn_session);
+  UK_DESTROY(unikorn_session);
 
   // Load the events
 #ifdef ENABLE_UNIKORN_RECORDING

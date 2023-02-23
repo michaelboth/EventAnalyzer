@@ -1,4 +1,4 @@
-// Copyright 2021,2022 Michael Both
+// Copyright 2021,2022,2023 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -145,6 +145,18 @@ void EventsView::popupContextMenu(const QPoint &mouse_location) {
   // Display the menu
   menu.exec(mapToGlobal(mouse_location));
 }
+
+/*+
+void EventsView::setShowMinDurationsMode(bool _enabled) {
+  show_min_durations = _enabled;
+  rebuild
+}
+
+void EventsView::setShowMaxDurationsMode(bool _enabled) {
+  show_max_durations = _enabled;
+  rebuild
+}
+*/
 
 void EventsView::setMouseMode(MouseMode _mouse_mode) {
   mouse_mode = _mouse_mode;
@@ -456,6 +468,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
       painter->fillRect(row_rect, ROW_SELECTED_COLOR);
     }
 
+    // See if there are any events
     if (parent->num_event_instances > 0) {
       // Determin the range of events to draw based on visible time region
       uint32_t first_visible_event_index = findEventIndexAtTime(events, parent, start_time, -3);
@@ -475,6 +488,8 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
       int y5 = y + (int)(line_h * 0.85f); // Bottom if not overlapped
       int range_h = y4 - y3 + 1;
       uint64_t total_time_usage = 0;
+
+      /*+ as events are drawn, keep track of location of min and max durations? */
 
       // Loop over all the events on this line but within the time range
       for (uint32_t i=first_visible_event_index; i<=last_visible_event_index; i++) {
@@ -523,10 +538,11 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
           }
 	  // Accumulate time usage, to be displayed in the utilization column
 	  {
-	    uint64_t t1 = std::min(std::max(prev_time, start_time), end_time);
+	    uint64_t t1 = std::min(std::max(prev_time, start_time), end_time); /*+ explain what's going on here */
 	    uint64_t t2 = std::min(std::max(event->time, start_time), end_time);
 	    total_time_usage += t2-t1;
 	  }
+          /*+ check if got updated min/max duration */
         }
 
         // Remember some stuff
@@ -537,6 +553,11 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
       }
       parent->utilization = total_time_usage / (double)(end_time - start_time);
     }
+
+    /*+ if enabled, draw min/max duration location indicators
+      min - triangle pointing up
+      max - triangle pointing down
+     */
 
     // Draw separator line
     painter->setPen(QPen(LINE_SEPARATOR_COLOR, 1, Qt::SolidLine));
@@ -555,7 +576,7 @@ void EventsView::drawHierarchyLine(QPainter *painter, UkEvents *events, EventTre
   }
 }
 
-uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, UkEvents *events, bool get_gap_durations, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret) {
+uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, UkEvents *events, bool get_gap_durations, uint64_t *min_ret, uint64_t *avg_ret, uint64_t *max_ret) {
   UkLoaderEventRegistration *event_registration = &events->event_registration_list[node->event_registration_index];
 
   // Get the first visible event
@@ -603,7 +624,7 @@ uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, Even
   if (num_durations == 1) {
     buckets[num_buckets/2]++;
     *min_ret = total_duration * 0.5;
-    *ave_ret = total_duration;
+    *avg_ret = total_duration;
     *max_ret = total_duration * 1.5;
     return num_durations;
   }
@@ -642,7 +663,7 @@ uint32_t EventsView::calculateHistogram(int num_buckets, uint32_t *buckets, Even
 
   // Return values
   *min_ret = min_duration;
-  *ave_ret = total_duration / num_durations;
+  *avg_ret = total_duration / num_durations;
   *max_ret = max_duration;
   return num_durations;
 }
@@ -714,8 +735,8 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEv
   int num_buckets = (dialog_w-2) / bucket_w;
   uint32_t *buckets = (uint32_t *)malloc(num_buckets*sizeof(uint32_t));
   for (int i=0; i<num_buckets; i++) buckets[i] = 0;
-  uint64_t min, ave, max;
-  uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, false, &min, &ave, &max);
+  uint64_t min, avg, max;
+  uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, false, &min, &avg, &max);
 
   // Draw number of durations
   {
@@ -754,19 +775,19 @@ void EventsView::drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEv
   // Create arrow image
   QPixmap up_arrow_image = drawUpArrow(th/3, th*1.2f, Qt::black);
 
-  // Draw ave
+  // Draw avg
   {
     uint64_t units_factor;
-    QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
-    double adjusted_time = ave / (double)units_factor;
-    QString text1 = "Ave:";
+    QString time_units = getTimeUnitsAndFactor(avg, 1, &units_factor);
+    double adjusted_time = avg / (double)units_factor;
+    QString text1 = "Avg:";
     QString text2 = " " + niceValueText(adjusted_time) + " " + time_units;
     int text1_w = fm.horizontalAdvance(text1);
     int text2_w = fm.horizontalAdvance(text2);
     // Arrow
     double x_factor = 0.0;
     if ((max-min) > 0) {
-      x_factor = (ave-min) / (double)(max-min);
+      x_factor = (avg-min) / (double)(max-min);
     }
     int arrow_w = up_arrow_image.width();
     int arrow_x = dialog_x + arrow_w + (dialog_w - arrow_w*2) * x_factor - arrow_w / 2;
@@ -1092,13 +1113,13 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
     }
     dialog_y += th;
 
-    // Ave durations
+    // Avg durations
     {
       int num_buckets = 2;
       uint32_t buckets[2] = { 0, 0 };
-      uint64_t min, ave, max;
+      uint64_t min, avg, max;
       bool get_gap_durations = false;
-      uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &ave, &max);
+      uint32_t num_durations = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &avg, &max);
       if (num_durations > 0) {
         // Build icon
         int duration_icon_h = th;
@@ -1106,12 +1127,12 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
         int duration_icon_w = duration_icon_h * duration_icon.width() / (float)duration_icon.height();
         // Build text
         uint64_t units_factor;
-        QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
-        double adjusted_ave = ave / (double)units_factor;
-        QString text1 = "Ave of";
+        QString time_units = getTimeUnitsAndFactor(avg, 1, &units_factor);
+        double adjusted_avg = avg / (double)units_factor;
+        QString text1 = "Avg of";
         QString text2 = " " + QString::number(num_durations) + " ";
         QString text3 = (num_durations == 1) ? " Duration:" : " Durations:";
-        QString text4 = " " + niceValueText(adjusted_ave) + " " + time_units;
+        QString text4 = " " + niceValueText(adjusted_avg) + " " + time_units;
         int text1_w = fm.horizontalAdvance(text1);
         int text2_w = fm.horizontalAdvance(text2);
         int text3_w = fm.horizontalAdvance(text3);
@@ -1146,21 +1167,21 @@ void EventsView::drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents 
     }
     dialog_y += th;
 
-    // Ave gaps
+    // Avg gaps
     {
       int num_buckets = 2;
       uint32_t buckets[2] = { 0, 0 };
-      uint64_t min, ave, max;
+      uint64_t min, avg, max;
       bool get_gap_durations = true;
-      uint32_t num_gaps = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &ave, &max);
+      uint32_t num_gaps = calculateHistogram(num_buckets, buckets, node, events, get_gap_durations, &min, &avg, &max);
       if (num_gaps > 0) {
         uint64_t units_factor;
-        QString time_units = getTimeUnitsAndFactor(ave, 1, &units_factor);
-        double adjusted_ave = ave / (double)units_factor;
-        QString text1 = "Ave of";
+        QString time_units = getTimeUnitsAndFactor(avg, 1, &units_factor);
+        double adjusted_avg = avg / (double)units_factor;
+        QString text1 = "Avg of";
         QString text2 = " " + QString::number(num_gaps) + " ";
         QString text3 = (num_gaps == 1) ? "GAP:" : "GAPs:";
-        QString text4 = " " + niceValueText(adjusted_ave) + " " + time_units;
+        QString text4 = " " + niceValueText(adjusted_avg) + " " + time_units;
         int text1_w = fm.horizontalAdvance(text1);
         int text2_w = fm.horizontalAdvance(text2);
         int text3_w = fm.horizontalAdvance(text3);
@@ -1366,7 +1387,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
 
     // Draw the copyright
     text_rect.translate(QPoint(0, line_h*1.2));
-    QString copyright_message = QChar(0x00A9) + QString(" 2021-2022 Michael Both");
+    QString copyright_message = QChar(0x00A9) + QString(" 2021-2023 Michael Both");
     painter.drawText(text_rect, Qt::AlignHCenter | Qt::AlignTop, copyright_message);
 
     // Revert painter save state

@@ -823,7 +823,7 @@
               <item>
                <widget class="QToolButton" name="mouseModeHistogramButton">
                 <property name="toolTip">
-                 <string>Place the mouse on events to view a histogram of event durations, and see average duration times</string>
+                 <string>Place the mouse on an event row to view a histogram of visible event durations in that row</string>
                 </property>
                 <property name="text">
                  <string>...</string>
@@ -927,7 +927,7 @@
               <item>
                <widget class="QToolButton" name="zoomToAllButton">
                 <property name="toolTip">
-                 <string>Zoom to the full time range</string>
+                 <string>Zoom all the way out</string>
                 </property>
                 <property name="text">
                  <string>...</string>

@@ -80,9 +80,9 @@ private:
   QPoint mouse_location = QPoint(-1,-1);
   uint64_t full_start_time = 0;
   uint64_t full_end_time = 0;
-  uint64_t start_time = 0;
-  uint64_t end_time = 0;
-  double time_range = 0;
+  uint64_t start_time = 0; // In the zoomed in view
+  uint64_t end_time = 0;   // In the zoomed in view
+  double time_range = 0;   // Of the zoomed in view
   double percent_visible = 1.0;
   double percent_offset = 0.0;
   bool mouse_button_pressed = false;
@@ -100,7 +100,7 @@ private:
   void alternateEventGhosting(EventTreeNode *node, EventTree *event_tree);
   void drawEventInfo(QPainter &painter, EventTreeNode *node, UkEvents *events);
   void drawEventHistogram(QPainter &painter, EventTreeNode *node, UkEvents *events);
-  uint32_t calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, UkEvents *events, bool get_gap_durations, uint64_t *min_ret, uint64_t *ave_ret, uint64_t *max_ret);
+  uint32_t calculateHistogram(int num_buckets, uint32_t *buckets, EventTreeNode *node, UkEvents *events, bool get_gap_durations, uint64_t *min_ret, uint64_t *avg_ret, uint64_t *max_ret);
 };
 
 #endif
