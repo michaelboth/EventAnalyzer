@@ -2,7 +2,7 @@
 
 if [ "$#" -ne "2" ]; then
     echo "USAGE: buildMacPackage.bash <Qt_folder> <unikorn_version>"
-    echo "     > ./buildMacPackage.bash $HOME/Qt/5.15.2 1.0.0"
+    echo "     > ./buildMacPackage.bash $HOME/3rdParty/Qt5/5.15.2/clang_64 1.0.0"
     exit 0
 fi
 
@@ -37,7 +37,7 @@ make -j8
 cp -r UnikornViewer.app ../packaging/${output_folder}/visualizer/mac
 make distclean
 cd ../packaging/${output_folder}/visualizer/mac
-${qt_folder}/clang_64/bin/macdeployqt UnikornViewer.app
+${qt_folder}/bin/macdeployqt UnikornViewer.app
 cd ../../..
 
 # Compress package

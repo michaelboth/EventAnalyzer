@@ -2,7 +2,7 @@
 
 if [ "$#" -ne "2" ]; then
     echo "USAGE: buildLinuxPackage.bash <Qt_folder> <unikorn_version>"
-    echo "     > ./buildLinuxPackage.bash $HOME/Qt/5.15.2 1.0.0"
+    echo "     > ./buildLinuxPackage.bash $HOME/3rdParty/Qt5/5.15.2 1.0.0"
     exit 0
 fi
 
@@ -39,15 +39,15 @@ cp UnikornViewer ../packaging/${output_folder}/visualizer/linux
 make distclean
 cd ../packaging
 cp UnikornViewer.sh ${output_folder}/visualizer/linux
-cp ${qt_folder}/gcc_64/plugins/platforms/libqxcb.so ${output_folder}/visualizer/linux/platforms
-cp ${qt_folder}/gcc_64/lib/libQt5Core.so.5 ${output_folder}/visualizer/linux
-cp ${qt_folder}/gcc_64/lib/libQt5Gui.so.5 ${output_folder}/visualizer/linux
-cp ${qt_folder}/gcc_64/lib/libQt5Widgets.so.5 ${output_folder}/visualizer/linux
-cp ${qt_folder}/gcc_64/lib/libQt5XcbQpa.so.5 ${output_folder}/visualizer/linux
-cp ${qt_folder}/gcc_64/lib/libQt5DBus.so.5 ${output_folder}/visualizer/linux
-cp ${qt_folder}/gcc_64/lib/libicui18n.so.56 ${output_folder}/visualizer/linux
-cp ${qt_folder}/gcc_64/lib/libicuuc.so.56 ${output_folder}/visualizer/linux
-cp ${qt_folder}/gcc_64/lib/libicudata.so.56 ${output_folder}/visualizer/linux
+cp ${qt_folder}/plugins/platforms/libqxcb.so ${output_folder}/visualizer/linux/platforms
+cp ${qt_folder}/lib/libQt5Core.so.5 ${output_folder}/visualizer/linux
+cp ${qt_folder}/lib/libQt5Gui.so.5 ${output_folder}/visualizer/linux
+cp ${qt_folder}/lib/libQt5Widgets.so.5 ${output_folder}/visualizer/linux
+cp ${qt_folder}/lib/libQt5XcbQpa.so.5 ${output_folder}/visualizer/linux
+cp ${qt_folder}/lib/libQt5DBus.so.5 ${output_folder}/visualizer/linux
+cp ${qt_folder}/lib/libicui18n.so.56 ${output_folder}/visualizer/linux
+cp ${qt_folder}/lib/libicuuc.so.56 ${output_folder}/visualizer/linux
+cp ${qt_folder}/lib/libicudata.so.56 ${output_folder}/visualizer/linux
 
 # Compress package
 tar cvf ${output_folder}-linux-x64.tar ${output_folder}
