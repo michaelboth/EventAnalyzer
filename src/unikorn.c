@@ -161,7 +161,8 @@ static uint64_t myThreadId() {
 
 static bool containsName(char **name_list, uint16_t name_count, char *name) {
   for (uint16_t i=0; i<name_count; i++) {
-    if (name == name_list[i]) return true;
+    // IMPORTANT: need to use strcmp() instead of ==. Can't assume compiler or app will use the same pointer value for __FILE__ or __FUNCTION__ (Microsoft compiler does not)
+    if (strcmp(name, name_list[i]) == 0) return true;
   }
   return false;
 }
@@ -254,7 +255,8 @@ static uint16_t getThreadIndex(uint64_t thread_id, uint64_t *thread_id_list, uin
 
 static uint16_t getNameIndex(char *name, char **name_list, uint16_t name_count) {
   for (uint16_t i=0; i<name_count; i++) {
-    if (name == name_list[i]) return i;
+    // IMPORTANT: need to use strcmp() instead of ==. Can't assume compiler or app will use the same pointer value for __FILE__ or __FUNCTION__ (Microsoft compiler does not)
+    if (strcmp(name, name_list[i]) == 0) return i;
   }
   assert(0);
   return 0;
