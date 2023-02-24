@@ -45,9 +45,12 @@ cp ${qt_folder}/lib/libQt5Gui.so.5 ${output_folder}/visualizer/linux
 cp ${qt_folder}/lib/libQt5Widgets.so.5 ${output_folder}/visualizer/linux
 cp ${qt_folder}/lib/libQt5XcbQpa.so.5 ${output_folder}/visualizer/linux
 cp ${qt_folder}/lib/libQt5DBus.so.5 ${output_folder}/visualizer/linux
-cp ${qt_folder}/lib/libicui18n.so.56 ${output_folder}/visualizer/linux
-cp ${qt_folder}/lib/libicuuc.so.56 ${output_folder}/visualizer/linux
-cp ${qt_folder}/lib/libicudata.so.56 ${output_folder}/visualizer/linux
+#cp ${qt_folder}/lib/libicui18n.so.56 ${output_folder}/visualizer/linux
+#cp ${qt_folder}/lib/libicuuc.so.56 ${output_folder}/visualizer/linux
+#cp ${qt_folder}/lib/libicudata.so.56 ${output_folder}/visualizer/linux
+cp /lib/x86_64-linux-gnu/libicui18n.so.70 ${output_folder}/visualizer/linux
+cp /lib/x86_64-linux-gnu/libicuuc.so.70 ${output_folder}/visualizer/linux
+cp /lib/x86_64-linux-gnu/libicudata.so.70 ${output_folder}/visualizer/linux
 
 # Compress package
 tar cvf ${output_folder}-linux-x64.tar ${output_folder}
