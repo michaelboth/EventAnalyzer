@@ -16,11 +16,8 @@ echo "qt_folder = ${qt_folder}"
 
 [ ! -d ${qt_folder} ] && echo "ERROR: The folder '${qt_folder}' does not exist!" && exit 0
 
-# Create needed foldeers
+# Create needed folders
 mkdir ${output_folder}
-mkdir ${output_folder}/inc
-mkdir ${output_folder}/visualizer
-mkdir ${output_folder}/visualizer/mac
 
 # Copy the relevant files
 cp ../LICENSE ${output_folder}
@@ -29,6 +26,10 @@ cp ../GETTING_STARTED.txt ${output_folder}
 cp -r ../examples ${output_folder}
 cp -r ../src ${output_folder}
 cp -r ../inc ${output_folder}
+cp -r ../visualizer ${output_folder}
+
+# Create folder for prebuild mac GUI
+mkdir ${output_folder}/visualizer/mac
 
 # Build the unikorn viewer
 cd ../visualizer
@@ -36,6 +37,7 @@ qmake
 make -j8
 cp -r UnikornViewer.app ../packaging/${output_folder}/visualizer/mac
 make distclean
+rm .qmake.stash
 cd ../packaging/${output_folder}/visualizer/mac
 ${qt_folder}/bin/macdeployqt UnikornViewer.app
 cd ../../..
