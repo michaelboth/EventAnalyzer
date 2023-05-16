@@ -42,7 +42,7 @@ enum {  // IMPORTANT, IDs must start with 1 since 0 is reserved for 'close folde
   SQRT_END_ID
 };
 
-// IMPORTANT: Call #define ENABLE_UNIKORN_SESSION_CREATION, just before #include "unikorn_instrumentation.h", in the file that calls UNIKORN_INIT()
+// IMPORTANT: Call #define ENABLE_UNIKORN_SESSION_CREATION, just before #include "unikorn_instrumentation.h", in the file that calls UK_CREATE()
 #ifdef ENABLE_UNIKORN_SESSION_CREATION
 
 // Define custom folders
