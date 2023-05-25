@@ -50,7 +50,7 @@ int main() {
 
   // Clean up
   UK_FLUSH(unikorn_session);
-  UK_DESTROY(unikorn_session);
+  UK_DESTROY(unikorn_session, &flush_info);
 #ifdef ENABLE_UNIKORN_RECORDING
   printf("Events were recorded. Use UnikornViewer to view the .events file.\n");
 #else

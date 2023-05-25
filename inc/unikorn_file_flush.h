@@ -21,7 +21,7 @@
 #include <stdio.h>
 
 typedef struct {
-  const char *filename;
+  char *filename;
   FILE *file;
   bool events_saved;
   bool append_subsequent_saves;

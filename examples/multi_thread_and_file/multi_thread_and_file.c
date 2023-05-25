@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
 
     // Finish the event session
     UK_FLUSH(unikorn_session);
-    UK_DESTROY(unikorn_session);
+    UK_DESTROY(unikorn_session, &flush_info);
   }
 
 #ifdef ENABLE_UNIKORN_RECORDING

@@ -21,6 +21,7 @@
 #include "unikorn_clock.h"       // Provide your own clock functionality if you don't want to use one of the clocks provided with the Unikorn distribution
 #include "unikorn_file_flush.h"  // Provide your own flush functionality (e.g. socket) here if you don't want to flush to a file
 #include <stdlib.h>
+#include <string.h>
 
 // Define the unique IDs for the folders and events
 enum {  // IMPORTANT, IDs must start with 1 since 0 is reserved for 'close folder'
@@ -71,7 +72,7 @@ void *UK_CREATE(const char *_filename, uint32_t _max_events, bool _flush_when_fu
     .event_registration_count = NUM_EVENT_REGISTRATIONS,
     .event_registration_list = L_events
   };
-  _flush_info->filename = _filename;
+  _flush_info->filename = strdup(_filename);
   _flush_info->file = NULL;
   _flush_info->events_saved = false;
   _flush_info->append_subsequent_saves = true;
@@ -79,12 +80,16 @@ void *UK_CREATE(const char *_filename, uint32_t _max_events, bool _flush_when_fu
   return session;
 }
 
+void UK_DESTROY(void *_session, UkFileFlushInfo *_flush_info) {
+  ukDestroy(_session);
+  free(_flush_info->filename);
+}
+
 #endif  // ENABLE_UNIKORN_SESSION_CREATION
 
 
 // Macros to compile in event recording
 #define UK_FLUSH(_session) ukFlush(_session)
-#define UK_DESTROY(_session) ukDestroy(_session)
 #define UK_OPEN_FOLDER(_session, _folder_id) ukOpenFolder(_session, _folder_id)
 #define UK_CLOSE_FOLDER(_session) ukCloseFolder(_session)
 #define UK_RECORD_EVENT(_session, _event_id, _value) ukRecordEvent(_session, _event_id, _value, __FILE__, __FUNCTION__, __LINE__)
@@ -95,7 +100,7 @@ void *UK_CREATE(const char *_filename, uint32_t _max_events, bool _flush_when_fu
 
 // Macros to compile out event recording
 #define UK_FLUSH(_session)
-#define UK_DESTROY(_session)
+#define UK_DESTROY(_session, _flush_info)
 #define UK_OPEN_FOLDER(_session, _folder_id)
 #define UK_CLOSE_FOLDER(_session)
 #define UK_RECORD_EVENT(_session, _event_id, _value)
