@@ -72,7 +72,11 @@ void *UK_CREATE(const char *_filename, uint32_t _max_events, bool _flush_when_fu
     .event_registration_count = NUM_EVENT_REGISTRATIONS,
     .event_registration_list = L_events
   };
+#ifdef _WIN32
+  _flush_info->filename = _strdup(_filename);
+#else
   _flush_info->filename = strdup(_filename);
+#endif
   _flush_info->file = NULL;
   _flush_info->events_saved = false;
   _flush_info->append_subsequent_saves = true;
