@@ -1,4 +1,4 @@
-// Copyright 2021,2022,2023 Michael Both
+// Copyright 2021..2024 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,15 +14,19 @@
 
 #define ENABLE_UNIKORN_SESSION_CREATION
 #include "unikorn_instrumentation.h"
+#include "unikorn_macros.h"
 #include <stdio.h>
 
 int main() {
   // Create event session
 #ifdef ENABLE_UNIKORN_RECORDING
   UkFileFlushInfo flush_info; // Needs to be persistent for life of session
-  // Arguments: filename, max_events, flush_when_full, is_multi_threaded, record_instance, record_value, record_location, &flush_info
-  void *unikorn_session = UK_CREATE("./hello.events", 10000, false, false, true, true, true, &flush_info);
+  void *unikorn_session = NULL;
 #endif
+  UK_CREATE("./hello.events", 10000, false, false, true, true, true, 
+            NUM_UNIKORN_FOLDER_REGISTRATIONS, L_unikorn_folders,
+            NUM_UNIKORN_EVENT_REGISTRATIONS, L_unikorn_events,
+            &flush_info, &unikorn_session);
 
   // Print without recording
   printf("Hello!\n");

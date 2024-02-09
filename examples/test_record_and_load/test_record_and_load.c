@@ -1,4 +1,4 @@
-// Copyright 2021,2022,2023 Michael Both
+// Copyright 2021..2024 Michael Both
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 
 #define ENABLE_UNIKORN_SESSION_CREATION
 #include "unikorn_instrumentation.h"
+#include "unikorn_macros.h"
 #ifdef ENABLE_UNIKORN_RECORDING
   #include "unikorn_file_loader.h"
 #endif
@@ -62,8 +63,11 @@ int main(int argc, char **argv) {
   bool record_value = strcmp(argv[6], "value=yes")==0;
   bool record_location = strcmp(argv[7], "location=yes")==0;
   UkFileFlushInfo flush_info; // Needs to be persistent for life of session
-  unikorn_session = UK_CREATE(filename, max_events, flush_when_full, is_multi_threaded, record_instance, record_value, record_location, &flush_info);
 #endif
+  UK_CREATE(filename, max_events, flush_when_full, is_multi_threaded, record_instance, record_value, record_location,
+            NUM_UNIKORN_FOLDER_REGISTRATIONS, L_unikorn_folders,
+            NUM_UNIKORN_EVENT_REGISTRATIONS, L_unikorn_events,
+            &flush_info, &unikorn_session);
 
   // Record
   doStuff();
