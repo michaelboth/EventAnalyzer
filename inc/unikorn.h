@@ -22,10 +22,10 @@
 // Version
 #define UK_API_VERSION_MAJOR 1
 #define UK_API_VERSION_MINOR 1
-#define UK_PACKAGE_VERSION   12 // Increases for every bug fix, examples update, UnikornViewer update, etc. Resets to 0 if UK_API_VERSION_MAJOR or UK_API_VERSION_MINOR changes
-// Version history
-// 1.0: Initial release
-// 1.1: UkEventRegistration, added names for start and end values
+#define UK_PACKAGE_VERSION   13 // Increases for every bug fix, examples update, UnikornViewer update, etc. Resets to 0 if UK_API_VERSION_MAJOR or UK_API_VERSION_MINOR changes
+// API changes
+//   v1.0: Initial release
+//   v1.1: In UkEventRegistration, added names for start and end values
 
 // Predefined RGB colors. Application can still use custom color values, format is 0x0RGB
 enum {
