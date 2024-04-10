@@ -9,6 +9,6 @@ if [ "${dirname%$tmp}" != "/" ]; then
     dirname=$PWD/$dirname
 fi
 
-LD_LIBRARY_PATH=$dirname
-export LD_LIBRARY_PATH
+#+LD_LIBRARY_PATH=$dirname
+#+export LD_LIBRARY_PATH
 $dirname/$appname "$@"

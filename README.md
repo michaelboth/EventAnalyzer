@@ -76,7 +76,7 @@ UnikornViewer is written in C++ using the Open Source Qt framework (www.qt.io).<
 Get the pre-built viewers from the 'Releases' section (right panel of the GitHub webpage, near the top), click on 'Latest' to get the latest release.<br>
 
 To manualy build it yourself, do the following:<br>
-*Tested with Qt Qt 5.15.2*<br>
+*Tested with Qt 5.15.x*<br>
 ### Linux and Mac
 ```
 > cd unikorn/visualizer

@@ -22,7 +22,7 @@
 // Version
 #define UK_API_VERSION_MAJOR 1
 #define UK_API_VERSION_MINOR 1
-#define UK_PACKAGE_VERSION   13 // Increases for every bug fix, examples update, UnikornViewer update, etc. Resets to 0 if UK_API_VERSION_MAJOR or UK_API_VERSION_MINOR changes
+#define UK_PACKAGE_VERSION   14 // Increases for every bug fix, examples update, UnikornViewer update, etc. Resets to 0 if UK_API_VERSION_MAJOR or UK_API_VERSION_MINOR changes
 // API changes
 //   v1.0: Initial release
 //   v1.1: In UkEventRegistration, added names for start and end values

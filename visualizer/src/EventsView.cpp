@@ -1427,7 +1427,7 @@ void EventsView::paintEvent(QPaintEvent* /*event*/) {
 
     // Draw the copyright
     text_rect.translate(QPoint(0, line_h*1.2));
-    QString copyright_message = QChar(0x00A9) + QString(" 2021-2023 Michael Both");
+    QString copyright_message = QChar(0x00A9) + QString(" 2021-2024 Michael Both");
     painter.drawText(text_rect, Qt::AlignHCenter | Qt::AlignTop, copyright_message);
 
     // Revert painter save state
