@@ -198,7 +198,12 @@ void HierarchyView::mousePressEvent(QMouseEvent *event) {
   if (node_with_mouse != NULL) {
     node_with_mouse->row_selected = true;
     // Check if on folder to open/close
-    if (node_with_mouse->folder_rect.contains(event->x(), event->y())) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    QPoint position = QPoint((int)event->position().x(), (int)event->position().y());
+#else
+    QPoint position = QPoint(event->x(), event->y());
+#endif
+    if (node_with_mouse->folder_rect.contains(position.x(), position.y())) {
       node_with_mouse->is_open = !node_with_mouse->is_open;
       emit hierarchyHeightChanged();
     }
@@ -208,7 +213,11 @@ void HierarchyView::mousePressEvent(QMouseEvent *event) {
 }
 
 void HierarchyView::mouseMoveEvent(QMouseEvent *event) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  mouse_location = QPoint((int)event->position().x(), (int)event->position().y());
+#else
   mouse_location = QPoint(event->x(), event->y());
+#endif
   if ((node_with_mouse != NULL && !row_with_mouse_rect.contains(mouse_location)) || (node_with_mouse == NULL && mouse_location.y() < content_bottom_y)) {
     // Need to update since a different row should be highlighted
     update();

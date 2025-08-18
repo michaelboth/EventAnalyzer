@@ -384,7 +384,11 @@ void EventsView::mousePressEvent(QMouseEvent *event) {
     } else {
       // Start selection of time range
       mouse_button_pressed = true;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+      selected_time_range_x1 = (int)event->position().x();
+#else
       selected_time_range_x1 = event->x();
+#endif
       selected_time_range_x2 = selected_time_range_x1;
     }
     update(); // Avoids full redraw
@@ -403,10 +407,14 @@ EventTreeNode *EventsView::mouseOnEventsLine(EventTreeNode *parent) {
 }
 
 void EventsView::mouseMoveEvent(QMouseEvent *event) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  mouse_location = QPoint((int)event->position().x(), (int)event->position().y());
+#else
   mouse_location = QPoint(event->x(), event->y());
+#endif
   if (mouse_button_pressed) {
     // Selecting time range
-    selected_time_range_x2 = event->x();
+    selected_time_range_x2 = mouse_location.x();
     update(); // Avoids full redraw
   } else {
     // See if mouse is on an event line

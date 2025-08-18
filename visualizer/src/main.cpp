@@ -14,7 +14,11 @@
 
 #include <QApplication>
 #include <QScreen>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+// Nothing needed
+#else
 #include <QDesktopWidget>
+#endif
 #include <QStyleFactory>
 #include "main.hpp"
 #include "MainWindow.hpp"
@@ -34,10 +38,14 @@ int main(int argc, char *argv[]) {
 
   // Get some screen stats
   G_pixels_per_point = qApp->primaryScreen()->devicePixelRatio();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  // Aparent Qt only supports high DPI, so need to ask for it
+#else
   if (G_pixels_per_point > 1.0) {
     printf("Using high density display: pixels per point = %f\n", G_pixels_per_point);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
   }
+#endif
   // Create home screen
   MainWindow *main_window = new MainWindow(NULL);
 
