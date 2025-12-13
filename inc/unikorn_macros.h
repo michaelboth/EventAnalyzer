@@ -44,7 +44,7 @@
 //    UkFileFlushInfo *_flush_info
 //    void **_session_out
 #define UK_CREATE(_filename, _max_events, _flush_when_full, _is_multi_threaded, _record_instance, _record_value, _record_location, _folder_registration_count, _folder_registration_list, _event_registration_count, _event_registration_list, _flush_info, _session_out) \
-  UkAttrs attrs = { \
+  UkAttrs unikorn_attrs = { \
     .max_event_count = (_max_events), \
     .flush_when_full = (_flush_when_full), \
     .is_multi_threaded = (_is_multi_threaded), \
@@ -60,7 +60,7 @@
   (_flush_info)->file = NULL; \
   (_flush_info)->events_saved = false; \
   (_flush_info)->append_subsequent_saves = true; \
-  *(_session_out) = ukCreate(&attrs, ukGetTime, _flush_info, ukPrepareFileFlush, ukFileFlush, ukFinishFileFlush)
+  *(_session_out) = ukCreate(&unikorn_attrs, ukGetTime, _flush_info, ukPrepareFileFlush, ukFileFlush, ukFinishFileFlush)
 
 #define UK_DESTROY(_session, _flush_info) ukDestroy(_session); free((_flush_info)->filename)
 #define UK_FLUSH(_session) ukFlush(_session)
